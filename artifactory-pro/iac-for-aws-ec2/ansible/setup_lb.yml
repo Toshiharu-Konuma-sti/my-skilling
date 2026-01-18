@@ -1,0 +1,70 @@
+# ArtifactoryのIP情報を収集するためにfacts収集を行う
+- hosts: artifactory
+  become: yes
+  gather_facts: yes
+
+# HAProxyの構築
+- hosts: haproxy
+  become: yes
+  vars:
+    # 転送先のArtifactoryポート (Router Port)
+    artifactory_port: 8082
+
+  tasks:
+    # 1. HAProxyのインストール
+    - name: Install HAProxy
+      apt:
+        name: haproxy
+        state: present
+        update_cache: yes
+
+    # 2. 設定ファイルの配置 (Jinja2テンプレート機能で、inventory内の[artifactory]グループのサーバーを自動列挙)
+    - name: Configure haproxy.cfg
+      blockinfile:
+        path: /etc/haproxy/haproxy.cfg
+        block: |
+          # ------------------------------------------------
+          # JFrog Artifactory Frontend
+          # ------------------------------------------------
+          frontend artifactory_front
+              bind *:80
+              mode http
+              default_backend artifactory_back
+
+          # ------------------------------------------------
+          # JFrog Artifactory Backend
+          # ------------------------------------------------
+          backend artifactory_back
+              mode http
+              balance roundrobin
+              option forwardfor
+              
+              # ヘルスチェック設定: システムヘルスAPIを叩いて生存確認
+              # option httpchk GET /router/api/v1/system/health HTTP/1.1
+              option httpchk GET /router/api/v1/system/health
+              # http-check expect status 200
+              http-check expect status 200,503
+
+              # インベントリ内のArtifactoryサーバーをループして設定
+              {% for host in groups['artifactory'] %}
+              server artifactory-{{ loop.index }} {{ hostvars[host]['ansible_default_ipv4']['address'] }}:{{ artifactory_port }} check
+              {% endfor %}
+
+          # ------------------------------------------------
+          # HAProxy Stats Page (管理画面)
+          # ------------------------------------------------
+          listen stats
+              bind *:8404              # 8404番ポートで公開
+              mode http
+              stats enable             # 統計機能を有効化
+              stats uri /stats         # URLのパス (http://IP:8404/stats)
+              stats refresh 10s        # 10秒ごとに自動更新
+              stats auth admin:password # 認証 (ユーザー: admin, パスワード: password)
+              stats admin if TRUE      # 管理機能(有効/無効切り替え等)を許可
+
+    # 3. 再起動
+    - name: Restart HAProxy
+      systemd:
+        name: haproxy
+        state: restarted
+        enabled: yes
