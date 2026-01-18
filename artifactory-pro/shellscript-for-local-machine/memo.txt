@@ -1,0 +1,9 @@
+
+
+## Xray起動後のエラーログ
+
+Xray起動後に以下のログが出現しているが、恐らく、Artifactoryがまだライセンス通していないので、XrayからArtifactoryへのAPI操作も拒否されていると考えている。Artifactory側のライセンスを通せば、以下エラーログも解消されると想定している。
+
+```
+2026-01-12T02:45:39.527Z [jfxr ] [ERROR] [43f50b8c8066c573] [retry:102                     ] [MainServer                      ] Failed to create xray config in Artifactory: Failed to create xray config in binary repository mgr http://localhost:8046/artifactory, response is: Xray version ( Xray/3.131.31 ) is below 3.0.0 - Please upgrade Xray to use Artifactory 7.0.0 and above,err is:Failed to access :http://localhost:8046/artifactory/api/xray return status code : 403
+```

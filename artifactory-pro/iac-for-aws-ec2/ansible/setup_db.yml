@@ -1,0 +1,79 @@
+- hosts: db
+  become: yes
+  vars:
+    # Ubuntu 24.04 のデフォルトバージョンを指定
+    pg_version: 16
+    pg_conf_dir: "/etc/postgresql/{{ pg_version }}/main"
+
+  tasks:
+    # 1. パッケージのインストール ('acl' はAnsibleがpostgresユーザーとして操作するために必須)
+    - name: Install PostgreSQL and dependencies
+      apt:
+        name:
+          - postgresql
+          - postgresql-contrib
+          - acl
+          - python3-psycopg2
+        state: present
+        update_cache: yes
+
+    # 2. 外部接続の許可: postgresql.conf (デフォルトの 'localhost' から '*' (すべて) に変更)
+    - name: Enable remote connection in postgresql.conf
+      lineinfile:
+        path: "{{ pg_conf_dir }}/postgresql.conf"
+        regexp: "^#?listen_addresses"
+        line: "listen_addresses = '*'"
+
+    # 3. 認証設定の追加: pg_hba.conf (どのIPアドレスからでもパスワード認証で接続許可)
+    - name: Allow remote connection in pg_hba.conf
+      lineinfile:
+        path: "{{ pg_conf_dir }}/pg_hba.conf"
+        line: "host    all             all             0.0.0.0/0            scram-sha-256"
+        insertafter: EOF
+
+    # 4. 設定反映のための再起動
+    - name: Restart PostgreSQL service
+      systemd:
+        name: postgresql
+        state: restarted
+        enabled: yes
+
+    # 5. データベースとユーザーの作成
+    - name: Create Artifactory User
+      become: yes
+      become_user: postgres
+      community.postgresql.postgresql_user:
+        name: artifactory
+        password: "password"
+        role_attr_flags: "CREATEDB,NOSUPERUSER" # 必要な権限のみ付与
+
+    - name: Create Artifactory Database
+      become: yes
+      become_user: postgres
+      community.postgresql.postgresql_db:
+        name: artifactory
+        owner: artifactory
+        encoding: UTF8
+
+    - name: Create Xray User
+      become: yes
+      become_user: postgres
+      community.postgresql.postgresql_user:
+        name: xray
+        password: "password"
+        role_attr_flags: "CREATEDB,NOSUPERUSER"
+
+    - name: Create Xray Database
+      become: yes
+      become_user: postgres
+      community.postgresql.postgresql_db:
+        name: xraydb
+        owner: xray
+        encoding: UTF8
+
+    - name: Enable pgcrypto extension for Xray
+      become: yes
+      become_user: postgres
+      community.postgresql.postgresql_ext:
+        name: pgcrypto
+        db: xraydb

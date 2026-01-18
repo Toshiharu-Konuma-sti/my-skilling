@@ -1,0 +1,43 @@
+- hosts: nfs
+  become: yes
+  vars:
+    # 共有するディレクトリのパス
+    nfs_export_path: "/data/artifactory"
+    # アクセスを許可するネットワーク (VPCのCIDRなど)
+    allowed_network: "10.0.1.0/24" # TerraformのサブネットCIDRに合わせる
+
+  tasks:
+    # 1. NFSサーバーパッケージのインストール
+    - name: Install NFS kernel server
+      apt:
+        name: nfs-kernel-server
+        state: present
+        update_cache: yes
+
+    # 2. 共有ディレクトリの作成
+    - name: Create export directory
+      file:
+        path: "{{ nfs_export_path }}"
+        state: directory
+        mode: '0777' # 学習用: 誰でも書き込めるようにしてPermissionエラーを防ぐ
+        owner: nobody
+        group: nogroup
+
+    # 3. /etc/exports の設定 (誰にどのディレクトリを見せるか)
+    - name: Configure exports
+      lineinfile:
+        path: /etc/exports
+        line: "{{ nfs_export_path }} {{ allowed_network }}(rw,sync,no_subtree_check,no_root_squash)"
+        create: yes
+
+    # 4. 設定反映とサービス起動
+    - name: Export shares and restart NFS service
+      shell: exportfs -ra
+      notify: Restart NFS
+
+  handlers:
+    - name: Restart NFS
+      systemd:
+        name: nfs-kernel-server
+        state: restarted
+        enabled: yes

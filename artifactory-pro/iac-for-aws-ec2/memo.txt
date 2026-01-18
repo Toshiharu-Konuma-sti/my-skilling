@@ -1,0 +1,95 @@
+#################################################
+# preparing
+#################################################
+
+# set up the ssh key to connect to EC2 with ssh
+
+  * How to get an EC2 Key Pair
+    - After logging in to AWS, go to EC2.
+    - Select "Network & Security > Key Pairs" from the menu
+    - Click "Create Key Pair"
+      - Name: my-ec2-key-pair
+      - Type: RSA
+      - Format: .pem
+  * Place it in the ".ssh/" directory in your local environment
+    - $ mv my-ec2-key-pair.pem ~/.ssh/
+    - $ chmod 400 ~/.ssh/my-ec2-key-pair.pem
+
+# for aws: install aws command
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+aws --version
+
+# for aws: set up aws authentication
+
+aws configure
+ > AWS Access Key ID : {aws's access key}
+ > AWS Secret Access Key : {aws's secret}
+ > Default region name : ap-northeast-1
+ > Default output format : json
+
+  * How to get an Access Key
+    - After logging in to AWS, click an account name in the upper right corner and select "Security Credentials."
+    - Scroll down to your credentials screen.
+    - In the Access Keys section, select "Create Access Key."
+    - Select "CLI" as the use case and create an access key.
+
+# install terraform
+
+wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
+ | sudo tee /etc/apt/sources.list.d/hashicorp.list
+sudo apt update && sudo apt install terraform
+
+# install ansible
+
+sudo apt update
+sudo apt install -y ansible
+ansible --version
+
+
+#################################################
+# deploy to EC2
+#################################################
+
+# run terraform command
+
+cd terraform/
+terraform init
+terraform plan
+terraform apply
+
+terraform destroy
+
+# run ansible command
+
+cd ../ansible/
+ansible -i inventory.ini all -m ping
+date && time ansible-playbook -i inventory.ini setup_db.yml -v
+date && time ansible-playbook -i inventory.ini setup_nfs.yml -v
+date && time ansible-playbook -i inventory.ini setup_art.yml -v
+date && time ansible-playbook -i inventory.ini setup_lb.yml -v
+date && time ansible-playbook -i inventory.ini setup_xray.yml -v
+
+#################################################
+# memo
+#################################################
+
+- access with ssh and chech a log
+ssh -i ~/.ssh/t-konuma-ec2-key-pair.pem ubuntu@{ip of EC2}
+clear & sudo cat /opt/jfrog/artifactory/var/log/artifactory-service.log
+clear & sudo cat /var/opt/jfrog/xray/log/xray-server-service.log
+systemctl status artifactory
+systemctl status xray
+sudo vim /opt/jfrog/artifactory/var/etc/system.yaml
+
+- access with browser
+http://<public ip of haproxy>/ui/
+http://<public ip of haproxy>:8404/stats
+http://<public ip of Artifactory>:8082/
+
+terraform destroy -target="aws_instance.artifactory_node"
+terraform apply -target="aws_instance.artifactory_node"
+

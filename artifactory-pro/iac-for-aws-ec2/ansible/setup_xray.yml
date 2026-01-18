@@ -1,0 +1,149 @@
+- hosts: db, artifactory, haproxy
+  become: yes
+  gather_facts: yes
+
+- hosts: xray
+  become: yes
+  vars:
+    xray_version: "3.131.27"
+    db_ip: "{{ hostvars[groups['db'][0]]['ansible_default_ipv4']['address'] }}"
+    installer_dir: "/tmp/xray_installer"
+    archive_url: "https://releases.jfrog.io/artifactory/jfrog-xray/xray-deb/{{ xray_version }}/jfrog-xray-{{ xray_version }}-deb.tar.gz"
+    haproxy_url: "http://{{ hostvars[groups['haproxy'][0]]['ansible_default_ipv4']['address'] }}:80"
+    artifactory_direct_url: "http://{{ hostvars[groups['artifactory'][0]]['ansible_default_ipv4']['address'] }}:8082"
+
+  tasks:
+    # -------------------------------------------------------
+    # 0. 初期設定 & 依存パッケージ
+    # -------------------------------------------------------
+    - name: Install dependencies
+      apt:
+        name: [net-tools, gnupg2, wget, curl, socat, libsctp1, libncurses6, unzip]
+        state: present
+        update_cache: yes
+
+    - name: Ensure hostname is in /etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        line: "127.0.0.1 {{ ansible_hostname }}"
+        state: present
+
+    # -------------------------------------------------------
+    # 1. Erlang & yq のインストール
+    # -------------------------------------------------------
+    - name: Create installer directory
+      file:
+        path: "{{ installer_dir }}"
+        state: directory
+
+    - name: Download Xray Archive
+      get_url:
+        url: "{{ archive_url }}"
+        dest: "/tmp/jfrog-xray-{{ xray_version }}.tar.gz"
+        timeout: 600
+
+    - name: Extract Xray Archive
+      unarchive:
+        src: "/tmp/jfrog-xray-{{ xray_version }}.tar.gz"
+        dest: "{{ installer_dir }}"
+        remote_src: yes
+        extra_opts: [--strip-components=1]
+        creates: "{{ installer_dir }}/xray"
+
+    - name: Find and Install bundled Erlang
+      find:
+        paths: "{{ installer_dir }}/third-party/rabbitmq4"
+        patterns: "*~ubuntu~{{ ansible_distribution_release }}_amd64.deb"
+        recurse: yes
+      register: erlang_deb
+
+    - name: Install bundled Erlang
+      apt:
+        deb: "{{ erlang_deb.files[0].path }}"
+        state: present
+
+    - name: Install bundled yq
+      copy:
+        src: "{{ installer_dir }}/third-party/yq/yq"
+        dest: /usr/local/bin/yq
+        mode: '0755'
+        remote_src: yes
+
+    # -------------------------------------------------------
+    # 3. Xray のインストール
+    # -------------------------------------------------------
+    - name: Install Xray package
+      apt:
+        deb: "{{ installer_dir }}/xray/xray.deb"
+        state: present
+
+    # -------------------------------------------------------
+    # 4. 設定ファイル & キー配置
+    # -------------------------------------------------------
+    - name: Check if system.yaml.org exists
+      stat:
+        path: /opt/jfrog/xray/var/etc/system.yaml.org
+      register: system_yaml_org
+
+    - name: Backup system.yaml to system.yaml.org if not exists
+      copy:
+        src: /opt/jfrog/xray/var/etc/system.yaml
+        dest: /opt/jfrog/xray/var/etc/system.yaml.org
+        owner: xray
+        group: xray
+        mode: '0644'
+        remote_src: yes
+      when: not system_yaml_org.stat.exists
+
+    - name: Configure system.yaml
+      copy:
+        dest: /opt/jfrog/xray/var/etc/system.yaml
+        owner: xray
+        group: xray
+        mode: '0644'
+        content: |
+          configVersion: 1
+          shared:
+              node:
+                  ip: {{ ansible_default_ipv4.address }}
+                  id: "xray-{{ ansible_default_ipv4.address | replace('.', '-') }}"
+              database:
+                  type: postgres
+                  driver: postgres
+                  url: "postgres://{{ db_ip }}:5432/xraydb?sslmode=disable"
+                  username: "xray"
+                  password: "password"
+              rabbitMq:
+                  url: "amqp://localhost:5672/"
+                  username: "guest"
+                  password: "guest"
+              jfrogUrl: "{{ haproxy_url }}"
+              # jfrogUrl: "{{ artifactory_direct_url }}"
+
+    - name: Create security directory
+      file:
+        path: /opt/jfrog/xray/var/etc/security
+        state: directory
+        owner: xray
+        group: xray
+        mode: '0755'
+
+    - name: Copy Security Keys
+      copy:
+        src: "buffer/{{ item }}"
+        dest: "/opt/jfrog/xray/var/etc/security/{{ item }}"
+        owner: xray
+        group: xray
+        mode: '0640'
+      loop:
+        - join.key
+        - master.key
+
+    # -------------------------------------------------------
+    # 5. Xray 再起動
+    # -------------------------------------------------------
+    - name: Start Xray Service
+      systemd:
+        name: xray
+        state: restarted
+        enabled: yes

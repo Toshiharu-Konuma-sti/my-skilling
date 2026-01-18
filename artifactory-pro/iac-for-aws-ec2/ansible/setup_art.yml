@@ -1,0 +1,212 @@
+- hosts: db, nfs
+  become: yes
+  gather_facts: yes
+
+# Artifactoryの構築
+- hosts: artifactory
+  become: yes
+  vars:
+    artifactory_version: "7.125.11"
+    db_ip: "{{ hostvars[groups['db'][0]]['ansible_default_ipv4']['address'] }}"
+    nfs_ip: "{{ hostvars[groups['nfs'][0]]['ansible_default_ipv4']['address'] }}"
+    nfs_path: "/data/artifactory"
+    local_mount_point: "/mnt/nfs_data"
+    primary_node: "{{ groups['artifactory'][0] }}"
+
+  tasks:
+    # 1. 必須ツールのインストール
+    - name: Install dependencies
+      apt:
+        name: [net-tools, gnupg2, software-properties-common, nfs-common]
+        state: present
+        update_cache: yes
+
+    # 2. OSバージョンの判定
+    - name: Get distribution codename
+      command: lsb_release -c -s
+      register: distro_codename
+      changed_when: false
+
+    # 3. JFrog GPGキーの追加
+    - name: Add JFrog GPG key
+      apt_key:
+        url: "https://releases.jfrog.io/artifactory/api/v2/repositories/artifactory-pro-debs/keyPairs/primary/public"
+        state: present
+
+    # 4. リポジトリの追加
+    - name: Add JFrog Artifactory repository
+      apt_repository:
+        repo: "deb https://releases.jfrog.io/artifactory/artifactory-pro-debs {{ distro_codename.stdout }} main"
+        state: present
+        filename: jfrog
+
+    # 5. Artifactoryのインストール
+    - name: Install Artifactory Pro
+      apt:
+        name: "jfrog-artifactory-pro={{ artifactory_version }}"
+        state: present
+        update_cache: yes
+
+    # 6. NFSマウント設定 (マウント後にartifactoryユーザーへ権限付与)
+    - name: Create local mount point
+      file:
+        path: "{{ local_mount_point }}"
+        state: directory
+        mode: '0777'
+
+    - name: Mount NFS Share
+      mount:
+        path: "{{ local_mount_point }}"
+        src: "{{ nfs_ip }}:{{ nfs_path }}"
+        fstype: nfs
+        opts: defaults
+        state: mounted
+
+    - name: Ensure permission on mount point
+      file:
+        path: "{{ local_mount_point }}"
+        state: directory
+        owner: artifactory
+        group: artifactory
+        mode: '0775'
+
+    # 7. binarystore.xml の設定
+    - name: Configure binarystore.xml for NFS
+      copy:
+        dest: /opt/jfrog/artifactory/var/etc/artifactory/binarystore.xml
+        owner: artifactory
+        group: artifactory
+        mode: '0644'
+        content: |
+          <config version="2">
+              <chain template="file-system"/>
+              <provider id="file-system" type="file-system">
+                  <binariesDir>{{ local_mount_point }}/filestore</binariesDir>
+              </provider>
+          </config>
+
+    # 8. system.yamlの設定 (ファイルを新規作成/上書きして重複を防ぐ)
+    - name: Check if system.yaml.org exists
+      stat:
+        path: /opt/jfrog/artifactory/var/etc/system.yaml.org
+      register: system_yaml_org
+
+    - name: Backup system.yaml to system.yaml.org if not exists
+      copy:
+        src: /opt/jfrog/artifactory/var/etc/system.yaml
+        dest: /opt/jfrog/artifactory/var/etc/system.yaml.org
+        owner: artifactory
+        group: artifactory
+        mode: '0644'
+        remote_src: yes
+      when: not system_yaml_org.stat.exists
+
+    - name: Configure system.yaml for PostgreSQL
+      copy:
+        dest: /opt/jfrog/artifactory/var/etc/system.yaml
+        owner: artifactory
+        group: artifactory
+        mode: '0644'
+        content: |
+          ## @formatter:off
+          configVersion: 1
+          shared:
+              security:
+              node:
+          {% if groups['artifactory'] | length > 1 %}
+                  haEnabled: true
+                  id: "art-{{ ansible_default_ipv4.address | replace('.', '-') }}"
+                  ip: {{ ansible_default_ipv4.address }}
+                  taskAffinity: any
+          {% endif %}
+              database:
+                  allowNonPostgresql: false
+                  type: postgresql
+                  driver: org.postgresql.Driver
+                  url: "jdbc:postgresql://{{ db_ip }}:5432/artifactory"
+                  username: "artifactory"
+                  password: "password"
+          access:
+
+    #-----------------------------------------------------------------
+    # 9. サービス起動:1台目 (起動後に2台目以降に配布用の鍵収集)
+    #-----------------------------------------------------------------
+
+    # サービスの起動: 1台目だけを先に起動して、鍵(master.key)を生成させる
+    - name: Start Artifactory on the primary node and generate keys
+      systemd:
+        name: artifactory
+        state: started
+      when: inventory_hostname == primary_node
+
+    # 初期化待ち
+    - name: Wait for Primary Node to Initialize (DB Migration)
+      wait_for:
+        port: 8081
+        host: "localhost"
+        delay: 10
+        timeout: 300
+      when: inventory_hostname == primary_node
+
+    - name: Wait for Master Key generation on Primary
+      wait_for:
+        path: /opt/jfrog/artifactory/var/etc/security/master.key
+        timeout: 600
+      when: inventory_hostname == primary_node
+
+    - name: Wait for Join Key generation on Primary
+      wait_for:
+        path: /opt/jfrog/artifactory/var/etc/security/join.key
+        timeout: 300
+      when: inventory_hostname == primary_node
+
+    # Ansible実行端末(手元)へ鍵収集
+    - name: Fetch keys from Primary
+      fetch:
+        src: "/opt/jfrog/artifactory/var/etc/security/{{ item }}"
+        dest: buffer/
+        flat: yes
+      loop:
+        - master.key
+        - join.key
+      when: inventory_hostname == primary_node
+
+    #-----------------------------------------------------------------
+    # 10. サービス起動:2台目以降 (1台目の鍵を配布してから起動)
+    #-----------------------------------------------------------------
+
+    # セキュリティディレクトリの事前作成
+    - name: Ensure security directory exists on two or more nodes
+      file:
+        path: /opt/jfrog/artifactory/var/etc/security
+        state: directory
+        owner: artifactory
+        group: artifactory
+        mode: '0700'
+      when: inventory_hostname != primary_node
+
+    # Ansible実行端末(手元)から鍵配布
+    - name: Distribute keys on primary node to two or more
+      copy:
+        src: "buffer/{{ item }}"
+        dest: "/opt/jfrog/artifactory/var/etc/security/{{ item }}"
+        owner: artifactory
+        group: artifactory
+        mode: '0640'
+      loop:
+        - master.key
+        - join.key
+      when: inventory_hostname != primary_node
+
+    # サービスの起動: 2台目以降
+    - name: Start Artifactory with two or more
+      systemd:
+        name: artifactory
+        state: started
+        enabled: yes
+      when: inventory_hostname != primary_node
+
+#    # >>>>>>>>>>>>>>>>>>> exit()
+#    - name: End the play
+#      meta: end_play
+#    # <<<<<<<<<<<<<<<<<<< exit()
