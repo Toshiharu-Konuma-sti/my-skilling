@@ -1,0 +1,36 @@
+openapi: 3.1.0
+info:
+  title: Yahoo! Topics RSS API - Domestic
+  version: 1.0.0
+  description: Authorization Code Grant で取得したトークンを検証する PEP タイプの検証用です。
+  contact:
+    name: API管理者
+    email: admin@example.com
+servers:
+  - url: http://localhost:8000
+x-kong-name: oauth-auth-code-api-gw-pep
+x-kong-service-defaults:
+  protocol: https
+  host: news.yahoo.co.jp
+  port: 443
+  path: /rss/topics/domestic.xml
+paths:
+  /handson/oauth/v1/auth-code/api-gw-pep:
+    get:
+      x-kong-route-defaults:
+        strip_path: true
+      responses:
+        '200':
+          description: OK
+
+      x-kong-plugin-openid-connect:
+        name: openid-connect
+        config:
+          issuer: "http://keycloak:8080/realms/handson"
+          client_id:
+            - "${{ env \"DECK_KC_CLIENT_ID_API_GW_PEP\" }}"
+          client_secret:
+            - "${{ env \"DECK_KC_CLIENT_SECRET_API_GW_PEP\" }}"
+          auth_methods:
+            - bearer
+          upstream_access_token_header: "Authorization"

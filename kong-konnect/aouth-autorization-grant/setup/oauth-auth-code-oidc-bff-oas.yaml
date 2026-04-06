@@ -1,0 +1,52 @@
+openapi: 3.1.0
+info:
+  title: Yahoo! Topics RSS API - Economy
+  version: 1.0.0
+  description: Authorization Code Grant の OIDC BFF タイプの検証用です。
+  contact:
+    name: API管理者
+    email: admin@example.com
+servers:
+  - url: http://localhost:8000
+x-kong-name: oauth-auth-code-oidc-bff
+x-kong-service-defaults:
+  protocol: https
+  host: news.yahoo.co.jp
+  port: 443
+  path: /rss/topics/business.xml
+paths:
+
+  /handson/oauth/v1/auth-code/oidc-bff:
+    get:
+      x-kong-route-defaults:
+        strip_path: true
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Unauthorized - セッション Cookie が存在しない場合
+
+      x-kong-plugin-openid-connect:
+        name: openid-connect
+        config:
+          issuer: "http://keycloak:8080/realms/handson"
+          client_id:
+            - "${{ env \"DECK_KC_CLIENT_ID_OIDC_BFF\" }}"
+          client_secret:
+            - "${{ env \"DECK_KC_CLIENT_SECRET_OIDC_BFF\" }}"
+          auth_methods:
+            - session
+          session_storage: redis
+          session_secret: "a-very-secret-key-that-is-at-least-32-chars"
+          session_cookie_name: "kong_session"
+          session_cookie_path: "/handson/oauth/"
+          session_cookie_httponly: true
+          session_cookie_secure: false
+          session_cookie_samesite: Lax
+          session_rolling_timeout: 3600
+          session_idling_timeout: 900
+          redis:
+            host: "redis"
+            port: 6379
+            database: 0
+          upstream_access_token_header: "Authorization"
