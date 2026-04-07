@@ -16,16 +16,16 @@ Kong Konnect と Keycloak を使い、主要な認可フローを体験するた
 
 Kong Konnectにアクセスして事前準備をします。
 
-1. 「Control Plane」を作り、該当のリージョンと名称を手元に控えておきます。
+1. API Gatewayに該当する「Control Plane（CP）」を作り、該当のリージョンとCP名を手元に控えておきます。
 
-1. 「Personal Access Token」を発行して手元に控えておきます。
+1. 「Personal Access Token（PAT）」を発行して手元に控えておきます。
 
 ローカル環境で事前準備をします。
 
 1. dockerをインストールします。
    - [初期環境構築: Docker Engine on Ubuntu](https://github.com/Toshiharu-Konuma-sti/setup-docs-for-hands-on/tree/main/setup-docker-engine-on-ubuntu)
 
-1. decKをインストールします。
+1. Kong KonnectのコマンドラインツールであるdecKをインストールします。
 
    - https://developer.konghq.com/deck/
      ```
@@ -34,7 +34,8 @@ Kong Konnectにアクセスして事前準備をします。
      $ deck version
        decK v1.55.0 (19a389c)
      ```
-1. hostsにkeycloakを登録する
+
+1. hostsにkeycloakを登録します。
    - Windows:    C:\Windows\System32\driversc\hosts
    - Linux(WSL): /etc/hosts
    - MacOS:      /private/etc/hosts
@@ -42,7 +43,7 @@ Kong Konnectにアクセスして事前準備をします。
      127.0.0.1 keycloak
      ```
 
-1. リポジトリを取得します。
+1. 体験用のリポジトリを取得します。
 
     ```
 	$ mkdir -p ~/handson/
@@ -63,7 +64,7 @@ Kong Konnectにアクセスして事前準備をします。
 	- [BEFORE_CREATE_CONTAINER.sh](./container/BEFORE_CREATE_CONTAINER.sh)：Kong Data Plane認証用のクライアント証明書および秘密鍵の作成とKonnectへ登録します。
 	- [CREATE_CONTAINER.sh](./container/CREATE_CONTAINER.sh)：コンテナを構築します。
 
-1. コンテナ構築前の事前準備スクリプトを実行します。体験で利用するKonnectのリージョン、Control Plane名、Konnectを操作するためのPersonal Access Tokenを求められたら入力します。
+1. コンテナ構築前の事前準備スクリプトを実行します。体験で利用するKonnectのリージョン、CP名、Konnectを操作するためのPATを求められたら入力します。
 
     ```
 	$ ./BEFORE_CREATE_CONTAINER.sh
@@ -107,6 +108,7 @@ Kong Konnectにアクセスして事前準備をします。
 	############################################################
 	  :
     ```
+    - 実行内容は [step01_SETUP_KEYCLOAK.sh](./setup/step01_SETUP_KEYCLOAK.sh) の main() 関数の処理内容を確認してください。
 
 ### Kong Konnect 環境設定
 
@@ -129,6 +131,7 @@ Kong Konnectにアクセスして事前準備をします。
 	############################################################
 	  :
     ```
+    - 実行内容は [step02_KONG_REGISTER_API.sh](./setup/step02_KONG_REGISTER_API.sh) の main() 関数の処理内容を確認してください。
 
 ## 体験
 
@@ -150,9 +153,11 @@ Kong Konnectにアクセスして事前準備をします。
 
 - [test01_auth-code-api-gw-pep.sh](./try-my-hand/test01_auth-code-api-gw-pep.sh)
 
-  ```
-  $ ./test01_auth-code-api-gw-pep.sh
-  ```
+    ```
+    $ ./test01_auth-code-api-gw-pep.sh
+    ```
+    - 実行内容は該当スクリプトの main() 関数の処理内容を確認してください。
+
 
 ### Authorization  Code Grant: OIDC BFF方式
 
@@ -172,6 +177,7 @@ Kong Konnectにアクセスして事前準備をします。
   ```
   $ ./test02_auth-code-oidc-bff.sh
   ```
+  - 実行内容は該当スクリプトの main() 関数の処理内容を確認してください。
 
 ### Client Credentials
 
@@ -188,6 +194,7 @@ Kong Konnectにアクセスして事前準備をします。
   ```
   $ ./test03_client-credentials.sh
   ```
+  - 実行内容は該当スクリプトの main() 関数の処理内容を確認してください。
 
 ## 清掃手順
 
