@@ -6,7 +6,7 @@ CUR_DIR=$(cd $(dirname $0); pwd)
 . $CUR_DIR/common.sh
 . $CUR_DIR/custom.sh
 
-source .env
+source $CUR_DIR/.env
 
 KONNECT_ADDR="https://${REGION:-$(util_ask_input "🏢 Enter REGION (Control Plane Region): ")}.api.konghq.com"
 CP_NM=${CP_NAME:-$(util_ask_input "🏢 Enter CP_NAME (Control Plane Name): ")}
@@ -15,6 +15,9 @@ KONNECT_TOKEN=${KONNECT_PAT:-$(util_ask_secret "🔑 Enter KONNECT_PAT (Secret):
 # {{{ main()
 main()
 {
+	# 必須コマンドの存在確認
+	check_required_commands "deck"
+
 	echo "### 🚀 接続確認: deck gateway ping ..."
 	deck gateway ping \
 		--konnect-token "${KONNECT_TOKEN}" \

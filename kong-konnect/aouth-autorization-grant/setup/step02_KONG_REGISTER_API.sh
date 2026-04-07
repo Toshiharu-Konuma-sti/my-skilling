@@ -7,8 +7,8 @@ CUR_DIR=$(cd $(dirname $0); pwd)
 . $CUR_DIR/custom.sh
 
 # 環境変数の読み込み
-source .env
-source .env_keycloak_client
+source $CUR_DIR/.env
+source $CUR_DIR/.env_keycloak_client
 
 # Konnectへ渡す変数のエクスポート（BFF用とPEP用両方）
 export DECK_KC_CLIENT_ID_OIDC_BFF
@@ -29,6 +29,9 @@ TARGETS=("oauth-auth-code-api-gw-pep" "oauth-auth-code-oidc-bff" "oauth-client-c
 # {{{ main()
 main()
 {
+	# 必須コマンドの存在確認
+	check_required_commands "deck"
+
 	echo "### 🚀 接続確認: deck gateway ping ..."
 	deck gateway ping \
 		--konnect-token "${KONNECT_TOKEN}" \

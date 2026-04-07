@@ -6,7 +6,7 @@ CUR_DIR=$(cd $(dirname $0); pwd)
 . $CUR_DIR/common.sh
 . $CUR_DIR/custom.sh
 
-source .env
+source $CUR_DIR/.env
 
 KC_URL="http://localhost:8080"
 KC_USER="${KC_BOOTSTRAP_ADMIN_USERNAME}"
@@ -43,7 +43,7 @@ main()
 	echo "✅ Secret (Client Credentials) を取得しました"
 
 	# まとめてenvファイルを生成
-	cat <<EOF > .env_keycloak_client
+	cat <<EOF > $CUR_DIR/.env_keycloak_client
 DECK_KC_CLIENT_ID_API_GW_PEP="${CLIENT_ID_API_GW_PEP}"
 DECK_KC_CLIENT_SECRET_API_GW_PEP="${secret_api_gw_pep}"
 DECK_KC_CLIENT_ID_OIDC_BFF="${CLIENT_ID_OIDC_BFF}"
