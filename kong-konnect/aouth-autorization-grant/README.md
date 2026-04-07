@@ -204,7 +204,7 @@ Kong Konnectにアクセスして事前準備をします。
     $ cd ~/handson/setup/
     ```
 
-1. Konnectからルートとサービスの削除スクリプトを実行します。
+1. KonnectからCPに登録されている全てのルートとサービスの削除スクリプトを実行します。
 
     ```
 	$ ./step09_KONG_CLEANUP_ROUTE_SERVICE.sh
