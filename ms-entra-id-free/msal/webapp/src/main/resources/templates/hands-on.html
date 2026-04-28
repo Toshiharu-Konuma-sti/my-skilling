@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Entra ID Hands-on</title>
+    <link rel="stylesheet" type="text/css" href="../static/css/hands-on.css" th:href="@{/css/hands-on.css}">
+    <script src="../static/script/hands-on.js" th:src="@{/script/hands-on.js}" charset="UTF-8"></script>
+</head>
+<body>
+
+<div class="header">
+    <div class="title-group">
+        <div class="main-title">Entra ID Hands-on powered by Spring Boot:</div>
+        <div class="sub-title" th:text="${'ようこそ、' + userName + ' さん'}">ようこそ、ゲスト さん</div>
+    </div>
+    <div>
+        <a href="javascript:location.reload();" class="btn reload-btn">Reload</a>
+        <a href="/logout" class="btn logout-btn">Logout</a>
+    </div>
+</div>
+
+<div class="main-container">
+    <div class="token-area">
+        <h4>Access Token (APIの鍵):</h4>
+        <textarea th:text="${accessToken}" readonly></textarea>
+
+        <h4>Refresh Token (更新用):</h4>
+        <textarea th:text="${refreshToken}" readonly></textarea>
+
+        <h4>ID Token (身分証明書):</h4>
+        <textarea th:text="${idToken}" readonly></textarea>
+    </div>
+
+    <div class="decoder-area">
+        <div class="decoder-section">
+            <h3>JWT Decoder (検証用)</h3>
+            <p>※ 上記のトークンや、外部のJWTを貼り付けてデコードできます</p>
+            
+            <textarea id="jwtInput" placeholder="ここにJWTを貼り付けてください..."></textarea>
+            
+            <div class="btn-group">
+                <button onclick="decodeJwt()" class="btn decode-btn">Decode</button>
+                <button onclick="clearDecoder()" class="btn clear-btn">Clear</button>
+            </div>
+
+            <h4>Decoded Result:</h4>
+            <textarea id="decodedResult" readonly placeholder="結果がここに表示されます"></textarea>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
