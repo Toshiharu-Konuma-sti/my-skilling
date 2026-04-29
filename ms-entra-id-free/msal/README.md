@@ -84,8 +84,8 @@ Entra ID Free 版で事前準備をします。
 	⚠️ Configuration file not found: ~/handson/my-skilling/ms-entra-id-free/msal/container/.env-entraid
 	➡️ Create it now? (y/N): y
 	🏢 Enter ENTRA_TENANT_ID: 12345678-89ab-cdef-ghijk-lmnopqrstuv
-	🤖 Enter ENTRA_CLIENT_ID: wxay1234-5678-90ab-cdefg-hijklmnopqr
-	🔑 Enter ENTRA_CLIENT_SECRET: ************************************
+	🤖 Enter ENTRA_U2M_CLIENT_ID: wxay1234-5678-90ab-cdefg-hijklmnopqr
+	🔑 Enter ENTRA_U2M_CLIENT_SECRET: ************************************
 	  :
     ```
 

@@ -63,16 +63,16 @@ create_env_file() {
         
         if [ "$_ans" = "y" ] || [ "$_ans" = "Y" ]; then
             _tid=$(util_ask_input "🏢 Enter ENTRA_TENANT_ID: ")
-            _cid=$(util_ask_input "🤖 Enter ENTRA_CLIENT_ID: ")
+            _cid=$(util_ask_input "🤖 Enter ENTRA_U2M_CLIENT_ID: ")
             # シークレットは入力を非表示にする
-            _csec=$(util_ask_secret "🔑 Enter ENTRA_CLIENT_SECRET: ")
+            _csec=$(util_ask_secret "🔑 Enter ENTRA_U2M_CLIENT_SECRET: ")
 
             # ディレクトリ作成と書き出し
             mkdir -p "$(dirname "$_path")"
             cat << EOF > "$_path"
 ENTRA_TENANT_ID=$_tid
-ENTRA_CLIENT_ID=$_cid
-ENTRA_CLIENT_SECRET=$_csec
+ENTRA_U2M_CLIENT_ID=$_cid
+ENTRA_U2M_CLIENT_SECRET=$_csec
 EOF
             echo "✅ Created: $_path"
         else
@@ -101,7 +101,7 @@ load_env_file() {
 # 必要な変数がエクスポートされているか確認（エラーメッセージ用にパスを受け取る）
 check_required_vars() {
     _msg_path="$1"
-    if [ -z "${ENTRA_TENANT_ID}" ] || [ -z "${ENTRA_CLIENT_ID}" ] || [ -z "${ENTRA_CLIENT_SECRET}" ]; then
+    if [ -z "${ENTRA_TENANT_ID}" ] || [ -z "${ENTRA_U2M_CLIENT_ID}" ] || [ -z "${ENTRA_U2M_CLIENT_SECRET}" ]; then
         echo "❌ Error: Entra ID credentials are not set."
         echo "   Please check $_msg_path or set environment variables manually."
         exit 1

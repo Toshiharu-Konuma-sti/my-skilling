@@ -25,13 +25,13 @@ services:
     restart: unless-stopped
 
   # Resource server
-  webapp:
-    container_name: webapp
-    hostname: webapp
+  webapp-oauth:
+    container_name: webapp-oauth
+    hostname: webapp-oauth
     build:
       context: ../webapp
       dockerfile: Dockerfile-webapp
-    image: ms-entra-id-free/msal/webapp:latest
+    image: ms-entra-id-free/msal/webapp-oauth:latest
     env_file:
       - .env-entraid
     working_dir: /webapp

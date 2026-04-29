@@ -15,7 +15,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.authorizeHttpRequests(auth -> auth
                 // 認証必須のURIを指定
-                .requestMatchers("/hands-on").authenticated()
+                .requestMatchers("/hands-on/authorization-code").authenticated()
                 .anyRequest().permitAll()
             )
             // OAuth2有効
@@ -24,7 +24,7 @@ public class SecurityConfig {
 			.logout(logout -> logout
                 // GETリクエスト（リンク）でログアウト許可設定
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/hands-on")
+                .logoutSuccessUrl("/hands-on/authorization-code")
                 .deleteCookies("JSESSIONID")
                 .invalidateHttpSession(true)
             );

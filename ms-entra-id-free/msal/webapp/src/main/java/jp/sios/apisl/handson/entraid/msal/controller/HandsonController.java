@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class HandsonController {
 
-	@GetMapping("/hands-on")
-	public String hello(
+	@GetMapping("/hands-on/authorization-code")
+	public String authorizationCodeFlow(
 			@RegisteredOAuth2AuthorizedClient("my-api-client-u2m") OAuth2AuthorizedClient authorizedClient,
 			@AuthenticationPrincipal OidcUser oidcUser,
 			Model model) {
@@ -28,7 +28,7 @@ public class HandsonController {
         model.addAttribute("idToken", idToken);
         model.addAttribute("userName", oidcUser.getFullName());
 
-		return "hands-on";
+		return "authorization-code";
 	}
 
 }
