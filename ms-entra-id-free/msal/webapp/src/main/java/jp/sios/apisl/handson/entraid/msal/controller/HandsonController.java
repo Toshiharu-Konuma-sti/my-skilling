@@ -13,7 +13,7 @@ public class HandsonController {
 
 	@GetMapping("/hands-on/authorization-code")
 	public String authorizationCodeFlow(
-			@RegisteredOAuth2AuthorizedClient("my-api-client-u2m") OAuth2AuthorizedClient authorizedClient,
+			@RegisteredOAuth2AuthorizedClient("my-client-u2m") OAuth2AuthorizedClient authorizedClient,
 			@AuthenticationPrincipal OidcUser oidcUser,
 			Model model) {
 

@@ -13,7 +13,7 @@ spring:
           client-id: ${ENTRA_U2M_CLIENT_ID}
           client-secret: ${ENTRA_U2M_CLIENT_SECRET}
         authorization-clients:
-          my-api-client-u2m:
+          my-client-u2m:
             authorization-grant-type: authorization_code
             scopes:
               - openid
