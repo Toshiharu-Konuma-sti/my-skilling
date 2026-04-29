@@ -20,7 +20,8 @@ Microsoft Entra ID と MSAL (Microsoft Authentication Library) を使い、Sprin
 
 | Container | URL |
 | :--- | :--- |
-| webapp | http://localhost:8080/hands-on |
+| webapp for Authorization Code | http://localhost:8080/hands-on/authorization-code |
+| webapp for Client Credentials | http://localhost:8080/hands-on/client-credentials |
 | Redis Insight | http://localhost:8001 |
 
 ### Spring Initializr Settings

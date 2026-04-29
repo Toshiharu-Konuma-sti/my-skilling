@@ -19,17 +19,7 @@
         .error-message {
             font-size: 1.1em;
             color: #666;
-            margin-bottom: 40px;
-        }
-        /* ボタンを横並びにするためのスタイル */
-        .link-group {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        .error-btn {
-            background-color: #5a67d8; color: white; border: none;
+            margin-bottom: 20px;
         }
     </style>
 </head>
@@ -42,17 +32,8 @@
         お探しのページは存在しないか、移動した可能性があります。<br>
         以下のリンクから各機能へ移動してください。
     </p>
-    
-    <div class="link-group">
-        <a href="/hands-on/authorization-code" class="btn error-btn">
-            Authorization Code Flow
-        </a>
-
-        <a href="/hands-on/client-credentials" class="btn error-btn">
-            Client Credentials Flow
-        </a>
-    </div>
 </div>
+<div th:replace="~{include/body-link}">link</div>
 
 </body>
 </html>

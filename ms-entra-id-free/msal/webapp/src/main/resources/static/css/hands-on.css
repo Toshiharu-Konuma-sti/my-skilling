@@ -9,3 +9,14 @@ body {
     padding: 5px 15px; border-radius: 4px; display: inline-block;
     cursor: pointer;
 }
+
+.link-group {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+.link-btn {
+    background-color: #5a67d8; color: white; border: none;
+}

@@ -19,6 +19,10 @@ spring:
               - openid
               - profile
               - offline_access
+          my-client-m2m:
+            authorization-grant-type: client_credentials
+            scopes:
+              - https://graph.microsoft.com/.default
 
   session:
     store-type: redis
