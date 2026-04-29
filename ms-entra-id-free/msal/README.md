@@ -6,7 +6,9 @@ Microsoft Entra ID と MSAL (Microsoft Authentication Library) を使い、Sprin
 
 体験を進めるアーキテクチャは、以下図の薄赤エリア「API利用者による Access Token 取得までのフロー」です。
 
-<img src="./image/api-gw-auth-arch-5-auth-code-api-gw-pep.png" width="600">
+| Authrization Code Grant | Client Credentials Grant |
+| :--- | :--- |
+| <img src="./image/api-gw-auth-arch-5-auth-code-api-gw-pep.png" width="400"> | <img src="./image/api-gw-auth-arch-7-client-cred.png" width="400"> |
 
 ## 環境説明
 
@@ -92,7 +94,9 @@ Entra ID Free 版で事前準備をします。
 
 ## 体験
 
-### トークン取得
+### Authorization Code Grant
+
+#### トークン取得
 
 1. 体験用の Web アプリケーションにアクセスします。
    - http://localhost:8080/hands-on
@@ -149,7 +153,7 @@ Entra ID Free 版で事前準備をします。
 
    <img src="./image/demo_013.png" width="600">
 
-### Redis 管理のセッション削除
+#### Redis 管理のセッション削除
 
 1. ブラウザで新たなタブを立ち上げて Redis へアクセスします。
    - http://localhost:8001
