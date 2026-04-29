@@ -1,23 +1,34 @@
 package jp.sios.apisl.handson.entraid.msal.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import com.microsoft.aad.msal4j.ClientCredentialFactory;
+import com.microsoft.aad.msal4j.ClientCredentialParameters;
+import com.microsoft.aad.msal4j.ConfidentialClientApplication;
+import com.microsoft.aad.msal4j.IAuthenticationResult;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import java.util.HashSet;
+import java.util.List;
 
 @Controller
 public class HandsonController {
 
-	@Autowired
-    @Qualifier("m2mAuthorizedClientManager") // メモリ管理側のマネージャーを注入
-    private OAuth2AuthorizedClientManager m2mManager;
+    @Value("${spring.cloud.azure.active-directory.credential.client-id}")
+    private String clientId;
+
+    @Value("${spring.cloud.azure.active-directory.credential.client-secret}")
+    private String clientSecret;
+
+    @Value("${spring.cloud.azure.active-directory.authorization-clients.my-client-m2m.authority-uri}")
+    private String authorityUri;
+
+    @Value("${spring.cloud.azure.active-directory.authorization-clients.my-client-m2m.scopes}")
+    private List<String> m2mScopes;
 
 	@GetMapping("/hands-on/authorization-code")
 	public String authorizationCodeFlow(
@@ -42,21 +53,25 @@ public class HandsonController {
 	}
 
 	@GetMapping("/hands-on/client-credentials")
-    public String clientCredentialsFlow(Model model) {
+    public String clientCredentialsFlow(Model model) throws Exception {
 
-        OAuth2AuthorizeRequest request = OAuth2AuthorizeRequest
-                .withClientRegistrationId("my-client-m2m")
-                .principal("m2m-system")
+        // MSAL4J を使って直接トークンを要求
+        ConfidentialClientApplication app = ConfidentialClientApplication.builder(
+                clientId,
+                ClientCredentialFactory.createFromSecret(clientSecret))
+                .authority(authorityUri)
                 .build();
-        OAuth2AuthorizedClient client = m2mManager.authorize(request);
+        ClientCredentialParameters parameters = ClientCredentialParameters.builder(
+                new HashSet<>(m2mScopes))
+                .build();
 
-        String accessToken = client.getAccessToken().getTokenValue();
-        String refreshToken = (client.getRefreshToken() != null)
-                ? client.getRefreshToken().getTokenValue()
-                : "Client Credentials flow does not issue refresh tokens.";        
+        // トークンの取得
+        IAuthenticationResult result = app.acquireToken(parameters).join();
+        String accessToken = result.accessToken();
+
+        String refreshToken = "Client Credentials flow does not issue refresh tokens.";        
         String idToken = "Client Credentials flow does not issue ID tokens (No user involved).";
 		String userName = "System (Application Identity)";
-
         model.addAttribute("grantType", "Client Credentials Grant");
         model.addAttribute("accessToken", accessToken);
         model.addAttribute("refreshToken", refreshToken);

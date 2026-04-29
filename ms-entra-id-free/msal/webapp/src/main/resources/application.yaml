@@ -21,8 +21,8 @@ spring:
               - offline_access
           my-client-m2m:
             authorization-grant-type: client_credentials
-            scopes:
-              - https://graph.microsoft.com/.default
+            authority-uri: https://login.microsoftonline.com/${spring.cloud.azure.active-directory.profile.tenant-id}
+            scopes: https://graph.microsoft.com/.default
 
   session:
     store-type: redis
