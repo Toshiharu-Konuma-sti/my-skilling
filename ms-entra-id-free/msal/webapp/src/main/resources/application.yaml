@@ -10,8 +10,8 @@ spring:
         profile:
           tenant-id: ${ENTRA_TENANT_ID}
         credential:
-          client-id: ${ENTRA_U2M_CLIENT_ID}
-          client-secret: ${ENTRA_U2M_CLIENT_SECRET}
+          client-id: ${ENTRA_CLIENT_ID}
+          client-secret: ${ENTRA_CLIENT_SECRET}
         authorization-clients:
           my-client-u2m:
             authorization-grant-type: authorization_code
