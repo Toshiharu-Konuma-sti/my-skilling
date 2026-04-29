@@ -41,4 +41,8 @@ case "$1" in
 		show_url
 		finish_banner $S_TIME
 		;;
+	*)
+		show_usage
+		exit 1
+		;;
 esac
