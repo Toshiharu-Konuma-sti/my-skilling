@@ -6,7 +6,7 @@ Microsoft Entra ID と MSAL (Microsoft Authentication Library) を使い、Sprin
 
 体験を進めるアーキテクチャは、以下図の薄赤エリア「API利用者による Access Token 取得までのフロー」です。
 
-| Authorization Code Grant | Client Credentials Grant |
+| Authorization Code Grant with PEP | Client Credentials Grant |
 | :--- | :--- |
 | <img src="./image/api-gw-auth-arch-5-auth-code-api-gw-pep.png" width="400"> | <img src="./image/api-gw-auth-arch-7-client-cred.png" width="400"> |
 
@@ -22,7 +22,7 @@ Microsoft Entra ID と MSAL (Microsoft Authentication Library) を使い、Sprin
 
 | Container | URL |
 | :--- | :--- |
-| webapp for Authorization Code Grant | http://localhost:8080/hands-on/authorization-code |
+| webapp for Authorization Code Grant with PEP | http://localhost:8080/hands-on/authorization-code |
 | webapp for Client Credentials Grant | http://localhost:8080/hands-on/client-credentials |
 | Redis Insight | http://localhost:8001 |
 
