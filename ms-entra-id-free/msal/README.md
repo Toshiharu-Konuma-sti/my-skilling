@@ -191,7 +191,11 @@ Entra ID Free 版で事前準備をします。
 
 1. 体験用の Web アプリが表示されると同時に、Access Token が取得されています。
 
-1. 開発者ツールのネットワークで確認できるように、Client Credentials Grant の場合にはユーザ認証は介在しないので、ブラウザで IdP との連携が無くトークンが取得できていることが確認できます。
+   <img src="./image/demo_201.png" width="600">
+
+1. 開発者ツールのネットワークを表示しながら「Reload」をクリックして確認できるように、Client Credentials Grant の場合にはユーザ認証は介在しないので、ブラウザで IdP との連携が無くてもトークンが取得できていることが確認できます。
+
+   <img src="./image/demo_202.png" width="600">
 
 
 ## 実装の解説
