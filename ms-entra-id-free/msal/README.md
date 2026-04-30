@@ -6,7 +6,7 @@ Microsoft Entra ID と MSAL (Microsoft Authentication Library) を使い、Sprin
 
 体験を進めるアーキテクチャは、以下図の薄赤エリア「API利用者による Access Token 取得までのフロー」です。
 
-| Authrization Code Grant | Client Credentials Grant |
+| Authorization Code Grant | Client Credentials Grant |
 | :--- | :--- |
 | <img src="./image/api-gw-auth-arch-5-auth-code-api-gw-pep.png" width="400"> | <img src="./image/api-gw-auth-arch-7-client-cred.png" width="400"> |
 
@@ -22,8 +22,8 @@ Microsoft Entra ID と MSAL (Microsoft Authentication Library) を使い、Sprin
 
 | Container | URL |
 | :--- | :--- |
-| webapp for Authorization Code | http://localhost:8080/hands-on/authorization-code |
-| webapp for Client Credentials | http://localhost:8080/hands-on/client-credentials |
+| webapp for Authorization Code Grant | http://localhost:8080/hands-on/authorization-code |
+| webapp for Client Credentials Grant | http://localhost:8080/hands-on/client-credentials |
 | Redis Insight | http://localhost:8001 |
 
 ### Spring Initializr Settings
@@ -99,7 +99,7 @@ Entra ID Free 版で事前準備をします。
 #### トークン取得
 
 1. 体験用の Web アプリケーションにアクセスします。
-   - http://localhost:8080/hands-on
+   - http://localhost:8080/hands-on/authorization-code
 
 1. ブラウザが IdP (Entra ID) からトークンを発行されていないセッションの場合は、Spring Boot がデフォルトで持っているログインを促す画面が表示されるので、ログインへ遷移するリンクをクリックします。
 
@@ -182,6 +182,18 @@ Entra ID Free 版で事前準備をします。
 
    <img src="./image/demo_106.png" width="600">
 
+### Client Credentials Grant
+
+#### トークン取得
+
+1. 体験用の Web アプリケーションにアクセスします。
+   - http://localhost:8080/hands-on/client-credentials
+
+1. 体験用の Web アプリが表示されると同時に、Access Token が取得されています。
+
+1. 開発者ツールのネットワークで確認できるように、Client Credentials Grant の場合にはユーザ認証は介在しないので、ブラウザで IdP との連携が無くトークンが取得できていることが確認できます。
+
+
 ## 実装の解説
 
 ### 事前準備
@@ -189,14 +201,22 @@ Entra ID Free 版で事前準備をします。
 1. 「build.gradle」に依存を追記します。
    - [build.gradle](./webapp/build.gradle)
 
+### トークン取得処理の実装
+
+#### Authorization Code Grant 向け
+
 1. 「application.yaml」に IdP と Redis の設定を追記します。
    - [application.yaml](./webapp/src/main/resources/application.yaml)
 
 1. 「SecurityConfig.java」を新規に実装します。
    - [SecurityConfig.java](./webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/config/SecurityConfig.java)
 
-### トークン取得処理の実装
-
 1. Controllerにトークンを取得する処理を追加実装します。
    - [HandsonController.java](./webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/controller/HandsonController.java)
 
+#### Client Credentials Grant 向け
+
+1. 「application.yaml」に IdP の設定を追記します。
+   - [application.yaml](./webapp/src/main/resources/application.yaml)
+
+1. 🚧🚧🚧 工事中 🚧🚧🚧
