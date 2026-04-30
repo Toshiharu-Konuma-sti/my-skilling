@@ -43,7 +43,6 @@ public class HandsonController {
 		String idToken = oidcUser.getIdToken().getTokenValue();
 		String userName = oidcUser.getFullName();
 
-		model.addAttribute("grantType", "Authorization Code Grant");
 		model.addAttribute("accessToken", accessToken);
         model.addAttribute("refreshToken", refreshToken);
         model.addAttribute("idToken", idToken);
@@ -72,7 +71,7 @@ public class HandsonController {
         String refreshToken = "Client Credentials flow does not issue refresh tokens.";        
         String idToken = "Client Credentials flow does not issue ID tokens (No user involved).";
 		String userName = "System (Application Identity)";
-        model.addAttribute("grantType", "Client Credentials Grant");
+
         model.addAttribute("accessToken", accessToken);
         model.addAttribute("refreshToken", refreshToken);
         model.addAttribute("idToken", idToken);

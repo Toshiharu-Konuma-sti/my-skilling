@@ -1,0 +1,10 @@
+<div class="header">
+    <div class="title-group">
+        <div class="main-title" th:text="'Entra ID Hands-on powered by Spring Boot for Client Credentials Grant'"></div>
+        <div class="sub-title" th:text="${'ようこそ、' + userName + ' さん'}">ようこそ、ゲスト さん</div>
+    </div>
+    <div>
+        <a href="javascript:location.reload();" class="btn reload-btn">Reload</a>
+        <a th:href="null" class="btn logout-btn" th:classappend="'disabled'">Logout</a>
+    </div>
+</div>
