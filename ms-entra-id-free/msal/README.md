@@ -203,7 +203,7 @@ Entra ID Free 版で事前準備をします。
 ### 事前準備
 
 1. 「build.gradle」に Entra ID と OAuth 連携するライブラリの依存を追記します。
-   - [build.gradle](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/build.gradle#L30-L32)
+   - [build.gradle](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/build.gradle#L30)
 
 1. 「build.gradle」に Redis の利用とセッションを管理するライブラリの依存を追記します。
    - [build.gradle](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/build.gradle#L31-L32)
@@ -222,14 +222,14 @@ Entra ID Free 版で事前準備をします。
    - [SecurityConfig.java](./webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/config/SecurityConfig.java)
 
 1. Controllerにトークンを取得する処理を追加実装します。
-   - [HandsonController.java](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/controller/HandsonController.java#L35)
-   - [HandsonController.java](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/controller/HandsonController.java#L39-L42)
+   - [HandsonController.java](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/controller/HandsonController.java#L35)：IdP でトークン発行から管理までを担います。
+   - [HandsonController.java](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/controller/HandsonController.java#L39-L42)：トークンを処理に使うために取得します。
 
 #### Client Credentials Grant 向け
 
 1. 「application.yaml」に IdP の設定を追記します。
-   - [application.yaml](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/resources/application.yaml#L5-L14)
-   - [application.yaml](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/resources/application.yaml#L22-L25)
+   - [application.yaml](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/resources/application.yaml#L5-L14)：IdP で利用しているテナントを設定します。
+   - [application.yaml](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/resources/application.yaml#L22-L25)：Client Credentials Grantに特化した値を設定します。
 
 1. Controllerにトークンを取得する処理を追加実装します。
    - [HandsonController.java](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/controller/HandsonController.java#L57-L69)
