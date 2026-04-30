@@ -202,25 +202,34 @@ Entra ID Free 版で事前準備をします。
 
 ### 事前準備
 
-1. 「build.gradle」に依存を追記します。
-   - [build.gradle](./webapp/build.gradle)
+1. 「build.gradle」に Entra ID と OAuth 連携するライブラリの依存を追記します。
+   - [build.gradle](/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/build.gradle#L30-L32)
+
+1. 「build.gradle」に Redis の利用とセッションを管理するライブラリの依存を追記します。
+   - [build.gradle](/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/build.gradle#L31-L32)
 
 ### トークン取得処理の実装
 
 #### Authorization Code Grant 向け
 
-1. 「application.yaml」に IdP と Redis の設定を追記します。
-   - [application.yaml](./webapp/src/main/resources/application.yaml)
+1. 「application.yaml」に連携する IdP の設定を追記します。
+   - [application.yaml](/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/resources/application.yaml#L5-L21)
+
+1. 「application.yaml」にセッションが連携する Redis の設定を追記します。
+   - [application.yaml](/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/resources/application.yaml#L27-L36)
 
 1. 「SecurityConfig.java」を新規に実装します。
    - [SecurityConfig.java](./webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/config/SecurityConfig.java)
 
 1. Controllerにトークンを取得する処理を追加実装します。
-   - [HandsonController.java](./webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/controller/HandsonController.java)
+   - [HandsonController.java](/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/controller/HandsonController.java#L35)
+   - [HandsonController.java](/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/controller/HandsonController.java#L39-L42)
 
 #### Client Credentials Grant 向け
 
 1. 「application.yaml」に IdP の設定を追記します。
-   - [application.yaml](./webapp/src/main/resources/application.yaml)
+   - [application.yaml](/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/resources/application.yaml#L5-L14)
+   - [application.yaml](Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/resources/application.yaml#L22-L25)
 
-1. 🚧🚧🚧 工事中 🚧🚧🚧
+1. Controllerにトークンを取得する処理を追加実装します。
+   - [HandsonController.java](/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/controller/HandsonController.java#L57-L69)
