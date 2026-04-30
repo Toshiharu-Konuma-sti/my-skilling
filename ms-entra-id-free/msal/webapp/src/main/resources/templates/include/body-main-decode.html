@@ -1,0 +1,16 @@
+<div class="decoder-area">
+        <div class="decoder-section">
+            <h3>JWT Decoder (検証用)</h3>
+            <p>※ 左のトークンや、外部のJWTを貼り付けてデコードできます</p>
+            
+            <textarea id="jwtInput" placeholder="ここにJWTを貼り付けてください..."></textarea>
+            
+            <div class="btn-group">
+                <button onclick="decodeJwt()" class="btn decode-btn">Decode</button>
+                <button onclick="clearDecoder()" class="btn clear-btn">Clear</button>
+            </div>
+
+            <h4>Decoded Result:</h4>
+            <textarea id="decodedResult" readonly placeholder="結果がここに表示されます"></textarea>
+        </div>
+    </div>

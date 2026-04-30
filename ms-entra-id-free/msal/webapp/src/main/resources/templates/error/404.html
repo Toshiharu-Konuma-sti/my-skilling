@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>404 Not Found</title>
+    <link rel="stylesheet" type="text/css" href="/css/hands-on.css">
+    <style>
+        .error-container {
+            text-align: center;
+            margin-top: 80px;
+            padding: 20px;
+        }
+        .error-code {
+            font-size: 72px;
+            color: #5a67d8;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .error-message {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="error-container">
+    <div class="error-code">404</div>
+    <h3>ページが見つかりません</h3>
+    <p class="error-message">
+        お探しのページは存在しないか、移動した可能性があります。<br>
+        以下のリンクから各機能へ移動してください。
+    </p>
+</div>
+<div th:replace="~{include/body-link}">link</div>
+
+</body>
+</html>

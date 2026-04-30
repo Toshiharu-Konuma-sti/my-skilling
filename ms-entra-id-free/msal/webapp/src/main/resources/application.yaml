@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: apisl.handson.entraid.msal
+
+  cloud:
+    azure:
+      active-directory:
+        enabled: true
+        application-type: WEB_APPLICATION
+        profile:
+          tenant-id: ${ENTRA_TENANT_ID}
+        credential:
+          client-id: ${ENTRA_CLIENT_ID}
+          client-secret: ${ENTRA_CLIENT_SECRET}
+        authorization-clients:
+          my-client-u2m:
+            authorization-grant-type: authorization_code
+            scopes:
+              - openid
+              - profile
+              - offline_access
+          my-client-m2m:
+            authorization-grant-type: client_credentials
+            authority-uri: https://login.microsoftonline.com/${spring.cloud.azure.active-directory.profile.tenant-id}
+            scopes: https://graph.microsoft.com/.default
+
+  session:
+    store-type: redis
+    redis:
+      namespace: spring:session:msal-handson
+      flush-mode: immediate
+  data:
+    redis:
+      host: redis
+      port: 6379
+      # password:

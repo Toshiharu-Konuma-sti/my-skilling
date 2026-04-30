@@ -1,0 +1,53 @@
+services:
+
+  # Redis
+  redis:
+    container_name: redis
+    hostname: redis
+    image: redis:8.6.2-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - internal
+      - external
+    restart: unless-stopped
+
+  # Redis Insight (Web UI)
+  redis-insight:
+    container_name: redis-insight
+    hostname: redis-insight
+    image: redis/redisinsight:3.2.0
+    ports:
+      - "8001:5540"
+    networks:
+      - internal
+      - external
+    restart: unless-stopped
+
+  # Resource server
+  webapp-oauth:
+    container_name: webapp-oauth
+    hostname: webapp-oauth
+    build:
+      context: ../webapp
+      dockerfile: Dockerfile-webapp
+    image: ms-entra-id-free/msal/webapp-oauth:latest
+    env_file:
+      - .env-entraid
+    working_dir: /webapp
+    command: ./gradlew bootRun
+    ports:
+      - "8080:8080"
+    networks:
+      - internal
+      - external
+    restart: unless-stopped
+
+networks:
+  internal:
+    name: intra-net
+    driver: bridge
+    internal: true
+  external:
+    name: hands-net
+    driver: bridge
