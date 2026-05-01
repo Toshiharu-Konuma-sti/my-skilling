@@ -35,10 +35,10 @@ Kong Konnectにアクセスして事前準備をします。
        decK v1.55.0 (19a389c)
      ```
 
-1. hostsにkeycloakを登録します。
-   - Windows:    C:\Windows\System32\driversc\hosts
+1. 体験用スクリプト内のcurlコマンドがホスト名「keycloak」でコンテナへアクセスできるよう、hostsファイルに名前解決用のエントリを登録します。
    - Linux(WSL): /etc/hosts
    - MacOS:      /private/etc/hosts
+   - Windows:    C:\Windows\System32\driversc\hosts
      ```
      127.0.0.1 keycloak
      ```
@@ -108,7 +108,7 @@ Kong Konnectにアクセスして事前準備をします。
 	############################################################
 	  :
     ```
-    - 実行内容は [step01_SETUP_KEYCLOAK.sh](./setup/step01_SETUP_KEYCLOAK.sh) の main() 関数の処理内容を確認してください。
+    - 実行内容は [step01_SETUP_KEYCLOAK.sh](./setup/step01_SETUP_KEYCLOAK.sh) の main() 関数に書かれているコメントを確認してください。
 
 ### Kong Konnect 環境設定
 
@@ -131,7 +131,7 @@ Kong Konnectにアクセスして事前準備をします。
 	############################################################
 	  :
     ```
-    - 実行内容は [step02_KONG_REGISTER_API.sh](./setup/step02_KONG_REGISTER_API.sh) の main() 関数の処理内容を確認してください。
+    - 実行内容は [step02_KONG_REGISTER_API.sh](./setup/step02_KONG_REGISTER_API.sh) の main() 関数に書かれているコメントを確認してください。
 
 ## 体験
 
@@ -156,14 +156,12 @@ Kong Konnectにアクセスして事前準備をします。
     ```
     $ ./test01_auth-code-api-gw-pep.sh
     ```
-    - 実行内容は該当スクリプトの main() 関数の処理内容を確認してください。
+    - 実行内容は該当スクリプトの main() 関数に書かれているコメントを確認してください。
 
 
 ### Authorization  Code Grant: OIDC BFF方式
 
 <img src="./image/api-gw-auth-arch-6-auth-code-oidc-bff.png" width="600">
-
-<img src="./image/api-gw-auth-arch-6-auth-code-oidc-bff-after-cookie.png" width="600">
 
 本Grantを体験するために、事前に以下OASをKong Konnect環境構築で適用しています。
 
@@ -177,7 +175,7 @@ Kong Konnectにアクセスして事前準備をします。
   ```
   $ ./test02_auth-code-oidc-bff.sh
   ```
-  - 実行内容は該当スクリプトの main() 関数の処理内容を確認してください。
+  - 実行内容は該当スクリプトの main() 関数に書かれているコメントを確認してください。
 
 ### Client Credentials
 
@@ -194,7 +192,7 @@ Kong Konnectにアクセスして事前準備をします。
   ```
   $ ./test03_client-credentials.sh
   ```
-  - 実行内容は該当スクリプトの main() 関数の処理内容を確認してください。
+  - 実行内容は該当スクリプトの main() 関数に書かれているコメントを確認してください。
 
 ## 清掃手順
 

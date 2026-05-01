@@ -52,7 +52,8 @@ main() {
     echo "3️⃣ Keycloak ログイン画面の action URL を解析中..."
     local login_form_url=$(auth_test_bff_get_login_url "$kc_init_url" "$COOKIE_FILE" "$KC_HOST")
 
-    echo "4️⃣ Keycloak でログインを実行中..."
+    echo "4️⃣ Keycloak のログイン画面 へログインを実行中..."
+    echo "  - ${login_form_url}"
     local kong_callback_url=$(auth_test_post_login "$login_form_url" "$USER" "$PASS" "$COOKIE_FILE")
     if [[ "$kong_callback_url" != *"code="* ]]; then
         echo "❌ Error: 認可コードの取得に失敗しました。" >&2
@@ -60,10 +61,11 @@ main() {
         exit 1
     fi
 
-    echo "5️⃣ /${LOGIN_URL} のコールバックへ戻り、セッション Cookie を確立します..."
+    echo "5️⃣ 認可コードが付与されてコールバックへ戻り、セッション Cookie を確立します..."
+    echo "  - ${kong_callback_url}"
     auth_test_bff_finalize_login "$kong_callback_url" "$COOKIE_FILE"
 
-    # 結果確認
+    # Kong経由でアップストリームAPIを実行
     echo "✅ セッション確立完了（BFF 認証成功）"
     invoke_api "$API_URL" "$COOKIE_FILE"
 }
