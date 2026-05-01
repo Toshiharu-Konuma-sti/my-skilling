@@ -32,17 +32,17 @@ main()
 	echo "🏗️ Realm '$REALM' を作成中..."
 	create_kc_realm "$KC_URL" "${token}" "$REALM"
 
-	# 各クライアントを作成してシークレットを取得
+	# 各Grant Typeで使用するクライアントIDを作成して、ペアとなるクライアントシークレットを取得
 	local secret_api_gw_pep=$(create_kc_client_get_secret "$KC_URL" "${token}" "$REALM" "$CLIENT_ID_API_GW_PEP" '["*"]')
-	echo "✅ Secret (API Gateway PEP) を取得しました"
+	echo "✅ Client secret (API Gateway PEP) を取得しました"
 
 	local secret_oidc_bff=$(create_kc_client_get_secret "$KC_URL" "${token}" "$REALM" "$CLIENT_ID_OIDC_BFF" '["http://localhost:8000/*"]')
-	echo "✅ Secret (OIDC BFF) を取得しました"
+	echo "✅ Client secret (OIDC BFF) を取得しました"
 
 	local secret_client_cred=$(create_kc_client_get_secret "$KC_URL" "${token}" "$REALM" "$CLIENT_ID_CLIENT_CRED" '[]')
-	echo "✅ Secret (Client Credentials) を取得しました"
+	echo "✅ Client secret (Client Credentials) を取得しました"
 
-	# まとめてenvファイルを生成
+	# クライアントIDとシークレットをenvファイルへ出力
 	cat <<EOF > $CUR_DIR/.env_keycloak_client
 DECK_KC_CLIENT_ID_API_GW_PEP="${CLIENT_ID_API_GW_PEP}"
 DECK_KC_CLIENT_SECRET_API_GW_PEP="${secret_api_gw_pep}"

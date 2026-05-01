@@ -41,36 +41,36 @@ main() {
 	local verifier=$(auth_test_gen_verifier)
 	local challenge=$(auth_test_calc_challenge "$verifier")
 
-	# 2. OIDC構成取得
+	# 2. OIDC Dicoveryエンドポイントから各種エンドポイントを取得
 	local config_json=$(auth_test_fetch_config "$URL_IDP_CNF")
 	local auth_endpoint=$(auth_test_get_endpoint "$config_json" "authorization_endpoint")
 	local token_endpoint=$(auth_test_get_endpoint "$config_json" "token_endpoint")
 
-	# 3. ログインURL取得
+	# 3. 認可エンドポイントから得たHTMLからログインURLを抽出
 	local login_url=$(auth_test_pep_get_login_url "$auth_endpoint" "$CLIENT_ID" "$REDIRECT" "$challenge" "$COOKIE_FILE" "${KC_HOST}")
     
-	# 4. ログイン実行とコード抽出
+	# 4. ログインURLへログイン実行とレスポンスから認可コードを抽出
 	local redirect_url=$(auth_test_post_login "$login_url" "$USER" "$PASS" "$COOKIE_FILE")
 	local auth_code=$(auth_test_pep_extract_code "$redirect_url")
 
-	# 抽出チェック
+	# 認可コードの抽出確認
 	if [ -z "$auth_code" ]; then
-		echo "❌ Error: 認証コードの取得に失敗しました。ログインが拒否された可能性があります。" >&2
+		echo "❌ Error: 認可コードの取得に失敗しました。ログインが拒否された可能性があります。" >&2
 		exit 1
 	fi
 
-	# 5. トークン交換
+	# 5. トークンエンドポイントで認可コードからトークンへ交換
 	local token_json=$(auth_test_pep_exchange_token "$token_endpoint" "$auth_code" "$CLIENT_ID" "$CLIENT_ST" "$REDIRECT" "$verifier")
 	local access_token=$(echo "$token_json" | jq -r '.access_token')
 
-	# エラーチェック
+	# Access Tokenの抽出確認
 	if [ "$access_token" == "null" ] || [ -z "$access_token" ]; then
 		echo "❌ Access Token の取得に失敗しました。" >&2
 		echo "$token_json" | jq . >&2
 		exit 1
 	fi
 
-	# 6. 実行
+	# 6. Kong経由でアップストリームAPIを実行
 	invoke_api "$API_URL" "$access_token"
 }
 # }}}

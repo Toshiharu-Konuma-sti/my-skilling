@@ -23,13 +23,13 @@ KONNECT_ADDR="https://${REGION:-$(util_ask_input "🏢 Enter REGION (Control Pla
 CP_NM=${CP_NAME:-$(util_ask_input "🏢 Enter CP_NAME (Control Plane Name): ")}
 KONNECT_TOKEN=${KONNECT_PAT:-$(util_ask_secret "🔑 Enter KONNECT_PAT (Secret): ")}
 
-# 登録対象のOASファイルリスト(ファイル名から "-oas.yaml" を抜いたベース名を定義)
+# Kongへルートとサービスを登録するOASファイルリスト(ファイル名から "-oas.yaml" を抜いたベース名を定義)
 TARGETS=("oauth-auth-code-api-gw-pep" "oauth-auth-code-oidc-bff" "oauth-client-credentials" "oauth-bff-login")
 
 # {{{ main()
 main()
 {
-	# 必須コマンドの存在確認
+	# 実行環境に必須コマンドの存在を確認
 	check_required_commands "deck"
 
 	echo "### 🚀 接続確認: deck gateway ping ..."
@@ -38,7 +38,7 @@ main()
 		--konnect-addr "${KONNECT_ADDR}" \
 		--konnect-control-plane-name "${CP_NM}"
 
-	# 各ファイルをループで処理
+	# Kongへ登録する各OASファイルをループで処理
 	local base_name
 	for base_name in "${TARGETS[@]}"; do
 		local my_oas="${CUR_DIR}/${base_name}-oas.yaml"
@@ -51,15 +51,18 @@ main()
 			continue
 		fi
 
+		# OASファイルからKong設定ファイルに変換
 		echo "### 📦 deck file openapi2kong (${base_name}) ..."
 		deck file openapi2kong -s "${my_oas}" -o "${my_kng}"
 
+		# Kong設定ファイルの書式を確認
 		echo "### 🔍 deck gateway validate (${base_name}) ..."
 		deck gateway validate "${my_kng}" \
 			--konnect-token "${KONNECT_TOKEN}" \
 			--konnect-addr "${KONNECT_ADDR}" \
 			--konnect-control-plane-name "${CP_NM}"
 
+		# Kongへ設定をKonnectへ適用
 		echo "### 🚢 deck gateway apply (${base_name}) ..."
 		deck gateway apply "${my_kng}" \
 			--konnect-token "${KONNECT_TOKEN}" \
