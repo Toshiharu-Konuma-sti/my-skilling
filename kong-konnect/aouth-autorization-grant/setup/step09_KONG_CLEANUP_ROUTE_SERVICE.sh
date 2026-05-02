@@ -6,11 +6,13 @@ CUR_DIR=$(cd $(dirname $0); pwd)
 . $CUR_DIR/common.sh
 . $CUR_DIR/custom.sh
 
-source $CUR_DIR/.env
+ENV_AUTH="$CUR_DIR/../container/.env-konnect-auth"
+create_konnect_auth_file "$ENV_AUTH"
+load_env_file "$ENV_AUTH"
 
-KONNECT_ADDR="https://${REGION:-$(util_ask_input "🏢 Enter REGION (Control Plane Region): ")}.api.konghq.com"
-CP_NM=${CP_NAME:-$(util_ask_input "🏢 Enter CP_NAME (Control Plane Name): ")}
-KONNECT_TOKEN=${KONNECT_PAT:-$(util_ask_secret "🔑 Enter KONNECT_PAT (Secret): ")}
+KONNECT_ADDR="https://${REGION}.api.konghq.com"
+CP_NM=${CP_NAME}
+KONNECT_TOKEN=${KONNECT_PAT}
 
 # {{{ main()
 main()

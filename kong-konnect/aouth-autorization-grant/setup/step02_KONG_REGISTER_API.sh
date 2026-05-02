@@ -6,22 +6,17 @@ CUR_DIR=$(cd $(dirname $0); pwd)
 . $CUR_DIR/common.sh
 . $CUR_DIR/custom.sh
 
-# 環境変数の読み込み
-source $CUR_DIR/.env
-source $CUR_DIR/.env_keycloak_client
+ENV_AUTH="${CUR_DIR}/../container/.env-konnect-auth"
+ENV_KC_CLIENT="${CUR_DIR}/.env_keycloak_client"
 
-# Konnectへ渡す変数のエクスポート（BFF用とPEP用両方）
-export DECK_KC_CLIENT_ID_OIDC_BFF
-export DECK_KC_CLIENT_SECRET_OIDC_BFF
-export DECK_KC_CLIENT_ID_API_GW_PEP
-export DECK_KC_CLIENT_SECRET_API_GW_PEP
-export DECK_KC_CLIENT_ID_CLIENT_CRED
-export DECK_KC_CLIENT_SECRET_CLIENT_CRED
+create_konnect_auth_file "$ENV_AUTH"
+load_env_file "$ENV_AUTH"
+load_env_file "$ENV_KC_CLIENT"
 
 # 基本設定
-KONNECT_ADDR="https://${REGION:-$(util_ask_input "🏢 Enter REGION (Control Plane Region): ")}.api.konghq.com"
-CP_NM=${CP_NAME:-$(util_ask_input "🏢 Enter CP_NAME (Control Plane Name): ")}
-KONNECT_TOKEN=${KONNECT_PAT:-$(util_ask_secret "🔑 Enter KONNECT_PAT (Secret): ")}
+KONNECT_ADDR="https://${REGION}.api.konghq.com"
+CP_NM=${CP_NAME}
+KONNECT_TOKEN=${KONNECT_PAT}
 
 # Kongへルートとサービスを登録するOASファイルリスト(ファイル名から "-oas.yaml" を抜いたベース名を定義)
 TARGETS=("oauth-auth-code-api-gw-pep" "oauth-auth-code-oidc-bff" "oauth-client-credentials" "oauth-bff-login")

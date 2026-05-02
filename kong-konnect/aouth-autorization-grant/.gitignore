@@ -1,4 +1,7 @@
 container/.env_kong_konnect
+
+container/.env-konnect-auth
+container/.env-konnect-cluster
 container/certs/
 setup/.env_keycloak_client
 setup/oauth-auth-code-api-gw-pep-kng.yaml

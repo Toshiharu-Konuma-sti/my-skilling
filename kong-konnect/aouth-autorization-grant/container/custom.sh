@@ -56,8 +56,8 @@ check_prerequisite_create_container() {
 	_missing=0
 
 	# 1. Konnect設定ファイルの確認
-	if [ ! -f "$_base_dir/.env_kong_konnect" ]; then
-		echo "❌ エラー: .env_kong_konnect が見つかりません。"
+	if [ ! -f "$_base_dir/.env-konnect-cluster" ]; then
+		echo "❌ エラー: .env-konnect-cluster が見つかりません。"
 		_missing=1
 	fi
 
@@ -102,6 +102,49 @@ echo "--------------------------------------------------"
 # }}}
 
 
+# {{{ create_konnect_auth_file(file_path)
+create_konnect_auth_file() {
+	_path="$1"
+	if [ ! -f "$_path" ]; then
+		echo "⚠️ Konnect Auth file not found: $_path"
+		_ans=$(util_ask_input "➡️ Create it now? (y/N): ")
+		if [ "$_ans" = "y" ] || [ "$_ans" = "Y" ]; then
+			_region=$(util_ask_input "🌐 Enter Konnect REGION (us/eu/au/jp): ")
+			_cp_name=$(util_ask_input "🏢 Enter Target Control Plane Name: ")
+			_pat=$(util_ask_secret "🔑 Enter Konnect Personal Access Token: ")
+
+			mkdir -p "$(dirname "$_path")"
+
+			cat << EOF > "$_path"
+REGION=$_region
+CP_NAME=$_cp_name
+KONNECT_PAT=$_pat
+EOF
+			echo "✅ Created: $_path"
+		else
+			echo "❌ Error: Authentication is required to proceed."
+			exit 1
+		fi
+	fi
+}
+# }}}
+
+# {{{ load_env_file(file_path)
+# 指定されたパスの環境変数ファイルを読み込み、exportする
+load_env_file() {
+	_path="$1"
+
+	if [ -f "$_path" ]; then
+		echo "📂 Loading environment variables from $_path..."
+		# コメント行を除外して export
+		export $(grep -v '^#' "$_path" | xargs)
+	else
+		echo "⚠️  Environment file not found, skipping load: $_path"
+	fi
+}
+# }}}
+
+
 # {{{ fetch_kong_cp_data()
 # $1: API base URL 
 # $2: Personal access token
@@ -142,10 +185,11 @@ check_kong_cp_id()
 }
 # }}}
 
-# {{{ prepare_kong_cluster_info()
-prepare_kong_cluster_info()
+# {{{ prepare_konnect_cluster_config()
+prepare_konnect_cluster_config()
 {
 	local cp_data="$1"
+	local file_path="$2"
 
 	# エンドポイントの抽出
 	local cluster_endpoint=$(echo "${cp_data}" | jq -r '.config.control_plane_endpoint')
@@ -155,15 +199,16 @@ prepare_kong_cluster_info()
 	local cluster_host=$(echo ${cluster_endpoint} | sed -e 's|https://||' -e 's|:443||')
 	local telemetry_host=$(echo ${telemetry_endpoint} | sed -e 's|https://||' -e 's|:443||')
 
-	echo "✅ Cluster Host: ${cluster_host}"
+	echo "✅ Cluster Host Discovered: ${cluster_host}"
 
 	# Docker Compose 用の動的環境変数を一時ファイルに書き出し
-	cat <<EOF > .env_kong_konnect
+	cat <<EOF > "${file_path}"
 KONG_CLUSTER_CONTROL_PLANE=${cluster_host}:443
 KONG_CLUSTER_SERVER_NAME=${cluster_host}
 KONG_CLUSTER_TELEMETRY_ENDPOINT=${telemetry_host}:443
 KONG_CLUSTER_TELEMETRY_SERVER_NAME=${telemetry_host}
 EOF
+	echo "📝 Generated cluster config: ${file_path}"
 }
 # }}}
 
