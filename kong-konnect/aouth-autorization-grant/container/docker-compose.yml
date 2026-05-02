@@ -44,7 +44,7 @@ services:
     image: kong/kong-gateway:3.13
     env_file:
       - .env
-      - .env_kong_konnect
+      - .env-konnect-cluster
     environment:
       KONG_ROLE: data_plane
       KONG_DATABASE: "off"
