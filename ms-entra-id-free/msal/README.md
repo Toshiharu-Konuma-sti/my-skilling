@@ -1,5 +1,11 @@
 # Entra ID & MSAL 認証プロセス体験 with Java
 
+[![GitHub License](https://img.shields.io/github/license/Toshiharu-Konuma-sti/my-skilling?style=flat-square)](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/main/LICENSE)
+[![GitHub last commit](https://img.shields.io/github/last-commit/Toshiharu-Konuma-sti/my-skilling?style=flat-square)](https://github.com/Toshiharu-Konuma-sti/my-skilling/commits/main)
+[![Docker](https://img.shields.io/badge/Docker-Container-blue?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Microsoft Entra ID](https://img.shields.io/badge/Microsoft-Entra%20ID-0078D4?style=flat-square&logo=microsoft&logoColor=white)](https://www.microsoft.com/en-us/security/business/identity-access/microsoft-entra-id)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-6DB33F?style=flat-square&logo=spring-boot&logoColor=white)](https://spring.io/projects/spring-boot)
+
 ## はじめに
 
 Microsoft Entra ID と MSAL (Microsoft Authentication Library) を使い、Spring Boot 環境でトークン取得の実装を体験します。本来複雑な Authorization Code Grant のシーケンスが、MSAL を利用することでいかに簡潔な実装で完結するかを、実際のアプリケーション動作を通じて体系的に確認することができます。
