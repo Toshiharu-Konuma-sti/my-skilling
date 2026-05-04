@@ -6,7 +6,25 @@
 [![Kong](https://img.shields.io/badge/Kong-Konnect-003459?style=flat-square&logo=kong&logoColor=white)](https://konghq.com/products/kong-konnect)
 [![OAuth 2.1](https://img.shields.io/badge/OAuth-2.1-EB5424?style=flat-square&logo=openid&logoColor=white)](https://oauth.net/2.1/)
 
-## はじめに
+---
+
+## 目次
+
+1. [はじめに](#1-はじめに)
+2. 体験環境の構築手順[](#2-体験環境の構築手順)
+	- 2-1. [事前準備](#2-1-事前準備)
+	- 2-2. [コンテナ構築](#2-2-コンテナ構築)
+	- 2-3. [Keycloak 環境設定](#2-3-keycloak-環境設定)
+	- 2-4. [Kong Konnect 環境設定](#2-4-kong-konnect-環境設定)
+3. [体験](#3-体験)
+	- 3-1. [Authorization Code Grant: API Gateway PEP方式](#3-1-authorization-code-grant:-api-gateway-pep方式)
+	- 3-2. [Authorization Code Grant: OIDC BFF方式](#3-2-authorization-code-grant:-oidc-bff方式)
+	- 3-3. [Client Credentials](#3-3-client-credentials)
+4. [清掃手順](#4-清掃手順)
+
+---
+
+## 1. はじめに
 
 Kong Konnect と Keycloak を使い、主要な認可フローを体験するための環境です。標準的な PEP 方式やトークンを秘匿する BFF 方式など、構成による挙動の差をスクリプトで比較しながら体系的に体験できます。
 
@@ -16,9 +34,9 @@ Kong Konnect と Keycloak を使い、主要な認可フローを体験するた
 
 <img src="./image/kong-konnect-aouth-autorization-grant_overview.png" width="600">
 
-## 体験環境の構築手順
+## 2. 体験環境の構築手順
 
-### 事前準備
+### 2-1. 事前準備
 
 Kong Konnectにアクセスして事前準備をします。
 
@@ -60,7 +78,7 @@ Kong Konnectにアクセスして事前準備をします。
 	$ cd ~/handson/my-skilling/kong-konnect/aouth-autorization-grant/
     ```
 
-### コンテナ構築
+### 2-2. コンテナ構築
 
 1. コンテナ構築用のディレクトリに移ります。スクリプトは2つあるため実行前に処理概要を理解します。
 
@@ -96,7 +114,7 @@ Kong Konnectにアクセスして事前準備をします。
     ```
 
 
-### Keycloak 環境設定
+### 2-3. Keycloak 環境設定
 
 1. 環境設定用のディレクトリに移ります。
 
@@ -116,7 +134,7 @@ Kong Konnectにアクセスして事前準備をします。
     ```
     - 実行内容は [step01_SETUP_KEYCLOAK.sh](./setup/step01_SETUP_KEYCLOAK.sh) の main() 関数に書かれているコメントを確認してください。
 
-### Kong Konnect 環境設定
+### 2-4. Kong Konnect 環境設定
 
 1. 環境設定用のディレクトリに移ります。
 
@@ -139,7 +157,7 @@ Kong Konnectにアクセスして事前準備をします。
     ```
     - 実行内容は [step02_KONG_REGISTER_API.sh](./setup/step02_KONG_REGISTER_API.sh) の main() 関数に書かれているコメントを確認してください。
 
-## 体験
+## 3. 体験
 
 1. 体験用のディレクトリに移ります。
 
@@ -147,7 +165,7 @@ Kong Konnectにアクセスして事前準備をします。
     $ cd ~/handson/try-my-hand/
     ```
 
-### Authorization  Code Grant: API Gateway PEP方式
+### 3-1. Authorization Code Grant: API Gateway PEP方式
 
 <img src="./image/api-gw-auth-arch-5-auth-code-api-gw-pep.png" width="600">
 
@@ -165,7 +183,7 @@ Kong Konnectにアクセスして事前準備をします。
     - 実行内容は該当スクリプトの main() 関数に書かれているコメントを確認してください。
 
 
-### Authorization  Code Grant: OIDC BFF方式
+### 3-2. Authorization Code Grant: OIDC BFF方式
 
 <img src="./image/api-gw-auth-arch-6-auth-code-oidc-bff.png" width="600">
 
@@ -183,7 +201,7 @@ Kong Konnectにアクセスして事前準備をします。
   ```
   - 実行内容は該当スクリプトの main() 関数に書かれているコメントを確認してください。
 
-### Client Credentials
+### 3-3. Client Credentials
 
 <img src="./image/api-gw-auth-arch-7-client-cred.png" width="600">
 
@@ -200,7 +218,7 @@ Kong Konnectにアクセスして事前準備をします。
   ```
   - 実行内容は該当スクリプトの main() 関数に書かれているコメントを確認してください。
 
-## 清掃手順
+## 4. 清掃手順
 
 1. 環境構築用のディレクトリに移ります。
 
