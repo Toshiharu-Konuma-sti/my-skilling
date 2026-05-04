@@ -6,7 +6,32 @@
 [![Microsoft Entra ID](https://img.shields.io/badge/Microsoft-Entra%20ID-0078D4?style=flat-square&logo=microsoft&logoColor=white)](https://www.microsoft.com/en-us/security/business/identity-access/microsoft-entra-id)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-6DB33F?style=flat-square&logo=spring-boot&logoColor=white)](https://spring.io/projects/spring-boot)
 
-## はじめに
+---
+
+## 目次
+
+1. [はじめに](#1-はじめに)
+2. [環境説明](#2-環境説明)
+	- 2-1. [コンテナ環境](#2-1-コンテナ環境)
+	- 2-2. [Spring Initializr Settings](#2-2-spring-initializr-settings)
+3. [体験環境の構築手順](#3-体験環境の構築手順)
+	- 3-1. [事前準備](#3-1-事前準備)
+	- 3-2. [コンテナ構築](#3-2-コンテナ構築)
+4. [体験](#4-体験)
+	- 4-1. [Authorization Code Grant](#4-1-authorization-code-grant)
+      - 4-1-1. [トークン取得](#4-1-1-トークン取得)
+      - 4-1-2. [Redis 管理のセッション削除](#4-1-2-redis-管理のセッション削除)
+	- 4-2. [Client Credentials Grant](#4-2-client-credentials-grant)
+      - 4-2-1. [トークン取得](#4-2-1-トークン取得)
+5. [実装の解説](#5-実装の解説)
+	- 5-1. [事前準備](#5-1-事前準備)
+	- 5-2. [トークン取得処理の実装](#5-2-トークン取得処理の実装)
+      - 5-2-1. [Authorization Code Grant 向け](#5-2-1-authorization-code-grant-向け)
+      - 5-2-2. [Client Credentials Grant 向け](#5-2-2-client-credentials-grant-向け)
+
+---
+
+## 1. はじめに
 
 Microsoft Entra ID と MSAL (Microsoft Authentication Library) を使い、Spring Boot 環境でトークン取得の実装を体験します。本来複雑な Authorization Code Grant のシーケンスが、MSAL を利用することでいかに簡潔な実装で完結するかを、実際のアプリケーション動作を通じて体系的に確認することができます。
 
@@ -16,9 +41,9 @@ Microsoft Entra ID と MSAL (Microsoft Authentication Library) を使い、Sprin
 | :--- | :--- |
 | <img src="./image/api-gw-auth-arch-5-auth-code-api-gw-pep.png" width="400"> | <img src="./image/api-gw-auth-arch-7-client-cred.png" width="400"> |
 
-## 環境説明
+## 2. 環境説明
 
-### コンテナ環境
+### 2-1. コンテナ環境
 
 体験を進める環境は以下の通りです。
 
@@ -32,7 +57,7 @@ Microsoft Entra ID と MSAL (Microsoft Authentication Library) を使い、Sprin
 | webapp for Client Credentials Grant | http://localhost:8080/hands-on/client-credentials |
 | Redis Insight | http://localhost:8001 |
 
-### Spring Initializr Settings
+### 2-2. Spring Initializr Settings
 
 https://start.spring.io/
 
@@ -48,9 +73,9 @@ https://start.spring.io/
 | **Java** | 21 |
 | **Dependencies** | Spring Web<br>Spring Boot DevTools<br>OAuth2 Client<br>Thymeleaf |
 
-## 体験環境の構築手順
+## 3. 体験環境の構築手順
 
-### 事前準備
+### 3-1. 事前準備
 
 Entra ID Free 版で事前準備をします。
 
@@ -73,7 +98,7 @@ Entra ID Free 版で事前準備をします。
 	$ cd ~/handson/my-skilling/ms-entra-id-free/msal/
     ```
 
-### コンテナ構築
+### 3-2. コンテナ構築
 
 1. コンテナ構築用のディレクトリに移ります。スクリプトは2つあるため実行前に処理概要を理解します。
 
@@ -98,11 +123,11 @@ Entra ID Free 版で事前準備をします。
 	  :
     ```
 
-## 体験
+## 4. 体験
 
-### Authorization Code Grant
+### 4-1. Authorization Code Grant
 
-#### トークン取得
+#### 4-1-1. トークン取得
 
 1. 体験用の Web アプリケーションにアクセスします。
    - http://localhost:8080/hands-on/authorization-code
@@ -163,7 +188,7 @@ Entra ID Free 版で事前準備をします。
 
    <img src="./image/demo_014.png" width="600">
 
-#### Redis 管理のセッション削除
+#### 4-1-2. Redis 管理のセッション削除
 
 1. ブラウザで新たなタブを立ち上げて Redis へアクセスします。
    - http://localhost:8001
@@ -192,9 +217,9 @@ Entra ID Free 版で事前準備をします。
 
    <img src="./image/demo_106.png" width="600">
 
-### Client Credentials Grant
+### 4-2. Client Credentials Grant
 
-#### トークン取得
+#### 4-2-1. トークン取得
 
 1. 体験用の Web アプリケーションにアクセスします。
    - http://localhost:8080/hands-on/client-credentials
@@ -208,9 +233,9 @@ Entra ID Free 版で事前準備をします。
    <img src="./image/demo_202.png" width="600">
 
 
-## 実装の解説
+## 5. 実装の解説
 
-### 事前準備
+### 5-1. 事前準備
 
 1. 「build.gradle」に Entra ID と OAuth 連携するライブラリの依存を追記します。
    - [build.gradle](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/build.gradle#L30)
@@ -218,9 +243,9 @@ Entra ID Free 版で事前準備をします。
 1. 「build.gradle」に Redis の利用とセッションを管理するライブラリの依存を追記します。
    - [build.gradle](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/build.gradle#L31-L32)
 
-### トークン取得処理の実装
+### 5-2. トークン取得処理の実装
 
-#### Authorization Code Grant 向け
+#### 5-2-1. Authorization Code Grant 向け
 
 1. 「application.yaml」に連携する IdP の設定を追記します。
    - [application.yaml](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/resources/application.yaml#L5-L21)
@@ -235,7 +260,7 @@ Entra ID Free 版で事前準備をします。
    - [HandsonController.java](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/controller/HandsonController.java#L35)：IdP でトークン発行から管理までを担います。
    - [HandsonController.java](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/controller/HandsonController.java#L39-L42)：トークンを処理に使うために取得します。
 
-#### Client Credentials Grant 向け
+#### 5-2-2. Client Credentials Grant 向け
 
 1. 「application.yaml」に IdP の設定を追記します。
    - [application.yaml](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/resources/application.yaml#L5-L14)：IdP で利用しているテナントを設定します。
