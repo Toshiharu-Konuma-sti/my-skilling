@@ -11,14 +11,14 @@
 ## 目次
 
 1. [はじめに](#1-はじめに)
-2. 体験環境の構築手順[](#2-体験環境の構築手順)
+2. [体験環境の構築手順](#2-体験環境の構築手順)
 	- 2-1. [事前準備](#2-1-事前準備)
 	- 2-2. [コンテナ構築](#2-2-コンテナ構築)
 	- 2-3. [Keycloak 環境設定](#2-3-keycloak-環境設定)
 	- 2-4. [Kong Konnect 環境設定](#2-4-kong-konnect-環境設定)
 3. [体験](#3-体験)
-	- 3-1. [Authorization Code Grant: API Gateway PEP方式](#3-1-authorization-code-grant:-api-gateway-pep方式)
-	- 3-2. [Authorization Code Grant: OIDC BFF方式](#3-2-authorization-code-grant:-oidc-bff方式)
+	- 3-1. [Authorization Code Grant: API Gateway PEP方式](#3-1-authorization-code-grant-api-gateway-pep方式)
+	- 3-2. [Authorization Code Grant: OIDC BFF方式](#3-2-authorization-code-grant-oidc-bff方式)
 	- 3-3. [Client Credentials](#3-3-client-credentials)
 4. [清掃手順](#4-清掃手順)
 
