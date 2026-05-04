@@ -21,7 +21,7 @@
 	- 4-1. [Authorization Code Grant](#4-1-authorization-code-grant)
       - 4-1-1. [トークン取得](#4-1-1-トークン取得)
       - 4-1-2. [Redis 管理のセッション削除](#4-1-2-redis-管理のセッション削除)
-	- 4-2. [Client Credentials Grant](#4-1-2-client-credentials-grant)
+	- 4-2. [Client Credentials Grant](#4-2-client-credentials-grant)
       - 4-2-1. [トークン取得](#4-2-1-トークン取得)
 5. [実装の解説](#5-実装の解説)
 	- 5-1. [事前準備](#5-1-事前準備)
