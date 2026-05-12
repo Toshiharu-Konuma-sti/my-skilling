@@ -412,6 +412,37 @@ create_kc_user() {
 # }}}
 
 
+# {{{ get_oas_targets(search_dir, args...)
+# 指定されたディレクトリから、*-oas.yaml のベース名リストを取得する
+# 引数があればそれを優先し、なければディレクトリ内を自動探索する
+get_oas_targets() {
+    local _dir="$1"
+    shift # 第1引数の _dir を除外して、残りの $@ を取得
+    local _targets=()
+
+    if [ $# -gt 0 ]; then
+        # 引数がある場合
+        for arg in "$@"; do
+            # パスが付いていてもファイル名のみにし、末尾の -oas.yaml を除去
+            local base=$(basename "$arg")
+            _targets+=("${base%-oas.yaml}")
+        done
+    else
+        # 引数がない場合、自動探索
+        shopt -s nullglob
+        for f in "$_dir"/*-oas.yaml; do
+            local filename=$(basename "$f")
+            _targets+=("${filename%-oas.yaml}")
+        done
+        shopt -u nullglob
+    fi
+
+    # 結果をスペース区切りで出力（呼び出し元で配列として受け取る用）
+    echo "${_targets[@]}"
+}
+# }}}
+
+
 # {{{ auth_test_check_name_resolution()
 auth_test_check_name_resolution() {
 	local host="$1"

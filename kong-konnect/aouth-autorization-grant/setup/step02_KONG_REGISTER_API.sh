@@ -19,7 +19,8 @@ CP_NM=${CP_NAME}
 KONNECT_TOKEN=${KONNECT_PAT}
 
 # Kongへルートとサービスを登録するOASファイルリスト(ファイル名から "-oas.yaml" を抜いたベース名を定義)
-TARGETS=("oauth-auth-code-api-gw-pep" "oauth-auth-code-oidc-bff" "oauth-client-credentials" "oauth-bff-login")
+# TARGETS=("oauth-auth-code-api-gw-pep" "oauth-auth-code-oidc-bff" "oauth-client-credentials" "oauth-bff-login")
+TARGETS=($(get_oas_targets "$CUR_DIR" "$@"))
 
 # {{{ main()
 main()
