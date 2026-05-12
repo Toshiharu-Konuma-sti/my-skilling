@@ -257,8 +257,8 @@ Entra ID Free 版で事前準備をします。
    - [SecurityConfig.java](./webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/config/SecurityConfig.java)
 
 1. Controllerにトークンを取得する処理を追加実装します。
-   - [HandsonController.java](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/controller/HandsonController.java#L35)：IdP でトークン発行から管理までを担います。
-   - [HandsonController.java](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/controller/HandsonController.java#L39-L42)：トークンを処理に使うために取得します。
+   - [HandsonController.java](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/controller/HandsonController.java#L35)：IdP からトークンを発行してもらう複雑なシーケンスから管理までを担います。
+   - [HandsonController.java](https://github.com/Toshiharu-Konuma-sti/my-skilling/blob/0b0fa21aae35cc20e9da625782970edde5cf448b/ms-entra-id-free/msal/webapp/src/main/java/jp/sios/apisl/handson/entraid/msal/controller/HandsonController.java#L39-L42)：処理に使うためにトークンを取得します。
 
 #### 5-2-2. Client Credentials Grant 向け
 
