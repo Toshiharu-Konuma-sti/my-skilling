@@ -1,0 +1,53 @@
+openapi: 3.1.0
+info:
+  title: Yahoo! Topics RSS API - IT
+  version: 1.0.0
+  description: |
+    ルートからサービスへ Pre Function plugin を使って URL をトランスフォームする検証用です。
+    URL 例：
+    - curl -i http://localhost:8000/handson/no-auth/v1/transform/pre-function/rss/topics/it.xml
+    - curl -i http://localhost:8000/handson/no-auth/v1/transform/pre-function/rss/categories/local.xml
+  contact:
+    name: API管理者
+    email: admin@example.com
+servers:
+  - url: http://localhost:8000
+x-kong-name: no-auth-transform-plugin-pre-function
+x-kong-service-defaults:
+  protocol: https
+  host: news.yahoo.co.jp
+  port: 443
+paths:
+  /handson/no-auth/v1/transform/pre-function/{p1}/{p2}/{p3}:
+    get:
+      parameters:
+        - name: p1
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: p2
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: p3
+          in: path
+          required: true
+          schema:
+            type: string
+      x-kong-plugin-pre-function:
+        name: pre-function
+        enabled: true
+        config:
+          access:
+            - |
+              local caps = kong.request.get_uri_captures()
+              local named = (caps and caps.named) or {}
+              local p1 = named.p1 or ""
+              local p2 = named.p2 or ""
+              local p3 = named.p3 or ""
+              kong.service.request.set_path("/" .. p1 .. "/" .. p2 .. "/" .. p3)
+      responses:
+        '200':
+          description: OK
