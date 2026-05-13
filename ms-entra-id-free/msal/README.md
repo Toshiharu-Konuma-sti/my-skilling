@@ -33,7 +33,7 @@
 
 ## 1. はじめに
 
-Microsoft Entra ID と MSAL (Microsoft Authentication Library) を使い、Spring Boot 環境でトークン取得の実装を体験します。本来複雑な Authorization Code Grant のシーケンスが、MSAL を利用することでいかに簡潔な実装で完結するかを、実際のアプリケーション動作を通じて体系的に確認することができます。
+Microsoft Entra ID と [MSAL](https://learn.microsoft.com/ja-jp/entra/identity-platform/msal-overview) (Microsoft Authentication Library) を使い、Spring Boot 環境でトークン取得の実装を体験します。本来複雑な Authorization Code Grant のシーケンスが、MSAL を利用することでいかに簡潔な実装で完結するかを、実際のアプリケーション動作を通じて体系的に確認することができます。
 
 体験を進めるアーキテクチャは、以下図の薄赤エリア「API利用者による Access Token 取得までのフロー」です。
 
