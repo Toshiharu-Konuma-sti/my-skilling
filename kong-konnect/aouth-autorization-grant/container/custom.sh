@@ -219,26 +219,24 @@ EOF
 # $4: Personal access token
 prepare_kong_dp_certs()
 {
-	local cur_dir="$1"
-	local api_base_url="$2"
-	local cp_id="$3"
-	local konnect_pat="$4"
+	cur_dir="$1"
+	api_base_url="$2"
+	cp_id="$3"
+	konnect_pat="$4"
 
-    local certs_dir="${cur_dir}/certs"
+    certs_dir="${cur_dir}/certs"
 
-    echo "\n### START: Fetch DP Certificates from Kong Konnect ##########"
+	printf '\n### START: Fetch DP Certificates from Kong Konnect ##########\n'
 
     mkdir -p "${certs_dir}"
 
 	# 既存の登録済み DP 証明書をクリーンアップ
 	echo "🧹 既存の DP 証明書を Konnect から削除中..."
-	local existing_cert_ids
 	existing_cert_ids=$(curl -s -X GET \
 		"${api_base_url}/control-planes/${cp_id}/dp-client-certificates" \
 		-H "Authorization: Bearer ${konnect_pat}" \
 		| jq -r '.items[].id // empty')
 
-	local cert_id
 	for cert_id in ${existing_cert_ids}; do
 		echo "  → 削除: ${cert_id}"
 		curl -s -X DELETE \
@@ -247,11 +245,10 @@ prepare_kong_dp_certs()
 	done
 
     # 一時ディレクトリで秘密鍵 & 自己署名証明書を生成
-    local tmp_dir
     tmp_dir=$(mktemp -d)
 
-	local tmp_key="${tmp_dir}/tls.key"
-	local tmp_crt="${tmp_dir}/tls.crt"
+	tmp_key="${tmp_dir}/tls.key"
+	tmp_crt="${tmp_dir}/tls.crt"
 
 	openssl genrsa -out "${tmp_key}" 2048 2>/dev/null
 	openssl req -new -x509 \
@@ -263,23 +260,20 @@ prepare_kong_dp_certs()
 	echo "✅ 証明書の生成完了"
 
     # 証明書 PEM を JSON 文字列に変換して Konnect に登録
-    local cert_json
     cert_json=$(jq -Rs . < "${tmp_crt}")
 
     echo "📤 Kong Konnect に証明書を登録中 (CP_ID: ${cp_id})..."
-    local response
 	response=$(curl -s -X POST \
 		"${api_base_url}/control-planes/${cp_id}/dp-client-certificates" \
 		-H "Authorization: Bearer ${konnect_pat}" \
 		-H "Content-Type: application/json" \
 		-d "{\"cert\": ${cert_json}}")
 
-    local registered_id
-    registered_id=$(echo "${response}" | jq -r '.item.id // .id // empty')
+	registered_id=$(printf '%s' "${response}" | jq -r '.item.id // .id // empty')
 
     if [ -z "${registered_id}" ] || [ "${registered_id}" = "null" ]; then
         echo "❌ 証明書の登録に失敗しました:"
-        echo "${response}" | jq . 2>/dev/null || echo "${response}"
+		printf '%s' "${response}" | jq . 2>/dev/null || printf '%s\n' "${response}"
         rm -rf "${tmp_dir}"
         return 1
     fi
@@ -414,31 +408,35 @@ create_kc_user() {
 
 # {{{ get_oas_targets(search_dir, args...)
 # 指定されたディレクトリから、*-oas.yaml のベース名リストを取得する
-# 引数があればそれを優先し、なければディレクトリ内を自動探索する
+# /bin/sh (POSIX) 準拠の実装
 get_oas_targets() {
-    local _dir="$1"
-    shift # 第1引数の _dir を除外して、残りの $@ を取得
-    local _targets=()
+    _dir="$1"
+    shift
+    _targets_str=""
 
     if [ $# -gt 0 ]; then
-        # 引数がある場合
+        # --- 1. 引数（ファイル指定）がある場合 ---
         for arg in "$@"; do
             # パスが付いていてもファイル名のみにし、末尾の -oas.yaml を除去
-            local base=$(basename "$arg")
-            _targets+=("${base%-oas.yaml}")
+            _base=$(basename "$arg")
+            _target="${_base%-oas.yaml}"
+            # 文字列として連結（スペース区切り）
+            _targets_str="${_targets_str} ${_target}"
         done
     else
-        # 引数がない場合、自動探索
-        shopt -s nullglob
+        # --- 2. 引数がない場合、自動探索 ---
+        # nullglobの代わりに、ファイルの実在確認を行う
         for f in "$_dir"/*-oas.yaml; do
-            local filename=$(basename "$f")
-            _targets+=("${filename%-oas.yaml}")
+            if [ -f "$f" ]; then
+                _filename=$(basename "$f")
+                _target="${_filename%-oas.yaml}"
+                _targets_str="${_targets_str} ${_target}"
+            fi
         done
-        shopt -u nullglob
     fi
 
-    # 結果をスペース区切りで出力（呼び出し元で配列として受け取る用）
-    echo "${_targets[@]}"
+    # 先頭の余計なスペースを削って出力
+    echo $_targets_str
 }
 # }}}
 
