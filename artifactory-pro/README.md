@@ -4,6 +4,7 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/Toshiharu-Konuma-sti/my-skilling?style=flat-square)](https://github.com/Toshiharu-Konuma-sti/my-skilling/commits/main)
 [![JFrog Artifactory](https://img.shields.io/badge/JFrog-Artifactory-41BF47?style=flat-square&logo=jfrog&logoColor=white)](https://jfrog.com/artifactory/)
 [![JFrog Xray](https://img.shields.io/badge/JFrog-Xray-41BF47?style=flat-square&logo=jfrog&logoColor=white)](https://jfrog.com/xray/)
+[![AWS EC2](https://img.shields.io/badge/AWS-EC2-FF9900?style=flat-square&logo=amazon-ec2&logoColor=white)](https://aws.amazon.com/ec2/)
 [![Terraform](https://img.shields.io/badge/Terraform-1.9+-7B42BC?style=flat-square&logo=terraform&logoColor=white)](https://www.terraform.io/)
 [![Ansible](https://img.shields.io/badge/Ansible-Automation-EE0000?style=flat-square&logo=ansible&logoColor=white)](https://www.ansible.com/)
 [![Ubuntu](https://img.shields.io/badge/Ubuntu-Noble%2024.04-E95420?style=flat-square&logo=ubuntu&logoColor=white)](https://ubuntu.com/)
