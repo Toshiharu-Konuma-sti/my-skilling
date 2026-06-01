@@ -117,8 +117,9 @@ show_url()
 
 /************************************************************
  * Information:
- * - Web App:   http://localhost:8080/hands-on
- * - Redis:     http://localhost:8001
+ * - Web App:       http://localhost:8080/hands-on
+ * - Redis:         http://localhost:8001
+ * - MS Entra ID:   https://entra.microsoft.com
  ***********************************************************/
 
 EOS
