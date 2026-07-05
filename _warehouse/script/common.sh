@@ -75,6 +75,22 @@ check_required_commands()
 # }}}
 
 
+# {{{ remove_container_and_image()
+# $1: the current directory
+# $2: the name of container to rebuild
+remove_container_and_image()
+{
+	CUR_DIR=$1
+	CONTAINER_NM=$2
+	echo "\n### START: Remove a container and an image ##########"
+	docker stop $CONTAINER_NM
+	IMAGE_NM=$(docker inspect --format='{{.Config.Image}}' $CONTAINER_NM)
+	docker rm $CONTAINER_NM
+	docker rmi $IMAGE_NM
+}
+# }}}
+
+
 # {{{ loop_curl_until_success()
 # $1: the command to call with cURL
 loop_curl_until_success()
