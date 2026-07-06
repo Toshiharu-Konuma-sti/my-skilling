@@ -1,0 +1,6 @@
+{
+    "name": "t-konuma-portal001",
+    "authentication_enabled": true,
+    "auto_approve_developers": false,
+    "auto_approve_applications": false
+}

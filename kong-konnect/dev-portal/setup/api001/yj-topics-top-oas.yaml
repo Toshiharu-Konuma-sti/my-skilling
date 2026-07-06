@@ -1,0 +1,83 @@
+openapi: 3.1.0
+info:
+  title: Yahoo! Topics RSS API
+  version: 1.0.0
+  description: Yahoo! ニュースの主要なトピックスを扱います。Kongのルーティングテスト用です。
+  contact:
+    name: API管理者
+    email: admin@example.com
+servers:
+  - url: http://localhost:8000
+x-kong-name: sv-yjrss-topics
+x-kong-tags:
+  - team-a
+x-kong-service-defaults:
+  protocol: https
+  host: news.yahoo.co.jp
+  port: 443
+  path: /rss/topics/top-picks.xml
+tags:
+  - name: Topics
+    description: ニュース関連のAPIグループです。
+paths:
+  /yjnews/v1/topics/top:
+    get:
+      tags:
+        - Topics
+      summary: Yahoo! 主要トピックスの取得RSS API
+      description: Yahoo! ニュースの主要なトピックスをRSS（XML形式）で取得します。
+      operationId: getTopics
+      x-kong-route-defaults:
+        strip_path: true
+      responses:
+        '200':
+          description: RSS 2.0形式のXMLレスポンス
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/RssResponse'
+
+components:
+  schemas:
+    RssResponse:
+      type: object
+      xml:
+        name: rss
+      properties:
+        version:
+          type: string
+          example: "2.0"
+        channel:
+          type: object
+          properties:
+            title:
+              type: string
+              description: フィードのタイトル
+              example: "Yahoo!ニュース・トピックス - 主要"
+            description:
+              type: string
+              description: フィードの説明
+              example: "Yahoo! JAPANの最新見出しを提供しています。"
+            item:
+              type: array
+              items:
+                $ref: '#/components/schemas/NewsItem'
+    NewsItem:
+      type: object
+      properties:
+        title:
+          type: string
+          description: ニュース記事のタイトル
+          example: "侍ジャパンvs.チェコ スタメン"
+        link:
+          type: string
+          description: ニュース記事のURL
+          example: "https://news.yahoo.co.jp/pickup/..."
+        pubDate:
+          type: string
+          description: 記事の公開日時
+          example: "Tue, 10 Mar 2026 09:05:51 GMT"
+        comments:
+          type: string
+          description: コメント欄のURL
+          example: "https://news.yahoo.co.jp/articles/..."

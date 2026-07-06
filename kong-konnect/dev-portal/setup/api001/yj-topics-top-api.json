@@ -1,0 +1,4 @@
+{
+  "name": "Yahoo! Topics RSS API",
+  "description": "Yahoo! ニュースの主要なトピックスを扱います。Kongのルーティングテスト用です。"
+}

@@ -135,7 +135,7 @@ load_env_file() {
 	_path="$1"
 
 	if [ -f "$_path" ]; then
-		echo "📂 Loading environment variables from $_path..."
+		echo "📂 Loading environment variables from $_path"
 		# コメント行を除外して export
 		export $(grep -v '^#' "$_path" | xargs)
 	else
@@ -621,6 +621,400 @@ auth_test_client_cred_get_token() {
 		-d "grant_type=client_credentials" \
 		-d "client_id=${cid}" \
 		-d "client_secret=${secret}"
+}
+# }}}
+
+
+# {{{ fetch_konnect_portals()
+# $1: API base URL  (e.g. https://au.api.konghq.com)
+# $2: Personal access token
+fetch_konnect_portals()
+{
+	local api_base_url="$1"
+	local pat="$2"
+
+	curl -s -X GET \
+		"${api_base_url}/v3/portals" \
+		-H "Authorization: Bearer ${pat}"
+}
+# }}}
+
+# {{{ create_konnect_portal()
+# $1: API base URL  (e.g. https://au.api.konghq.com)
+# $2: Personal access token
+# $3: リクエストボディの JSON ファイルパス (e.g. portal/portal.json)
+# $4: レスポンスボディの書き込み先 tmp ファイルパス
+# stdout: HTTP ステータスコード
+create_konnect_portal()
+{
+	local api_base_url="$1"
+	local pat="$2"
+	local json_file="$3"
+	local tmp_body="$4"
+
+	curl -s \
+		-o "${tmp_body}" \
+		-w "%{http_code}" \
+		-X POST \
+		"${api_base_url}/v3/portals" \
+		-H "Authorization: Bearer ${pat}" \
+		-H "Content-Type: application/json" \
+		-d "@${json_file}"
+}
+# }}}
+
+# {{{ update_konnect_portal()
+# $1: API base URL  (e.g. https://au.api.konghq.com)
+# $2: Personal access token
+# $3: Portal ID
+# $4: リクエストボディの JSON ファイルパス (e.g. portal/portal.json)
+# $5: レスポンスボディの書き込み先 tmp ファイルパス
+# stdout: HTTP ステータスコード
+update_konnect_portal()
+{
+	local api_base_url="$1"
+	local pat="$2"
+	local portal_id="$3"
+	local json_file="$4"
+	local tmp_body="$5"
+
+	curl -s \
+		-o "${tmp_body}" \
+		-w "%{http_code}" \
+		-X PATCH \
+		"${api_base_url}/v3/portals/${portal_id}" \
+		-H "Authorization: Bearer ${pat}" \
+		-H "Content-Type: application/json" \
+		-d "@${json_file}"
+}
+# }}}
+
+# {{{ update_konnect_portal_customization()
+# $1: API base URL  (e.g. https://au.api.konghq.com)
+# $2: Personal access token
+# $3: Portal ID
+# $4: リクエストボディの JSON ファイルパス (e.g. portal/design.json)
+# $5: レスポンスボディの書き込み先 tmp ファイルパス
+# stdout: HTTP ステータスコード
+update_konnect_portal_customization()
+{
+	local api_base_url="$1"
+	local pat="$2"
+	local portal_id="$3"
+	local json_file="$4"
+	local tmp_body="$5"
+
+	curl -s \
+		-o "${tmp_body}" \
+		-w "%{http_code}" \
+		-X PATCH \
+		"${api_base_url}/v3/portals/${portal_id}/customization" \
+		-H "Authorization: Bearer ${pat}" \
+		-H "Content-Type: application/json" \
+		-d "@${json_file}"
+}
+# }}}
+
+# {{{ upload_konnect_portal_asset()
+# PNG ファイルを base64 エンコードして指定のアセットエンドポイントに PUT する共通関数
+# $1: API base URL  (e.g. https://au.api.konghq.com)
+# $2: Personal access token
+# $3: Portal ID
+# $4: アセット種別 (logo | favicon)
+# $5: PNG ファイルパス (e.g. portal/logo.png)
+# $6: レスポンスボディの書き込み先 tmp ファイルパス
+# stdout: HTTP ステータスコード
+upload_konnect_portal_asset()
+{
+	local api_base_url="$1"
+	local pat="$2"
+	local portal_id="$3"
+	local asset_type="$4"
+	local image_file="$5"
+	local tmp_body="$6"
+
+	local b64_data
+	b64_data=$(base64 -w 0 "${image_file}")
+
+	curl -s \
+		-o "${tmp_body}" \
+		-w "%{http_code}" \
+		-X PUT \
+		"${api_base_url}/v3/portals/${portal_id}/assets/${asset_type}" \
+		-H "Authorization: Bearer ${pat}" \
+		-H "Content-Type: application/json" \
+		-d "{\"data\": \"data:image/png;base64,${b64_data}\"}"
+}
+# }}}
+
+
+# {{{ fetch_konnect_apis()
+# $1: API base URL  (e.g. https://au.api.konghq.com)
+# $2: Personal access token
+fetch_konnect_apis()
+{
+	local api_base_url="$1"
+	local pat="$2"
+
+	curl -s -X GET \
+		"${api_base_url}/v3/apis" \
+		-H "Authorization: Bearer ${pat}"
+}
+# }}}
+
+# {{{ fetch_konnect_api_by_name()
+# name の完全一致フィルターで API を検索する (ページネーション問題を回避)
+# $1: API base URL  (e.g. https://au.api.konghq.com)
+# $2: Personal access token
+# $3: API name (URL エンコードは curl -G --data-urlencode が自動処理)
+fetch_konnect_api_by_name()
+{
+	local api_base_url="$1"
+	local pat="$2"
+	local name="$3"
+
+	curl -s -G \
+		"${api_base_url}/v3/apis" \
+		--data-urlencode "filter[name][eq]=${name}" \
+		-H "Authorization: Bearer ${pat}"
+}
+# }}}
+
+# {{{ create_konnect_api()
+# $1: API base URL  (e.g. https://au.api.konghq.com)
+# $2: Personal access token
+# $3: リクエストボディの JSON ファイルパス
+# $4: レスポンスボディの書き込み先 tmp ファイルパス
+# stdout: HTTP ステータスコード
+create_konnect_api()
+{
+	local api_base_url="$1"
+	local pat="$2"
+	local json_file="$3"
+	local tmp_body="$4"
+
+	curl -s \
+		-o "${tmp_body}" \
+		-w "%{http_code}" \
+		-X POST \
+		"${api_base_url}/v3/apis" \
+		-H "Authorization: Bearer ${pat}" \
+		-H "Content-Type: application/json" \
+		-d "@${json_file}"
+}
+# }}}
+
+# {{{ update_konnect_api()
+# $1: API base URL  (e.g. https://au.api.konghq.com)
+# $2: Personal access token
+# $3: API ID
+# $4: リクエストボディの JSON ファイルパス
+# $5: レスポンスボディの書き込み先 tmp ファイルパス
+# stdout: HTTP ステータスコード
+update_konnect_api()
+{
+	local api_base_url="$1"
+	local pat="$2"
+	local api_id="$3"
+	local json_file="$4"
+	local tmp_body="$5"
+
+	curl -s \
+		-o "${tmp_body}" \
+		-w "%{http_code}" \
+		-X PATCH \
+		"${api_base_url}/v3/apis/${api_id}" \
+		-H "Authorization: Bearer ${pat}" \
+		-H "Content-Type: application/json" \
+		-d "@${json_file}"
+}
+# }}}
+
+# {{{ fetch_konnect_api_by_slug()
+# slug フィルターで API を検索する
+# $1: API base URL  (e.g. https://au.api.konghq.com)
+# $2: Personal access token
+# $3: slug 文字列 (e.g. yahoo-topics-rss-api)
+fetch_konnect_api_by_slug()
+{
+	local api_base_url="$1"
+	local pat="$2"
+	local slug="$3"
+
+	curl -s -X GET \
+		"${api_base_url}/v3/apis?filter%5Bslug%5D%5Beq%5D=${slug}" \
+		-H "Authorization: Bearer ${pat}"
+}
+# }}}
+
+
+# {{{ fetch_konnect_api_versions()
+# $1: API base URL  (e.g. https://au.api.konghq.com)
+# $2: Personal access token
+# $3: API ID
+fetch_konnect_api_versions()
+{
+	local api_base_url="$1"
+	local pat="$2"
+	local api_id="$3"
+
+	curl -s -X GET \
+		"${api_base_url}/v3/apis/${api_id}/versions" \
+		-H "Authorization: Bearer ${pat}"
+}
+# }}}
+
+# {{{ create_konnect_api_version()
+# $1: API base URL  (e.g. https://au.api.konghq.com)
+# $2: Personal access token
+# $3: API ID
+# $4: JSON ペイロード文字列 (version + spec.content)
+# $5: レスポンスボディの書き込み先 tmp ファイルパス
+# stdout: HTTP ステータスコード
+create_konnect_api_version()
+{
+	local api_base_url="$1"
+	local pat="$2"
+	local api_id="$3"
+	local payload="$4"
+	local tmp_body="$5"
+
+	curl -s \
+		-o "${tmp_body}" \
+		-w "%{http_code}" \
+		-X POST \
+		"${api_base_url}/v3/apis/${api_id}/versions" \
+		-H "Authorization: Bearer ${pat}" \
+		-H "Content-Type: application/json" \
+		-d "${payload}"
+}
+# }}}
+
+# {{{ update_konnect_api_version()
+# $1: API base URL  (e.g. https://au.api.konghq.com)
+# $2: Personal access token
+# $3: API ID
+# $4: Version ID
+# $5: JSON ペイロード文字列 (version + spec.content)
+# $6: レスポンスボディの書き込み先 tmp ファイルパス
+# stdout: HTTP ステータスコード
+update_konnect_api_version()
+{
+	local api_base_url="$1"
+	local pat="$2"
+	local api_id="$3"
+	local version_id="$4"
+	local payload="$5"
+	local tmp_body="$6"
+
+	curl -s \
+		-o "${tmp_body}" \
+		-w "%{http_code}" \
+		-X PATCH \
+		"${api_base_url}/v3/apis/${api_id}/versions/${version_id}" \
+		-H "Authorization: Bearer ${pat}" \
+		-H "Content-Type: application/json" \
+		-d "${payload}"
+}
+# }}}
+
+
+# {{{ fetch_konnect_api_documents()
+# $1: API base URL  (e.g. https://au.api.konghq.com)
+# $2: Personal access token
+# $3: API ID
+fetch_konnect_api_documents()
+{
+	local api_base_url="$1"
+	local pat="$2"
+	local api_id="$3"
+
+	curl -s -X GET \
+		"${api_base_url}/v3/apis/${api_id}/documents" \
+		-H "Authorization: Bearer ${pat}"
+}
+# }}}
+
+# {{{ create_konnect_api_document()
+# $1: API base URL  (e.g. https://au.api.konghq.com)
+# $2: Personal access token
+# $3: API ID
+# $4: JSON ペイロード文字列 (title + slug + status + content)
+# $5: レスポンスボディの書き込み先 tmp ファイルパス
+# stdout: HTTP ステータスコード
+create_konnect_api_document()
+{
+	local api_base_url="$1"
+	local pat="$2"
+	local api_id="$3"
+	local payload="$4"
+	local tmp_body="$5"
+
+	curl -s \
+		-o "${tmp_body}" \
+		-w "%{http_code}" \
+		-X POST \
+		"${api_base_url}/v3/apis/${api_id}/documents" \
+		-H "Authorization: Bearer ${pat}" \
+		-H "Content-Type: application/json" \
+		-d "${payload}"
+}
+# }}}
+
+# {{{ update_konnect_api_document()
+# $1: API base URL  (e.g. https://au.api.konghq.com)
+# $2: Personal access token
+# $3: API ID
+# $4: Document ID
+# $5: JSON ペイロード文字列
+# $6: レスポンスボディの書き込み先 tmp ファイルパス
+# stdout: HTTP ステータスコード
+update_konnect_api_document()
+{
+	local api_base_url="$1"
+	local pat="$2"
+	local api_id="$3"
+	local doc_id="$4"
+	local payload="$5"
+	local tmp_body="$6"
+
+	curl -s \
+		-o "${tmp_body}" \
+		-w "%{http_code}" \
+		-X PATCH \
+		"${api_base_url}/v3/apis/${api_id}/documents/${doc_id}" \
+		-H "Authorization: Bearer ${pat}" \
+		-H "Content-Type: application/json" \
+		-d "${payload}"
+}
+# }}}
+
+# {{{ publish_api_to_portal()
+# API を Dev Portal に公開する (PUT upsert)
+# $1: API base URL  (e.g. https://au.api.konghq.com)
+# $2: Personal access token
+# $3: API ID
+# $4: Portal ID
+# $5: JSON ペイロード文字列 (visibility 等)
+# $6: レスポンスボディの書き込み先 tmp ファイルパス
+# stdout: HTTP ステータスコード
+publish_api_to_portal()
+{
+	local api_base_url="$1"
+	local pat="$2"
+	local api_id="$3"
+	local portal_id="$4"
+	local payload="$5"
+	local tmp_body="$6"
+
+	curl -s \
+		-o "${tmp_body}" \
+		-w "%{http_code}" \
+		-X PUT \
+		"${api_base_url}/v3/apis/${api_id}/publications/${portal_id}" \
+		-H "Authorization: Bearer ${pat}" \
+		-H "Content-Type: application/json" \
+		-d "${payload}"
 }
 # }}}
 
