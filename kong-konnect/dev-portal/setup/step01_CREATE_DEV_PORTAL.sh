@@ -7,11 +7,9 @@ CUR_DIR=$(cd $(dirname $0); pwd)
 . $CUR_DIR/custom.sh
 
 ENV_AUTH="${CUR_DIR}/.env-konnect-auth"
-#	ENV_KC_CLIENT="${CUR_DIR}/.env_keycloak_client"
 
 create_konnect_auth_file "$ENV_AUTH"
 load_env_file "$ENV_AUTH"
-#	load_env_file "$ENV_KC_CLIENT"
 
 # 基本設定
 KONNECT_ADDR="https://${REGION}.api.konghq.com"
@@ -23,6 +21,7 @@ PORTAL_JSON="${CUR_DIR}/portal/portal.json"
 DESIGN_JSON="${CUR_DIR}/portal/design.json"
 LOGO_FILE="${CUR_DIR}/portal/logo.png"
 FAVICON_FILE="${CUR_DIR}/portal/favicon.png"
+HOME_HTML="${CUR_DIR}/portal/home.html"
 
 # {{{ main()
 main()
@@ -164,6 +163,55 @@ main()
 			echo "${asset_body}" | jq '.' 2>/dev/null || echo "${asset_body}"
 		fi
 	done
+
+	# -------------------------------------------------------
+	# Step 3.5: ホームページ (slug="/") の作成 / 更新
+	# -------------------------------------------------------
+	if [ -f "${HOME_HTML}" ]; then
+		echo "### 📄 ホームページ (slug=\"/\") の適用 ..."
+		local page_payload page_resp home_page_id
+		page_resp=$(curl -s -X GET \
+			"${KONNECT_ADDR}/v3/portals/${portal_id}/pages" \
+			-H "Authorization: Bearer ${KONNECT_TOKEN}")
+		home_page_id=$(echo "${page_resp}" | jq -r '.data[] | select(.slug=="/") | .id // empty')
+
+		page_payload=$(jq -n --rawfile content "${HOME_HTML}" '{content: $content}')
+		local tmp_page page_body page_code
+		tmp_page=$(mktemp /tmp/konnect_portal_page_XXXXXX.json)
+
+		if [ -n "${home_page_id}" ]; then
+			echo "   - ホームページが既に存在します。更新します (Page ID: ${home_page_id}) ..."
+			page_code=$(curl -s \
+				-o "${tmp_page}" \
+				-w "%{http_code}" \
+				-X PATCH \
+				"${KONNECT_ADDR}/v3/portals/${portal_id}/pages/${home_page_id}" \
+				-H "Authorization: Bearer ${KONNECT_TOKEN}" \
+				-H "Content-Type: application/json" \
+				-d "${page_payload}")
+		else
+			echo "   - ホームページが存在しません。新規作成します ..."
+			page_payload=$(jq -n --rawfile content "${HOME_HTML}" \
+				'{slug: "/", status: "published", content: $content}')
+			page_code=$(curl -s \
+				-o "${tmp_page}" \
+				-w "%{http_code}" \
+				-X POST \
+				"${KONNECT_ADDR}/v3/portals/${portal_id}/pages" \
+				-H "Authorization: Bearer ${KONNECT_TOKEN}" \
+				-H "Content-Type: application/json" \
+				-d "${page_payload}")
+		fi
+		page_body=$(cat "${tmp_page}")
+		rm -f "${tmp_page}"
+
+		if [ "${page_code}" = "200" ] || [ "${page_code}" = "201" ]; then
+			echo "✅ ホームページを適用しました！"
+		else
+			echo "⚠️  ホームページの適用に失敗しました (HTTP: ${page_code})"
+			echo "${page_body}" | jq '.' 2>/dev/null || echo "${page_body}"
+		fi
+	fi
 
 	# -------------------------------------------------------
 	# Step 4: 結果の表示

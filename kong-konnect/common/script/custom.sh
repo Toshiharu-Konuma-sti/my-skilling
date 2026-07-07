@@ -1018,3 +1018,23 @@ publish_api_to_portal()
 }
 # }}}
 
+# {{{ delete_konnect_api()
+# $1: API base URL  (e.g. https://au.api.konghq.com)
+# $2: Personal access token
+# $3: API ID
+# stdout: HTTP ステータスコード (成功: 204)
+delete_konnect_api()
+{
+	local api_base_url="$1"
+	local pat="$2"
+	local api_id="$3"
+
+	curl -s \
+		-o /dev/null \
+		-w "%{http_code}" \
+		-X DELETE \
+		"${api_base_url}/v3/apis/${api_id}" \
+		-H "Authorization: Bearer ${pat}"
+}
+# }}}
+

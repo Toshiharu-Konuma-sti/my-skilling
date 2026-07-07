@@ -1,6 +1,6 @@
 {
-    "name": "t-konuma-portal001",
-    "authentication_enabled": true,
-    "auto_approve_developers": false,
-    "auto_approve_applications": false
+    "name": "My Original Dev Portal Site!!!",
+    "authentication_enabled": false,
+    "auto_approve_developers": true,
+    "auto_approve_applications": true
 }
