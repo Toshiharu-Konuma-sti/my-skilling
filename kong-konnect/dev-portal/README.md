@@ -14,14 +14,19 @@
    - [2-2. Dev Portal の作成](#2-2-dev-portal-の作成)
    - [2-3. Gateway の登録](#2-3-gateway-の登録)
    - [2-4. Catalog API の登録](#2-4-catalog-api-の登録)
-3. [清掃手順](#3-清掃手順)
+3. [Dev Portal の体験](#3-dev-portal-の体験)
+4. [清掃手順](#4-清掃手順)
 
 ---
 
 ## 1. はじめに
 
-Kong Konnect の **Dev Portal** 機能を体験するための環境です。
-スクリプトを順番に実行することで、Dev Portal の作成・カスタマイズから API カタログの公開までの一連のフローを体験できます。
+Kong Konnect の **Dev Portal** 機能を体験するためのデモ環境です。
+
+用意されたスクリプトを順番に実行するだけで Dev Portal の自動構築が行われ、以下の内容を実機で体験・理解できます。
+
+* **Konnect 上での設定構造の理解**: `[Dev Portal > Portals]` メニュー内で、どのような構成やオブジェクトが必要となるのかを実際に確認できます。
+* **デプロイされたポータルへのアクセス**: Konnect から払い出される実際の公開用 URL を使用して、デプロイ後の Dev Portal へアクセスし、ユーザー目線でのUI/UXを体験できます。
 
 Kong Dev Portal の構造概要図です。
 
@@ -203,7 +208,15 @@ Kong Dev Portal の構造概要図です。
 
 ---
 
-## 3. 清掃手順
+## 3. Dev Portal の体験
+
+詳細の手順は割愛しますが、Kong Konnect へアクセスして確認や体験してください
+
+- Kong Konnect: https://cloud.konghq.com
+
+---
+
+## 4. 清掃手順
 
 1. `setup/` ディレクトリに移ります。
 
