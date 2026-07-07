@@ -1,0 +1,6 @@
+{
+    "name": "My Original Dev Portal Site!!!",
+    "authentication_enabled": false,
+    "auto_approve_developers": true,
+    "auto_approve_applications": true
+}

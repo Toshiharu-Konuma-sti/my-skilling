@@ -1,0 +1,4 @@
+*.swp
+
+setup/.env-konnect-auth
+setup/*/*-kng.yaml
