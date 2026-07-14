@@ -41,6 +41,7 @@
    - [6-4. Python (pip)](#6-4-python-pip)
    - [6-5. Python (uv)](#6-5-python-uv)
    - [6-6. Go (modules)](#6-6-go-modules)
+   - [6-7. Docker](#6-7-docker)
 
 ---
 
@@ -79,6 +80,10 @@ Nexus には以下のリポジトリが構築されます。
 | `pypi-proxy` | proxy | PyPI のプロキシ |
 | `go-proxy` | proxy | proxy.golang.org のプロキシ |
 | `docker-hub-proxy` | proxy | Docker Hub のプロキシ（port: `8085`） |
+
+> **`nexus.local` を使用する理由**: `localhost`（`127.0.0.1`）を使わず `/etc/hosts` でカスタムホスト名を割り当てている理由は、**各ビルドツールの HTTP セキュリティポリシーを正確に体験・検証するため**です。  
+> npm・Gradle など一部のビルドツールは `localhost` / `127.0.0.1` をループバックアドレスとして特別扱いし、HTTP 接続でも認証情報の送信を無条件に許可します。  
+> `nexus.local` のようなカスタムドメインを使うことで、すべてのツールが「外部のリモートホスト」として認識し、それぞれの HTTP セキュリティポリシー（`allowInsecureProtocol`・`always-auth`・`insecure-registries` など）が正しく適用される状態を再現できます。
 
 ---
 
@@ -270,6 +275,7 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 | Python (pip) | `pypi-proxy` | `pypi-hosted` |
 | Python (uv) | `pypi-proxy` | `pypi-hosted` |
 | Go (modules) | `go-proxy` | ※ Git タグ（Nexus に hosted なし） |
+| Docker | `docker-hub-proxy` | ※ 本環境では Docker hosted は対象外 |
 
 ### HTTP 認証ポリシーの比較
 
@@ -284,6 +290,7 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 | Python (pip) | HTTP 認証を **デフォルトで許可** | 特別な設定不要（`trusted-host` で SSL 検証をスキップ） |
 | Python (uv) | HTTP 認証を **デフォルトで許可** | 特別な設定不要（URL 埋め込みで送信） |
 | Go (modules) | Go 1.21+ は **HTTP への credentials 送信を拒否** | HTTPS ブリッジ（`nexus_go_proxy.py`）で回避 |
+| Docker | HTTP レジストリへのアクセスはデフォルトで **拒否** | `insecure-registries` に登録して Docker デーモンを再起動 |
 
 ---
 
@@ -542,3 +549,48 @@ script:
 ```
 
 `GITLAB_TOKEN` は [`try-my-hand/step02_GITLAB_CREATE_GROUP.sh`](try-my-hand/step02_GITLAB_CREATE_GROUP.sh) が `write_repository` スコープの Personal Access Token を作成し、GitLab グループ CI/CD 変数として登録します。
+
+---
+
+### 6-7. Docker
+
+#### イメージ取得時（`docker pull`）
+
+Docker クライアントは、HTTP レジストリへのアクセスをデフォルトで拒否します。  
+Nexus の `docker-hub-proxy` は HTTP（port: `8085`）で動作しているため、Docker デーモンへの明示的な許可設定が必要です。
+
+| 区分 | 設定ファイル / 手順 | 設定内容 |
+| :--- | :--- | :--- |
+| ローカル | `/etc/docker/daemon.json` | `insecure-registries` に Nexus Docker レジストリアドレスを登録し Docker デーモンを再起動 |
+| ローカル | `docker login` コマンド | Nexus レジストリへのログイン（認証情報をクライアントに保存） |
+| CI/CD | [`try-my-hand/docker/.gitlab-ci.yml`](try-my-hand/docker/.gitlab-ci.yml) | `before_script` で `daemon.json` を生成・Docker デーモン再起動後、`docker login` を実行 |
+
+```json
+// /etc/docker/daemon.json
+{
+  "insecure-registries": [
+    "nexus.local:8085"
+  ]
+}
+```
+
+> **`insecure-registries` の役割**: Docker デーモンはデフォルトで HTTPS 接続のみを許可します。  
+> HTTP レジストリ（ここでは `nexus.local:8085`）へのアクセスを許可するには `insecure-registries` に登録し、Docker デーモンを再起動する必要があります。  
+> 本環境ではこの設定を [`container/BEFORE_CREATE_CONTAINER.sh`](container/BEFORE_CREATE_CONTAINER.sh) が自動で行います。
+
+```sh
+# Nexus レジストリへのログイン
+docker login nexus.local:8085 -u admin -p password
+
+# イメージ取得（Nexus の docker-hub-proxy 経由）
+docker pull nexus.local:8085/alpine:latest
+```
+
+> **レジストリの指定方法**: `docker pull` のイメージ名先頭に `<registry-host>:<port>/` を付けることで取得先レジストリを指定します。  
+> 通常の `docker pull alpine:latest` は Docker Hub に直接アクセスしますが、  
+> `docker pull nexus.local:8085/alpine:latest` とすることで Nexus の `docker-hub-proxy` 経由で取得されます。
+
+#### パブリッシュ時（`docker push`）
+
+> **補足**: 本環境では Docker ホステッドリポジトリは構築対象外です。  
+> `docker push` を Nexus 経由で行う場合は、Nexus に `docker-hosted` タイプのリポジトリを別途作成し、専用ポートを割り当てる必要があります。
