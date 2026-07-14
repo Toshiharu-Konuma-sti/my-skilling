@@ -284,13 +284,13 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 
 | 言語 / ツール | HTTP 接続 | 認証情報の HTTP 送信 | 必要な対応 |
 | :--- | :--- | :--- | :--- |
-| Java (Gradle) | デフォルトで**ブロック** | ─（HTTP 接続自体が不可） | `allowInsecureProtocol = true` で HTTP を許可 |
-| Java (Maven) | **許可**（デフォルト） | **許可**（デフォルト） | 特別な設定不要 |
-| JavaScript (npm) | **許可**（デフォルト） | デフォルトで**ブロック** | `always-auth = true` で HTTP にも認証情報を送信 |
-| Python (pip) | **許可**（デフォルト） | **許可**（デフォルト） | 特別な設定不要（`trusted-host` で SSL 検証をスキップ） |
-| Python (uv) | **許可**（デフォルト） | **許可**（デフォルト） | 特別な設定不要（URL 埋め込みで認証情報（ユーザー名・パスワード）を送信） |
-| Go (modules) | **許可**（デフォルト） | デフォルトで**ブロック** | 設定で回避する方法なし（本件では HTTPS ブリッジ（`nexus_go_proxy.py`）で回避） |
-| Docker | デフォルトで**ブロック** | ─（HTTP 接続自体が不可） | `insecure-registries` に登録して Docker デーモンを再起動 |
+| Java (Gradle) | **ブロック** | ─（HTTP 許可で送信可） | `allowInsecureProtocol = true` で HTTP を許可 |
+| Java (Maven) | **可能** | **可能** | 特別な設定不要 |
+| JavaScript (npm) | **可能** | **ブロック** | `always-auth = true` で HTTP でも認証情報送信許可 |
+| Python (pip) | **可能** | **可能** | 信頼できないサイトは `trusted-host` で SSL 検証スキップが必要 |
+| Python (uv) | **可能** | **可能** | 特別な設定不要 |
+| Go (modules) | **可能** | **ブロック** | HTTP 接続を許可する方法なし<br>（HTTPS ブリッジ（`nexus_go_proxy.py`）で回避） |
+| Docker | **ブロック** | ─（HTTP 許可で送信可） | `insecure-registries` に登録して HTTP を許可 |
 
 ---
 
