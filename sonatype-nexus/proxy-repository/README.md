@@ -288,8 +288,8 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 | Java (Maven) | **許可**（デフォルト） | **許可**（デフォルト） | 特別な設定不要 |
 | JavaScript (npm) | **許可**（デフォルト） | デフォルトで**ブロック** | `always-auth = true` で HTTP にも送信 |
 | Python (pip) | **許可**（デフォルト） | **許可**（デフォルト） | 特別な設定不要（`trusted-host` で SSL 検証をスキップ） |
-| Python (uv) | **許可**（デフォルト） | **許可**（デフォルト） | 特別な設定不要（URL 埋め込みで送信） |
-| Go (modules) | **許可**（デフォルト） | デフォルトで**ブロック** | HTTPS ブリッジ（`nexus_go_proxy.py`）で回避 |
+| Python (uv) | **許可**（デフォルト） | **許可**（デフォルト） | 特別な設定不要（URL 埋め込みで認証情報（ユーザー名・パスワード）を送信） |
+| Go (modules) | **許可**（デフォルト） | デフォルトで**ブロック** | 設定で回避する方法なし（本件では HTTPS ブリッジ（`nexus_go_proxy.py`）で回避） |
 | Docker | デフォルトで**ブロック** | ─（HTTP 接続自体が不可） | `insecure-registries` に登録して Docker デーモンを再起動 |
 
 ---
@@ -426,7 +426,7 @@ script:
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | [`try-my-hand/python-pip/pip.conf`](try-my-hand/python-pip/pip.conf) | `index-url` に認証情報込みの Nexus `pypi-proxy` Simple API URL を指定。`BUILD.sh` で `PIP_CONFIG_FILE` を介して読み込み |
+| ローカル | [`try-my-hand/python-pip/pip.conf`](try-my-hand/python-pip/pip.conf) | `index-url` に認証情報込みの Nexus `pypi-proxy` Simple API URL を指定。[[`BUILD.sh`](try-my-hand/python-pip/BUILD.sh) で `PIP_CONFIG_FILE` を介して読み込み |
 | CI/CD | [`try-my-hand/python-pip/.gitlab-ci.yml`](try-my-hand/python-pip/.gitlab-ci.yml) | `--index-url "http://user:pass@host/repository/pypi-proxy/simple/"` と `--trusted-host` を pip install に指定 |
 
 ```ini
