@@ -1,0 +1,81 @@
+# ===========================================================================
+# GitLab CI/CD パイプライン定義 (python-pip)
+#
+# Trigger : feature/sample → main への MR がマージされたとき
+#           （main ブランチへの push イベントで検知）
+#
+# Stages  :
+#   1. build   - Nexus PyPI プロキシ経由で依存関係を取得しアプリを実行確認
+#   2. publish - ビルド成果物を Nexus PyPI ホステッドリポジトリへアップロード
+#
+# Note    : CI ジョブは hands-net ネットワーク上で実行される。
+#           pip の --trusted-host は NEXUS_URL からホスト名を動的に抽出する。
+#
+# Variables (GitLab グループ CI/CD Variables から自動継承):
+#   NEXUS_URL  - Nexus コンテナ内部 URL (例: http://nexus:8081)
+#   NEXUS_USER - Nexus ユーザー名
+#   NEXUS_PASS - Nexus パスワード (masked)
+# ===========================================================================
+
+# main ブランチへの push 時のみパイプラインを実行
+# （MR マージ = main への push であるため、実質 MR マージ時のみ起動）
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+stages:
+  - build
+  - publish
+
+variables:
+  # pip キャッシュをプロジェクトディレクトリ配下に配置（GitLab キャッシュ対象にするため）
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+# NEXUS_URL から host:port と hostname を抽出し全ジョブで共有
+default:
+  before_script:
+    - NEXUS_HOST_PORT=$(echo "${NEXUS_URL}" | sed 's|http://||')
+    - NEXUS_HOST=$(echo "${NEXUS_HOST_PORT}" | sed 's|:.*||')
+
+# ---------------------------------------------------------------------------
+# Stage 1: build
+#   認証情報を index-url に埋め込み Nexus pypi-proxy 経由で依存関係を取得する
+# ---------------------------------------------------------------------------
+build:
+  stage: build
+  image: python:3-slim
+  script:
+    - pip install --no-cache-dir
+        --index-url "http://${NEXUS_USER}:${NEXUS_PASS}@${NEXUS_HOST_PORT}/repository/pypi-proxy/simple/"
+        --trusted-host "${NEXUS_HOST}"
+        -r requirements.txt
+    - python app.py
+  cache:
+    key: "${CI_PROJECT_ID}-pip"
+    paths:
+      - .cache/pip/
+
+# ---------------------------------------------------------------------------
+# Stage 2: publish
+#   python -m build で wheel / sdist を生成し Nexus pypi-hosted へアップロード
+#   同一バージョンが既に存在する場合は失敗する（再実行時は version を更新すること）
+# ---------------------------------------------------------------------------
+publish:
+  stage: publish
+  image: python:3-slim
+  script:
+    - pip install --no-cache-dir build twine
+        --index-url "http://${NEXUS_USER}:${NEXUS_PASS}@${NEXUS_HOST_PORT}/repository/pypi-proxy/simple/"
+        --trusted-host "${NEXUS_HOST}"
+    - python -m build
+    - twine upload
+        --repository-url "${NEXUS_URL}/repository/pypi-hosted/"
+        --username "${NEXUS_USER}"
+        --password "${NEXUS_PASS}"
+        dist/*
+  needs:
+    - job: build
+  cache:
+    key: "${CI_PROJECT_ID}-pip"
+    paths:
+      - .cache/pip/

@@ -1,0 +1,12 @@
+{
+  "name": "js-npm",
+  "version": "1.0.0",
+  "description": "npm proxy test project",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
+  }
+}

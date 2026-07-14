@@ -1,0 +1,76 @@
+# ===========================================================================
+# GitLab CI/CD パイプライン定義 (java-maven)
+#
+# Trigger : feature/sample → main への MR がマージされたとき
+#           （main ブランチへの push イベントで検知）
+#
+# Stages  :
+#   1. build   - Nexus プロキシリポジトリ経由で依存関係を取得しビルド
+#   2. publish - ビルド成果物を Nexus ホステッドリポジトリへアップロード
+#
+# Note    : CI ジョブは hands-net ネットワーク上で実行される。
+#           Nexus ・ GitLab はどちらも hands-net に所属しているためコンテナ名で到達可能。
+#           settings-ci.xml で Nexus ミラー設定を行い、-Dnexus.url で
+#           distributionManagement の URL を上書きする。
+#
+# Variables (GitLab グループ CI/CD Variables から自動継承):
+#   NEXUS_URL  - Nexus コンテナ内部 URL (例: http://nexus:8081)
+#   NEXUS_USER - Nexus ユーザー名
+#   NEXUS_PASS - Nexus パスワード (masked)
+# ===========================================================================
+
+# main ブランチへの push 時のみパイプラインを実行
+# （MR マージ = main への push であるため、実質 MR マージ時のみ起動）
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+stages:
+  - build
+  - publish
+
+variables:
+  # Maven ローカルリポジトリをプロジェクトディレクトリ配下に配置（GitLab キャッシュ対象にするため）
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
+# ---------------------------------------------------------------------------
+# Stage 1: build
+#   settings-ci.xml で Nexus を全依存関係のミラーとして設定し
+#   maven-public（プロキシグループ）経由で取得してビルド
+# ---------------------------------------------------------------------------
+build:
+  stage: build
+  image: eclipse-temurin:21-jdk
+  before_script:
+    - chmod +x ./mvnw
+  script:
+    - ./mvnw clean package -s settings-ci.xml
+  artifacts:
+    name: "${CI_JOB_NAME}-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - target/*.jar
+    expire_in: 7 days
+  cache:
+    key: "${CI_PROJECT_ID}-maven"
+    paths:
+      - .m2/repository/
+
+# ---------------------------------------------------------------------------
+# Stage 2: publish
+#   ビルド成果物を Nexus maven-releases（ホステッド）へアップロード
+#   -Dnexus.url で pom.xml の distributionManagement URL を上書き
+#   バージョンが SNAPSHOT で終わる場合は maven-snapshots へ自動振り分け
+# ---------------------------------------------------------------------------
+publish:
+  stage: publish
+  image: eclipse-temurin:21-jdk
+  before_script:
+    - chmod +x ./mvnw
+  script:
+    - ./mvnw deploy -s settings-ci.xml -Dnexus.url="${NEXUS_URL}"
+  needs:
+    - job: build
+  cache:
+    key: "${CI_PROJECT_ID}-maven"
+    paths:
+      - .m2/repository/

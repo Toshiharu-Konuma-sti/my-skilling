@@ -1,0 +1,87 @@
+# ===========================================================================
+# GitLab CI/CD パイプライン定義 (go-modules)
+#
+# Trigger : feature/sample → main への MR がマージされたとき
+#           （main ブランチへの push イベントで検知）
+#
+# Stages  :
+#   1. build   - Nexus Go プロキシ経由でモジュールを取得しアプリを実行確認
+#   2. publish - VERSION ファイルのバージョンで git タグを作成し GitLab へ push
+#
+# Note    : Nexus は Go ホステッドリポジトリをサポートしないため
+#           publish は Maven/npm のようなバイナリアップロードではなく
+#           git タグの作成で行う（Go モジュールの標準的な配布方式）。
+#           Go 1.21+ は HTTP エンドポイントへの認証情報送信を拒否するため、
+#           ローカル・CI ともに nexus_go_proxy.py による HTTPS ブリッジを使用する。
+#             Go (HTTPS) → nexus_go_proxy.py (localhost) → Nexus HTTP
+#
+# Variables (GitLab グループ CI/CD Variables から自動継承):
+#   NEXUS_URL  - Nexus コンテナ内部 URL (例: http://nexus:8081)
+#   NEXUS_USER - Nexus ユーザー名
+#   NEXUS_PASS - Nexus パスワード (masked)
+# ===========================================================================
+
+# main ブランチへの push 時のみパイプラインを実行
+# （MR マージ = main への push であるため、実質 MR マージ時のみ起動）
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+stages:
+  - build
+  - publish
+
+variables:
+  # Go モジュールキャッシュをプロジェクトディレクトリ配下に配置（GitLab キャッシュ対象にするため）
+  GOPATH: "$CI_PROJECT_DIR/.go"
+
+# ---------------------------------------------------------------------------
+# Stage 1: build
+#   RUN.sh と同じ HTTPS ブリッジ方式で Nexus go-proxy 経由でモジュールを取得する
+#
+#   Go 1.21+ は HTTP エンドポイントへの認証情報送信を拒否するため、
+#   nexus_go_proxy.py で localhost に HTTPS サーバーを立て
+#     Go (HTTPS) → nexus_go_proxy.py → Nexus HTTP
+#   という経路で認証付きアクセスを実現する。
+# ---------------------------------------------------------------------------
+build:
+  stage: build
+  image: golang:1.22
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq python3
+    - openssl req -x509 -newkey rsa:2048 -keyout /tmp/proxy.key -out /tmp/proxy.crt
+        -days 1 -nodes -subj "/CN=localhost"
+        -addext "subjectAltName=IP:127.0.0.1,DNS:localhost" 2>/dev/null
+    - cat /etc/ssl/certs/ca-certificates.crt /tmp/proxy.crt > /tmp/ca-bundle.crt
+    - python3 nexus_go_proxy.py 18444 "${NEXUS_URL}" /tmp/proxy.crt /tmp/proxy.key &
+    - sleep 2
+    - export GOPROXY="https://${NEXUS_USER}:${NEXUS_PASS}@localhost:18444/repository/go-proxy/,direct"
+    - export GONOSUMDB="*"
+    - export SSL_CERT_FILE="/tmp/ca-bundle.crt"
+  script:
+    - go run -mod=mod .
+  cache:
+    key: "${CI_PROJECT_ID}-go"
+    paths:
+      - .go/pkg/mod/
+
+# ---------------------------------------------------------------------------
+# Stage 2: publish
+#   Go モジュールの配布は Nexus ホステッドへのバイナリアップロードではなく
+#   VCS のバージョンタグで行う（Nexus に Go hosted リポジトリは存在しない）。
+#   VERSION ファイルのバージョンで git タグを作成し GitLab へ push する。
+#   タグが push されると GitLab 内蔵 Go Module Proxy 経由で他プロジェクトから参照可能になる。
+#   ※ 同一バージョンが既に存在する場合は失敗する（再実行時は VERSION を更新すること）
+# ---------------------------------------------------------------------------
+publish:
+  stage: publish
+  image: golang:1.22
+  script:
+    - VERSION=$(cat VERSION)
+    - git config user.email "ci@localhost"
+    - git config user.name "CI"
+    - git tag "${VERSION}"
+    - GITLAB_HOST=$(echo "${CI_REPOSITORY_URL}" | sed 's|http://.*@||;s|/.*||;s|localhost|gitlab|')
+    - git push "http://oauth2:${GITLAB_TOKEN}@${GITLAB_HOST}/${CI_PROJECT_PATH}.git" "${VERSION}"
+  needs:
+    - job: build

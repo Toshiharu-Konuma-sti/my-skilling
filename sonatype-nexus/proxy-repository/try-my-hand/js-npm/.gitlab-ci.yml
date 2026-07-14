@@ -1,0 +1,77 @@
+# ===========================================================================
+# GitLab CI/CD パイプライン定義 (js-npm)
+#
+# Trigger : feature/sample → main への MR がマージされたとき
+#           （main ブランチへの push イベントで検知）
+#
+# Stages  :
+#   1. build   - Nexus npm プロキシ経由で依存関係を取得し動作確認
+#   2. publish - パッケージを Nexus npm ホステッドリポジトリへアップロード
+#
+# Note    : CI ジョブは hands-net ネットワーク上で実行される。
+#           Nexus・GitLab はどちらも hands-net に所属しているためコンテナ名で到達可能。
+#           認証情報入りの .npmrc は before_script で動的生成し、
+#           リポジトリには含めない（.gitignore で除外済み）。
+#
+# Variables (GitLab グループ CI/CD Variables から自動継承):
+#   NEXUS_URL  - Nexus コンテナ内部 URL (例: http://nexus:8081)
+#   NEXUS_USER - Nexus ユーザー名
+#   NEXUS_PASS - Nexus パスワード (masked)
+# ===========================================================================
+
+# main ブランチへの push 時のみパイプラインを実行
+# （MR マージ = main への push であるため、実質 MR マージ時のみ起動）
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+stages:
+  - build
+  - publish
+
+# ---------------------------------------------------------------------------
+# Stage 1: build
+#   .npmrc を動的生成して Nexus npm-proxy 経由で依存関係を取得し、
+#   node app.js で動作確認する
+# ---------------------------------------------------------------------------
+build:
+  stage: build
+  image: node:lts-alpine
+  before_script:
+    - |
+      NEXUS_HOST_PORT=$(echo "${NEXUS_URL}" | sed 's|http://||')
+      NEXUS_AUTH=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64 | tr -d '\n')
+      echo "registry=${NEXUS_URL}/repository/npm-proxy/" > .npmrc
+      echo "//${NEXUS_HOST_PORT}/repository/npm-proxy/:_auth=${NEXUS_AUTH}" >> .npmrc
+      echo "always-auth=true" >> .npmrc
+  script:
+    - npm install
+    - node app.js
+  cache:
+    key: "${CI_PROJECT_ID}-npm"
+    paths:
+      - node_modules/
+
+# ---------------------------------------------------------------------------
+# Stage 2: publish
+#   パッケージを Nexus npm-hosted リポジトリへアップロード
+#   同一バージョンが既に存在する場合は失敗する（再実行時は version を更新すること）
+# ---------------------------------------------------------------------------
+publish:
+  stage: publish
+  image: node:lts-alpine
+  before_script:
+    - |
+      NEXUS_HOST_PORT=$(echo "${NEXUS_URL}" | sed 's|http://||')
+      NEXUS_AUTH=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64 | tr -d '\n')
+      echo "registry=${NEXUS_URL}/repository/npm-hosted/" > .npmrc
+      echo "//${NEXUS_HOST_PORT}/repository/npm-hosted/:_auth=${NEXUS_AUTH}" >> .npmrc
+      echo "always-auth=true" >> .npmrc
+  script:
+    - npm publish
+  needs:
+    - job: build
+  cache:
+    key: "${CI_PROJECT_ID}-npm"
+    paths:
+      - node_modules/

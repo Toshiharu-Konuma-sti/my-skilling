@@ -1,0 +1,12 @@
+# ビルド成果物
+*.exe
+*.test
+*.out
+
+# Go モジュールキャッシュ (go clean -modcache で削除)
+# ローカルビルドキャッシュ
+/tmp/
+
+# go.sum はデモ実行時（sh RUN.sh）に GONOSUMDB=* と -mod=mod で自動再生成されるため不要
+# 本番プロジェクトでは go.sum はコミット必須（改ざん検知・ビルド再現性のため）
+go.sum
