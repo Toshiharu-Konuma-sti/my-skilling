@@ -34,7 +34,7 @@
 5. [清掃手順](#5-清掃手順)
 6. [ビルドツール別 リポジトリマネージャー接続設定リファレンス](#6-ビルドツール別-リポジトリマネージャー接続設定リファレンス)
    - [言語・ツール別 Nexus リポジトリ名一覧](#言語ツール別-nexus-リポジトリ名一覧)
-   - [HTTP 認証ポリシーの比較](#http-認証ポリシーの比較)
+   - [HTTP 接続・認証情報送信ポリシーの比較](#http-接続認証情報送信ポリシーの比較)
    - [6-1. Java (Gradle)](#6-1-java-gradle)
    - [6-2. Java (Maven)](#6-2-java-maven)
    - [6-3. JavaScript (npm)](#6-3-javascript-npm)
@@ -277,20 +277,20 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 | Go (modules) | `go-proxy` | ※ Git タグ（Nexus に hosted なし） |
 | Docker | `docker-hub-proxy` | ※ 本環境では Docker hosted は対象外 |
 
-### HTTP 認証ポリシーの比較
+### HTTP 接続・認証情報送信ポリシーの比較
 
 本環境の Nexus は **HTTP**（HTTPS なし）で動作しています。  
-各ビルドツールの「HTTP エンドポイントへの認証情報の送信可否」はツールごとに大きく異なります。
+各ビルドツールの HTTP に対する挙動は「**HTTP 接続自体の可否**」と「**HTTP 経由での認証情報送信の可否**」の 2 つの観点で異なります。
 
-| 言語 / ツール | HTTP 認証の挙動 | 必要な対応 |
-| :--- | :--- | :--- |
-| Java (Gradle) | Gradle 7+ は **HTTP URL 自体をブロック** | `allowInsecureProtocol = true` で明示的に許可 |
-| Java (Maven) | HTTP 認証を **デフォルトで許可** | 特別な設定不要 |
-| JavaScript (npm) | デフォルトは HTTPS のみに認証情報を送信 | `always-auth = true` で HTTP にも送信 |
-| Python (pip) | HTTP 認証を **デフォルトで許可** | 特別な設定不要（`trusted-host` で SSL 検証をスキップ） |
-| Python (uv) | HTTP 認証を **デフォルトで許可** | 特別な設定不要（URL 埋め込みで送信） |
-| Go (modules) | Go 1.21+ は **HTTP への credentials 送信を拒否** | HTTPS ブリッジ（`nexus_go_proxy.py`）で回避 |
-| Docker | HTTP レジストリへのアクセスはデフォルトで **拒否** | `insecure-registries` に登録して Docker デーモンを再起動 |
+| 言語 / ツール | HTTP 接続 | 認証情報の HTTP 送信 | 必要な対応 |
+| :--- | :--- | :--- | :--- |
+| Java (Gradle) | デフォルトで**ブロック** | ─（HTTP 接続自体が不可） | `allowInsecureProtocol = true` で HTTP を許可 |
+| Java (Maven) | **許可**（デフォルト） | **許可**（デフォルト） | 特別な設定不要 |
+| JavaScript (npm) | **許可**（デフォルト） | デフォルトで**ブロック** | `always-auth = true` で HTTP にも送信 |
+| Python (pip) | **許可**（デフォルト） | **許可**（デフォルト） | 特別な設定不要（`trusted-host` で SSL 検証をスキップ） |
+| Python (uv) | **許可**（デフォルト） | **許可**（デフォルト） | 特別な設定不要（URL 埋め込みで送信） |
+| Go (modules) | **許可**（デフォルト） | デフォルトで**ブロック** | HTTPS ブリッジ（`nexus_go_proxy.py`）で回避 |
+| Docker | デフォルトで**ブロック** | ─（HTTP 接続自体が不可） | `insecure-registries` に登録して Docker デーモンを再起動 |
 
 ---
 
