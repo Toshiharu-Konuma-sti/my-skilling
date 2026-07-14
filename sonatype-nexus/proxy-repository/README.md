@@ -287,10 +287,10 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 | Java (Gradle) | **ブロック** | ─（HTTP 許可で送信可） | `allowInsecureProtocol = true` で HTTP 接続を許可 |
 | Java (Maven) | **可能** | **可能** | 特別な設定不要 |
 | JavaScript (npm) | **可能** | **ブロック** | `always-auth = true` で HTTP 接続でも認証情報を送信許可 |
-| Python (pip) | **ブロック** | ─（HTTP 許可で送信可） | `trusted-host` にドメインを指定し HTTP 通信を許可 |
+| Python (pip) | **ブロック** | ─（HTTP 許可で送信可） | `trusted-host` にドメイン指定し HTTP 通信を許可 |
 | Python (uv) | **可能** | **可能** | 特別な設定不要 |
 | Go (modules) | **可能**| **ブロック** | HTTP 接続で認証情報を送信許可する方法なし<br>（本環境は HTTPS ブリッジ（`nexus_go_proxy.py`）で回避） |
-| Docker | **ブロック** | ─（HTTP 許可で送信可） | `insecure-registries` に登録して HTTP 接続を許可 |
+| Docker | **ブロック** | ─（HTTP 許可で送信可） | `insecure-registries` にドメイン指定し HTTP 接続を許可 |
 
 ---
 
