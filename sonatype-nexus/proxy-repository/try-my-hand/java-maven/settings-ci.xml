@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0
+                              https://maven.apache.org/xsd/settings-1.2.0.xsd">
+
+  <!--
+    GitLab CI/CD 向け Maven 設定ファイル
+    NEXUS_URL / NEXUS_USER / NEXUS_PASS は
+    GitLab グループ CI/CD Variables から環境変数として自動注入される
+  -->
+
+  <mirrors>
+    <!-- 全リポジトリへのアクセスを Nexus maven-public プロキシグループ経由にする -->
+    <mirror>
+      <id>repo-manager</id>
+      <mirrorOf>*</mirrorOf>
+      <url>${env.NEXUS_URL}/repository/maven-public/</url>
+      <blocked>false</blocked>
+    </mirror>
+  </mirrors>
+
+  <servers>
+    <!-- maven-public プロキシ認証（依存関係取得） -->
+    <server>
+      <id>repo-manager</id>
+      <username>${env.NEXUS_USER}</username>
+      <password>${env.NEXUS_PASS}</password>
+    </server>
+    <!-- maven-releases ホステッドリポジトリ（アーティファクトアップロード） -->
+    <server>
+      <id>nexus-releases</id>
+      <username>${env.NEXUS_USER}</username>
+      <password>${env.NEXUS_PASS}</password>
+    </server>
+    <!-- maven-snapshots ホステッドリポジトリ -->
+    <server>
+      <id>nexus-snapshots</id>
+      <username>${env.NEXUS_USER}</username>
+      <password>${env.NEXUS_PASS}</password>
+    </server>
+  </servers>
+
+</settings>

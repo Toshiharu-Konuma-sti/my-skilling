@@ -1,0 +1,70 @@
+
+services:
+
+  nexus:
+    container_name: nexus
+    hostname: nexus
+    image: sonatype/nexus3:latest
+    environment:
+      - INSTALL4J_ADD_VM_PARAMS=-Xms1200m -Xmx1200m -XX:MaxDirectMemorySize=1200m
+    volumes:
+      - nexus-data:/nexus-data
+    ports:
+      - "8081:8081"   # 🖥️ Web管理画面用ポート
+      - "8085:8085"   # 🐳 Dockerレジストリ検証用HTTPポート
+    networks:
+      - internal
+      - external
+    restart: unless-stopped
+
+  gitlab:
+    container_name: gitlab
+    hostname: gitlab
+    image: gitlab/gitlab-ce:18.2.4-ce.0
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost:13000'
+        pages_external_url 'http://localhost:14080'
+        gitlab_pages['enable'] = true
+        gitlab_pages['namespace_in_path'] = true
+    volumes:
+      - gitlab-config:/etc/gitlab'
+      - gitlab-logs:/var/log/gitlab'
+      - gitlab-data:/var/opt/gitlab'
+    ports:
+      - '2022:22'
+      - '13000:13000'
+      - '14080:14080'
+    networks:
+      - internal
+      - external
+    restart: unless-stopped
+
+  gitlab-runner:
+    hostname: gitlab-runner
+    container_name: gitlab-runner
+    image: gitlab/gitlab-runner:latest
+    networks:
+      - internal
+    volumes:
+      - gitlab-runner-config:/etc/gitlab-runner
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - gitlab
+    restart: unless-stopped
+
+volumes:
+  nexus-data:
+  gitlab-config:
+  gitlab-logs:
+  gitlab-data:
+  gitlab-runner-config:
+
+networks:
+  internal:
+    name: intra-net
+    driver: bridge
+    internal: true
+  external:
+    name: hands-net
+    driver: bridge

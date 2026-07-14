@@ -1,0 +1,57 @@
+plugins {
+	id 'java'
+	id 'application'
+	id 'maven-publish'
+}
+
+group = 'jp.sios'
+version = '0.0.1'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+application {
+	mainClass = 'App'
+}
+
+repositories {
+	// Fetch dependencies directly from Maven Central
+//	mavenCentral()
+	// Fetch dependencies via repository manager
+	maven {
+		url "${repoManagerUrl}/repository/maven-public/"
+		allowInsecureProtocol = true
+		credentials {
+			username = repoManagerUsername
+			password = repoManagerPassword
+		}
+	}
+}
+
+dependencies {
+    implementation 'org.apache.commons:commons-lang3:3.14.0'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            def isSnapshot = version.endsWith('SNAPSHOT')
+            url = isSnapshot
+                ? "${repoManagerUrl}/repository/maven-snapshots/"
+                : "${repoManagerUrl}/repository/maven-releases/"
+            allowInsecureProtocol = true
+            credentials {
+                username = repoManagerUsername
+                password = repoManagerPassword
+            }
+        }
+    }
+}
