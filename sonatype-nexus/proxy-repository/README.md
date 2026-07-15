@@ -33,8 +33,8 @@
    - [4-7. Docker](#4-7-docker)
 5. [清掃手順](#5-清掃手順)
 6. [ビルドツール別 リポジトリマネージャー接続設定リファレンス](#6-ビルドツール別-リポジトリマネージャー接続設定リファレンス)
-   - [言語・ツール別 Nexus リポジトリ名一覧](#言語ツール別-nexus-リポジトリ名一覧)
    - [HTTP 接続・認証情報送信ポリシーの比較](#http-接続認証情報送信ポリシーの比較)
+   - [言語・ツール別 Nexus リポジトリ名一覧](#言語ツール別-nexus-リポジトリ名一覧)
    - [6-1. Java (Gradle)](#6-1-java-gradle)
    - [6-2. Java (Maven)](#6-2-java-maven)
    - [6-3. JavaScript (npm)](#6-3-javascript-npm)
@@ -265,17 +265,10 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 各ビルドツールで Nexus リポジトリマネージャーを利用する際の **「設定箇所」** を整理したリファレンスです。  
 ローカル実行（`BUILD.sh`）と CI/CD（`.gitlab-ci.yml`）の両方を記載します。
 
-### 言語・ツール別 Nexus リポジトリ名一覧
-
-| 言語 / ツール | プロキシリポジトリ（ビルド時） | ホステッドリポジトリ（パブリッシュ時） |
-| :--- | :--- | :--- |
-| Java (Gradle) | `maven-public` | `maven-releases` |
-| Java (Maven) | `maven-public` | `maven-releases` |
-| JavaScript (npm) | `npm-proxy` | `npm-hosted` |
-| Python (pip) | `pypi-proxy` | `pypi-hosted` |
-| Python (uv) | `pypi-proxy` | `pypi-hosted` |
-| Go (modules) | `go-proxy` | ※ Git タグ（Nexus に hosted なし） |
-| Docker | `docker-hub-proxy` | ※ 本環境では Docker hosted は対象外 |
+> **認証情報にユーザー名・パスワードを使う理由**  
+> エンタープライズの実践では、実際のパスワードを直接使わず、専用の **ユーザートークン** を発行・使用するのがベストプラクティスです。  
+> しかし、Nexus の **ユーザートークン機能（User Tokens）は Pro（有償版）専用の機能** であり、本環境で使用している **OSS（無償版）では利用できません**。  
+> そのため、本ハンズオン環境ではユーザー名（`admin`）とパスワード（`password`）による Basic 認証を採用しています。
 
 ### HTTP 接続・認証情報送信ポリシーの比較
 
@@ -291,6 +284,18 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 | Python (uv) | **可能** | **可能** | 特別な設定不要 |
 | Go (modules) | **可能**| **ブロック** | HTTP 接続で認証情報を送信許可する方法なし<br>（本環境は HTTPS ブリッジ（`nexus_go_proxy.py`）で回避） |
 | Docker | **ブロック** | ─（HTTP 許可で送信可） | `insecure-registries` にドメイン指定し HTTP 接続を許可 |
+
+### 言語・ツール別 Nexus リポジトリ名一覧
+
+| 言語 / ツール | プロキシリポジトリ（ビルド時） | ホステッドリポジトリ（パブリッシュ時） |
+| :--- | :--- | :--- |
+| Java (Gradle) | `maven-public` | `maven-releases` |
+| Java (Maven) | `maven-public` | `maven-releases` |
+| JavaScript (npm) | `npm-proxy` | `npm-hosted` |
+| Python (pip) | `pypi-proxy` | `pypi-hosted` |
+| Python (uv) | `pypi-proxy` | `pypi-hosted` |
+| Go (modules) | `go-proxy` | ※ Git タグ（Nexus に hosted なし） |
+| Docker | `docker-hub-proxy` | ※ 本環境では Docker hosted は対象外 |
 
 ---
 
