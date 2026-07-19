@@ -1,13 +1,13 @@
 #!/bin/sh
 # 使い方:
-#   sh BUILD.sh       認証あり（HTTPS ブリッジ経由）
+#   sh BUILD.sh       認証アクセス（HTTPS ブリッジ経由）
 #   sh BUILD.sh ano   匿名アクセス（HTTP 直接接続・認証情報なし）
 #
 # 認証情報の流れ（認証あり）:
-#   go run → GOPROXY (HTTPS) → nexus_go_proxy.py → Nexus HTTP
+#   go run → GOPROXY (HTTPS) → nexus_go_proxy.py ─(HTTP)→ Nexus go-proxy（認証アクセス）
 #
-# 認証情報の流れ（匿名）:
-#   go run → GOPROXY (HTTP) → Nexus go-proxy（認証情報なし）
+# 認証情報の流れ（認証なし）:
+#   go run → GOPROXY (HTTP) → Nexus go-proxy（匿名アクセス）
 #   ※ Go は認証情報なしであれば HTTP でモジュールプロキシに接続できる
 
 set -e
@@ -75,7 +75,7 @@ clean_module_cache() {
 # ------------------------------------------------------------
 # サブルーチン: Go プログラムの実行（認証あり / HTTPS ブリッジ経由）
 #   GOPROXY: https://user:pass@localhost:PORT/repository/go-proxy/
-#   Go は HTTP への認証情報送信を禁止しているため HTTPS ブリッジを経由する
+#   Go は HTTP への認証情報送信を禁止しているため HTTPS ブリッジを経由で Nexus へ接続する
 # ------------------------------------------------------------
 run_with_auth() {
     local _goproxy_url="https://${REPO_MANAGER_USERNAME}:${REPO_MANAGER_PASSWORD}@localhost:${LOCAL_PROXY_PORT}/repository/${GO_PROXY_REPO_NAME}"
@@ -96,7 +96,7 @@ run_with_auth() {
 # ------------------------------------------------------------
 # サブルーチン: Go プログラムの実行（匿名 / HTTP 直接接続）
 #   GOPROXY: http://nexus.local:8081/repository/go-proxy/
-#   認証情報なしのため Go は HTTP で接続できる（Nexus 匿名アクセス必須）
+#   認証情報なしのため Go は HTTP で Nexus へ直接接続する
 # ------------------------------------------------------------
 run_anonymous() {
     local _goproxy_url="${REPO_MANAGER_URL}/repository/${GO_PROXY_REPO_NAME}"

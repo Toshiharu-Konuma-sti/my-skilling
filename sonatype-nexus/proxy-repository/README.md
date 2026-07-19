@@ -226,11 +226,12 @@ $ sh BUILD.sh
 ```bash
 $ cd go-modules/
 $ sh BUILD.sh
+$ sh BUILD.sh ano
 ```
 
-- 接続設定: [go-proxy.conf](try-my-hand/go-modules/go-proxy.conf)
+- HTTPS ブリッジ: [nexus_go_proxy.py](try-my-hand/go-modules/nexus_go_proxy.py)
 
-> **Note**: Go 1.21+ はセキュリティ上 HTTP プロキシへの認証情報送信を禁止しているため、`BUILD.sh` がローカル HTTPS リバースプロキシ（[nexus_go_proxy.py](try-my-hand/go-modules/nexus_go_proxy.py)）を起動して HTTPS ブリッジ経由で Nexus にアクセスします。
+> **Note**: Go 1.21+ はセキュリティ上 HTTP への認証情報送信を禁止しています。認証情報を使って Nexus にアクセスするには HTTPS で送信が必要なため、`BUILD.sh` は **HTTPS ブリッジ** を経由して Nexus に接続します。一方、Nexus リポジトリを匿名アクセス可能な設定にすれば、認証情報なしの HTTP で接続が可能なため、`GOPROXY` に Nexus の HTTP URL を指定して接続します（`BUILD.sh ano` がこの方式で動作します）。
 
 ### 4-7. Docker
 
