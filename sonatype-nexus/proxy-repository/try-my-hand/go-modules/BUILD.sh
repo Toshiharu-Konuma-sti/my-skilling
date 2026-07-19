@@ -8,7 +8,6 @@
 #
 # 認証情報の流れ（認証なし）:
 #   go run → GOPROXY (HTTP) → Nexus go-proxy（匿名アクセス）
-#   ※ Go は認証情報なしであれば HTTP でモジュールプロキシに接続できる
 
 set -e
 
