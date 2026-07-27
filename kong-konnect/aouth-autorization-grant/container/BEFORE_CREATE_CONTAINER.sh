@@ -20,6 +20,8 @@ case "$1" in
 	*)
 		start_banner
 
+		check_required_commands "jq"
+
 		CP_DATA=$(fetch_kong_cp_data "$API_BASE_URL" "$KONNECT_TOKEN" "$CP_NM")
 		CP_ID=$(extract_kong_cp_id "$CP_DATA")
 		check_kong_cp_id "$CP_ID" "$CP_NM"
