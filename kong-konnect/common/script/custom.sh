@@ -23,32 +23,6 @@ destory_container()
 }
 # }}}
 
-
-# {{{ util_ask_input()
-# $1: pronpt message (eg.: "Enter Name: ")
-util_ask_input() {
-	local prompt="$1"
-	local answer
-	printf "%s" "$prompt" >&2
-	read answer
-	echo "$answer"
-}
-# }}}
-
-# {{{ util_ask_secret()
-# $1: prompt message
-util_ask_secret() {
-	local prompt="$1"
-	local answer
-	printf "%s" "$prompt" >&2
-	stty -echo
-	read answer
-	stty echo
-	printf "\n" >&2
-	echo "$answer"
-}
-# }}}
-
 # {{{ check_prerequisite_create_container()
 # $1: Base directory (CUR_DIR)
 check_prerequisite_create_container() {
@@ -77,31 +51,6 @@ check_prerequisite_create_container() {
 }
 # }}}
 
-# {{{ show_url()
-show_url()
-{
-echo "--------------------------------------------------"
-echo "🎉 構築完了！"
-echo "Kong Proxy:    http://localhost:8000"
-echo "Keycloak:      http://localhost:8080"
-echo "Redis Insight: http://localhost:8001"
-echo "- - - - - - - - - - - - - - - - - - - - - - - - - "
-echo "URL"
-echo "  - http://localhost:8000/handson/oauth/v1/auth-code/api-gw-pep"
-echo "  - http://localhost:8000/handson/oauth/v1/auth-code/oidc-bff"
-echo "  - http://localhost:8000/handson/oauth/v1/client-cred"
-echo "  - http://localhost:8000/handson/oauth/bff/login"
-echo "--------------------------------------------------"
-echo "* hosts ファイルを編集"
-echo "  - Windows:    C:\Windows\System32\drivers\etc\hosts"
-echo "  - Linux(WSL): /etc/hosts"
-echo "  - MacOS:      /private/etc/hosts"
-echo "  - 127.0.0.1 keycloak"
-echo "--------------------------------------------------"
-}
-# }}}
-
-
 # {{{ create_konnect_auth_file(file_path)
 create_konnect_auth_file() {
 	_path="$1"
@@ -129,18 +78,27 @@ EOF
 }
 # }}}
 
-# {{{ load_env_file(file_path)
-# 指定されたパスの環境変数ファイルを読み込み、exportする
-load_env_file() {
-	_path="$1"
-
-	if [ -f "$_path" ]; then
-		echo "📂 Loading environment variables from $_path"
-		# コメント行を除外して export
-		export $(grep -v '^#' "$_path" | xargs)
-	else
-		echo "⚠️  Environment file not found, skipping load: $_path"
-	fi
+# {{{ show_url()
+show_url()
+{
+echo "--------------------------------------------------"
+echo "🎉 構築完了！"
+echo "Kong Proxy:    http://localhost:8000"
+echo "Keycloak:      http://localhost:8080"
+echo "Redis Insight: http://localhost:8001"
+echo "- - - - - - - - - - - - - - - - - - - - - - - - - "
+echo "URL"
+echo "  - http://localhost:8000/handson/oauth/v1/auth-code/api-gw-pep"
+echo "  - http://localhost:8000/handson/oauth/v1/auth-code/oidc-bff"
+echo "  - http://localhost:8000/handson/oauth/v1/client-cred"
+echo "  - http://localhost:8000/handson/oauth/bff/login"
+echo "--------------------------------------------------"
+echo "* hosts ファイルを編集"
+echo "  - Windows:    C:\Windows\System32\drivers\etc\hosts"
+echo "  - Linux(WSL): /etc/hosts"
+echo "  - MacOS:      /private/etc/hosts"
+echo "  - 127.0.0.1 keycloak"
+echo "--------------------------------------------------"
 }
 # }}}
 
