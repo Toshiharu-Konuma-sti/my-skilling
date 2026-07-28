@@ -1,7 +1,7 @@
 
-# {{{ create_container()
+# {{{ create_api_gw_container()
 # $1: the current directory
-create_container()
+create_api_gw_container()
 {
 	CUR_DIR=$1
 	echo "\n### START: Create new containers ##########"
@@ -14,9 +14,9 @@ create_container()
 }
 # }}}
 
-# {{{ destory_container()
+# {{{ destory_api_gw_container()
 # $1: the current directory
-destory_container()
+destory_api_gw_container()
 {
 	CUR_DIR=$1
 	echo "\n### START: Destory existing containers ##########"
@@ -28,7 +28,6 @@ destory_container()
 		down -v --remove-orphans
 }
 # }}}
-
 
 
 # {{{ check_prerequisite_create_container()

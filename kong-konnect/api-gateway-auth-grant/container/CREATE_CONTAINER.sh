@@ -9,7 +9,7 @@ CUR_DIR=$(cd $(dirname $0); pwd)
 case "$1" in
 	"down")
 		start_banner
-		destory_container $CUR_DIR
+		destory_api_gw_container $CUR_DIR
 		show_list_container
 		finish_banner $S_TIME
 		;;
@@ -25,8 +25,8 @@ case "$1" in
 	"")
 		start_banner
 		check_prerequisite_create_container $CUR_DIR
-		destory_container $CUR_DIR
-		create_container $CUR_DIR
+		destory_api_gw_container $CUR_DIR
+		create_api_gw_container $CUR_DIR
 		show_list_container
 		show_url
 		finish_banner $S_TIME
