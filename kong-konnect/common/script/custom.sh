@@ -7,6 +7,9 @@ create_container()
 	echo "\n### START: Create new containers ##########"
 	docker compose \
 		-f $CUR_DIR/docker-compose.yml \
+		-f $CUR_DIR/docker-compose-idp.yml \
+		-f $CUR_DIR/docker-compose.common.network.yml \
+		-p api-gw \
 		up -d -V --remove-orphans
 }
 # }}}
@@ -19,9 +22,14 @@ destory_container()
 	echo "\n### START: Destory existing containers ##########"
 	docker compose \
 		-f $CUR_DIR/docker-compose.yml \
+		-f $CUR_DIR/docker-compose-idp.yml \
+		-f $CUR_DIR/docker-compose.common.network.yml \
+		-p api-gw \
 		down -v --remove-orphans
 }
 # }}}
+
+
 
 # {{{ check_prerequisite_create_container()
 # $1: Base directory (CUR_DIR)

@@ -1,5 +1,3 @@
-*.swp
-
 container/.env_kong_konnect
 
 container/.env-konnect-auth
