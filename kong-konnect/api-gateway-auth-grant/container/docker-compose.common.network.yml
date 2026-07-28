@@ -1,8 +1,1 @@
-networks:
-  internal:
-    name: intra-net
-    driver: bridge
-    internal: true
-  external:
-    name: hands-net
-    driver: bridge
+../../common/container/docker-compose.common.network.yml
