@@ -1,1 +1,1 @@
-../../../_warehouse/script/common.sh
+../../common/script/common.sh
