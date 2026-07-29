@@ -1,0 +1,21 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - ルート設定 (マスター)
+# 依存: ollama-service (aigw-service-kng.yaml)
+# =============================================================================
+routes:
+- name: ollama-route
+  service:
+    name: ollama-service
+  paths:
+  - /ai/chat
+  protocols:
+  - http
+  - https
+  strip_path: true
+  path_handling: v0
+  https_redirect_status_code: 426
+  regex_priority: 0
+  request_buffering: true
+  response_buffering: true
+  preserve_host: false

@@ -1,0 +1,15 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - サービス設定 (マスター)
+# =============================================================================
+services:
+- name: ollama-service
+  host: ollama
+  port: 11434
+  protocol: http
+  path: /v1
+  connect_timeout: 60000
+  read_timeout: 60000
+  write_timeout: 60000
+  retries: 5
+  enabled: true
