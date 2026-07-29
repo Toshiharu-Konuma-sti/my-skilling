@@ -46,6 +46,59 @@ call_show_finish_banner()
 # }}}
 
 
+# {{{ prepare_download_dir()
+# $1: the current directory
+prepare_download_dir()
+{
+	CUR_DIR=$1
+	DOWN_DIR=$CUR_DIR/../download
+	mkdir -p $DOWN_DIR
+	echo $DOWN_DIR
+}
+# }}}
+
+
+# {{{ util_ask_input()
+# $1: pronpt message (eg.: "Enter Name: ")
+util_ask_input() {
+	local prompt="$1"
+	local answer
+	printf "%s" "$prompt" >&2
+	read answer
+	echo "$answer"
+}
+# }}}
+
+# {{{ util_ask_secret()
+# $1: prompt message
+util_ask_secret() {
+	local prompt="$1"
+	local answer
+	printf "%s" "$prompt" >&2
+	stty -echo
+	read answer
+	stty echo
+	printf "\n" >&2
+	echo "$answer"
+}
+# }}}
+
+# {{{ load_env_file(file_path)
+# 指定されたパスの環境変数ファイルを読み込み、exportする
+load_env_file() {
+	_path="$1"
+
+	if [ -f "$_path" ]; then
+		echo "📂 Loading environment variables from $_path"
+		# コメント行を除外して export
+		export $(grep -v '^#' "$_path" | xargs)
+	else
+		echo "⚠️  Environment file not found, skipping load: $_path"
+	fi
+}
+# }}}
+
+
 # {{{ check_required_commands()
 check_required_commands()
 {
@@ -74,7 +127,6 @@ check_required_commands()
 }
 # }}}
 
-
 # {{{ remove_container_and_image()
 # $1: the current directory
 # $2: the name of container to rebuild
@@ -89,7 +141,6 @@ remove_container_and_image()
 	docker rmi $IMAGE_NM
 }
 # }}}
-
 
 # {{{ loop_curl_until_success()
 # $1: the command to call with cURL
@@ -114,18 +165,6 @@ loop_curl_until_success()
 }
 # }}}
 
-# {{{ prepare_download_dir()
-# $1: the current directory
-prepare_download_dir()
-{
-	CUR_DIR=$1
-	DOWN_DIR=$CUR_DIR/../download
-	mkdir -p $DOWN_DIR
-	echo $DOWN_DIR
-}
-# }}}
-
-
 # {{{ show_list_container()
 show_list_container()
 {
@@ -133,3 +172,4 @@ show_list_container()
 	docker ps -a
 }
 # }}}
+

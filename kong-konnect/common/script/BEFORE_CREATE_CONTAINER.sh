@@ -9,7 +9,7 @@ CUR_DIR=$(cd $(dirname $0); pwd)
 ENV_AUTH="${CUR_DIR}/.env-konnect-auth"
 ENV_CLUSTER="${CUR_DIR}/.env-konnect-cluster"
 
-create_konnect_auth_file "${ENV_AUTH}"
+create_konnect_auth_file "${ENV_AUTH}" "$1"
 load_env_file "${ENV_AUTH}"
 
 API_BASE_URL="https://${REGION:-$(util_ask_input "🏢 Enter REGION (Control Plane Region): ")}.api.konghq.com/v2"
@@ -19,6 +19,8 @@ KONNECT_TOKEN=${KONNECT_PAT:-$(util_ask_secret "🔑 Enter KONNECT_PAT (Secret):
 case "$1" in
 	*)
 		start_banner
+
+		check_required_commands "jq"
 
 		CP_DATA=$(fetch_kong_cp_data "$API_BASE_URL" "$KONNECT_TOKEN" "$CP_NM")
 		CP_ID=$(extract_kong_cp_id "$CP_DATA")

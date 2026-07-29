@@ -1,0 +1,16 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - Service Definition
+# Defines the connection to the upstream Ollama container
+# =============================================================================
+services:
+- name: ollama-service
+  host: ollama
+  port: 11434
+  protocol: http
+  path: /v1
+  connect_timeout: 60000
+  read_timeout: 300000
+  write_timeout: 300000
+  retries: 5
+  enabled: true

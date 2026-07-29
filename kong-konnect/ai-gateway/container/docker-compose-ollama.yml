@@ -1,0 +1,49 @@
+services:
+
+  # Ollama LLM Server
+  ollama:
+    container_name: ollama
+    hostname: ollama
+    image: &ollamaImage ollama/ollama:0.32.5
+    volumes:
+      - ollama-data:/root/.ollama
+    ports:
+      - "11434:11434"
+    networks:
+      - internal
+      - external
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 30s
+
+  # Ollama Model Initializer
+  # Pulls required models into the Ollama server on first startup.
+  # Exits automatically after pulling. Safe to re-run (pull is idempotent).
+  ollama-init:
+    container_name: ollama-init
+    hostname: ollama-init
+    image: *ollamaImage
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    entrypoint:
+      - "/bin/sh"
+      - "-c"
+      - |
+        echo '📦 Pulling llama3.1 ...'
+        ollama pull llama3.1
+        echo '📦 Pulling phi3:mini ...'
+        ollama pull phi3:mini
+        echo '✅ All models pulled successfully'
+    networks:
+      - internal
+    restart: "no"
+
+volumes:
+  ollama-data:

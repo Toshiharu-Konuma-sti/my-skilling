@@ -1,0 +1,16 @@
+*.swp
+
+api-gateway/container/.env-konnect-auth
+api-gateway/container/.env-konnect-cluster
+api-gateway/container/certs/
+api-gateway/setup/.env_keycloak_client
+api-gateway/setup/*-kng.yaml
+api-gateway/try-my-hand/my-cookie.txt
+
+ai-gateway/container/.env-konnect-auth
+ai-gateway/container/.env-konnect-cluster
+ai-gateway/container/certs/
+
+dev-portal/setup/.env-konnect-auth
+dev-portal/setup/*/*-kng.yaml
+

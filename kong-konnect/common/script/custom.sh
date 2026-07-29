@@ -1,53 +1,65 @@
 
-# {{{ create_container()
+# {{{ create_api_gw_container()
 # $1: the current directory
-create_container()
+create_api_gw_container()
 {
 	CUR_DIR=$1
 	echo "\n### START: Create new containers ##########"
 	docker compose \
 		-f $CUR_DIR/docker-compose.yml \
+		-f $CUR_DIR/docker-compose-idp.yml \
+		-f $CUR_DIR/docker-compose.common.network.yml \
+		-p api-gw \
 		up -d -V --remove-orphans
 }
 # }}}
 
-# {{{ destory_container()
+# {{{ destory_api_gw_container()
 # $1: the current directory
-destory_container()
+destory_api_gw_container()
 {
 	CUR_DIR=$1
 	echo "\n### START: Destory existing containers ##########"
 	docker compose \
 		-f $CUR_DIR/docker-compose.yml \
+		-f $CUR_DIR/docker-compose-idp.yml \
+		-f $CUR_DIR/docker-compose.common.network.yml \
+		-p api-gw \
 		down -v --remove-orphans
 }
 # }}}
 
 
-# {{{ util_ask_input()
-# $1: pronpt message (eg.: "Enter Name: ")
-util_ask_input() {
-	local prompt="$1"
-	local answer
-	printf "%s" "$prompt" >&2
-	read answer
-	echo "$answer"
+# {{{ create_ai_gw_container()
+# $1: the current directory
+create_ai_gw_container()
+{
+	CUR_DIR=$1
+	echo "\n### START: Create new containers ##########"
+	docker compose \
+		-f $CUR_DIR/docker-compose.yml \
+		-f $CUR_DIR/docker-compose-ollama.yml \
+		-f $CUR_DIR/docker-compose.common.network.yml \
+		-p ai-gw \
+		up -d -V --remove-orphans
 }
 # }}}
 
-# {{{ util_ask_secret()
-# $1: prompt message
-util_ask_secret() {
-	local prompt="$1"
-	local answer
-	printf "%s" "$prompt" >&2
-	stty -echo
-	read answer
-	stty echo
-	printf "\n" >&2
-	echo "$answer"
+# {{{ destory_ai_gw_container()
+# $1: the current directory
+destory_ai_gw_container()
+{
+	CUR_DIR=$1
+	echo "\n### START: Destory existing containers ##########"
+	docker compose \
+		-f $CUR_DIR/docker-compose.yml \
+		-f $CUR_DIR/docker-compose-ollama.yml \
+		-f $CUR_DIR/docker-compose.common.network.yml \
+		-p ai-gw \
+		down -v --remove-orphans
 }
 # }}}
+
 
 # {{{ check_prerequisite_create_container()
 # $1: Base directory (CUR_DIR)
@@ -77,34 +89,10 @@ check_prerequisite_create_container() {
 }
 # }}}
 
-# {{{ show_url()
-show_url()
-{
-echo "--------------------------------------------------"
-echo "🎉 構築完了！"
-echo "Kong Proxy:    http://localhost:8000"
-echo "Keycloak:      http://localhost:8080"
-echo "Redis Insight: http://localhost:8001"
-echo "- - - - - - - - - - - - - - - - - - - - - - - - - "
-echo "URL"
-echo "  - http://localhost:8000/handson/oauth/v1/auth-code/api-gw-pep"
-echo "  - http://localhost:8000/handson/oauth/v1/auth-code/oidc-bff"
-echo "  - http://localhost:8000/handson/oauth/v1/client-cred"
-echo "  - http://localhost:8000/handson/oauth/bff/login"
-echo "--------------------------------------------------"
-echo "* hosts ファイルを編集"
-echo "  - Windows:    C:\Windows\System32\drivers\etc\hosts"
-echo "  - Linux(WSL): /etc/hosts"
-echo "  - MacOS:      /private/etc/hosts"
-echo "  - 127.0.0.1 keycloak"
-echo "--------------------------------------------------"
-}
-# }}}
-
-
-# {{{ create_konnect_auth_file(file_path)
+# {{{ create_konnect_auth_file(file_path, [reset])
 create_konnect_auth_file() {
 	_path="$1"
+	[ "$2" = "reset" ] && rm -f "$_path"
 	if [ ! -f "$_path" ]; then
 		echo "⚠️ Konnect Auth file not found: $_path"
 		_ans=$(util_ask_input "➡️ Create it now? (y/N): ")
@@ -129,18 +117,27 @@ EOF
 }
 # }}}
 
-# {{{ load_env_file(file_path)
-# 指定されたパスの環境変数ファイルを読み込み、exportする
-load_env_file() {
-	_path="$1"
-
-	if [ -f "$_path" ]; then
-		echo "📂 Loading environment variables from $_path"
-		# コメント行を除外して export
-		export $(grep -v '^#' "$_path" | xargs)
-	else
-		echo "⚠️  Environment file not found, skipping load: $_path"
-	fi
+# {{{ show_url()
+show_url()
+{
+echo "--------------------------------------------------"
+echo "🎉 構築完了！"
+echo "Kong Proxy:    http://localhost:8000"
+echo "Keycloak:      http://localhost:8080"
+echo "Redis Insight: http://localhost:8001"
+echo "- - - - - - - - - - - - - - - - - - - - - - - - - "
+echo "URL"
+echo "  - http://localhost:8000/handson/oauth/v1/auth-code/api-gw-pep"
+echo "  - http://localhost:8000/handson/oauth/v1/auth-code/oidc-bff"
+echo "  - http://localhost:8000/handson/oauth/v1/client-cred"
+echo "  - http://localhost:8000/handson/oauth/bff/login"
+echo "--------------------------------------------------"
+echo "* hosts ファイルを編集"
+echo "  - Windows:    C:\Windows\System32\drivers\etc\hosts"
+echo "  - Linux(WSL): /etc/hosts"
+echo "  - MacOS:      /private/etc/hosts"
+echo "  - 127.0.0.1 keycloak"
+echo "--------------------------------------------------"
 }
 # }}}
 

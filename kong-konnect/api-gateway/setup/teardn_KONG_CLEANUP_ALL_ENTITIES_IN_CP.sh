@@ -1,0 +1,1 @@
+../../common/script/teardn_KONG_CLEANUP_ALL_ENTITIES_IN_CP.sh
