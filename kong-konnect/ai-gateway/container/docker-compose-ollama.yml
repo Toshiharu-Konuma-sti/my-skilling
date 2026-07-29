@@ -4,7 +4,7 @@ services:
   ollama:
     container_name: ollama
     hostname: ollama
-    image: ollama/ollama:latest
+    image: &ollamaImage ollama/ollama:0.32.5
     volumes:
       - ollama-data:/root/.ollama
     ports:
@@ -26,7 +26,7 @@ services:
   ollama-init:
     container_name: ollama-init
     hostname: ollama-init
-    image: ollama/ollama:latest
+    image: *ollamaImage
     depends_on:
       ollama:
         condition: service_healthy
