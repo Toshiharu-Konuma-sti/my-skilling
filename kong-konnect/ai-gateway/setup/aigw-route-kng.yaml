@@ -1,7 +1,7 @@
 _format_version: "3.0"
 # =============================================================================
-# Kong AI Gateway - ルート設定 (マスター)
-# 依存: ollama-service (aigw-service-kng.yaml)
+# Kong AI Gateway - Route Definition
+# Depends on: ollama-service (aigw-service-kng.yaml)
 # =============================================================================
 routes:
 - name: ollama-route

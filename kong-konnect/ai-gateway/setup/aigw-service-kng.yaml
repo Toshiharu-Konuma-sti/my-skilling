@@ -1,6 +1,7 @@
 _format_version: "3.0"
 # =============================================================================
-# Kong AI Gateway - サービス設定 (マスター)
+# Kong AI Gateway - Service Definition
+# Defines the connection to the upstream Ollama container
 # =============================================================================
 services:
 - name: ollama-service
