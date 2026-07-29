@@ -1,7 +1,8 @@
 _format_version: "3.0"
 # =============================================================================
-# Kong AI Gateway - AI Proxy Plugin (OpenAI-compatible LLM Proxy > Ollama llama3.1)
+# Kong AI Gateway - AI Proxy Plugin
 # Route-scoped: applies to ollama-route only
+# Single target: Ollama / llama3.1
 # =============================================================================
 plugins:
 - name: ai-proxy

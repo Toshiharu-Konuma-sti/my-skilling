@@ -1,0 +1,54 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - AI Proxy Advanced Plugin
+# Route-scoped: applies to ollama-route-advanced only
+# Balancing: round-robin — Kong selects llama3.1 or phi3:mini automatically
+# Client: "model" field value is ignored (overwritten by Kong)
+# =============================================================================
+plugins:
+- name: ai-proxy-advanced
+  enabled: true
+  route: ollama-route-advanced
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  - ws
+  - wss
+  config:
+    balancer:
+      algorithm: round-robin
+      read_timeout: 300000
+      write_timeout: 300000
+      connect_timeout: 60000
+    targets:
+    - model:
+        provider: ollama
+        name: llama3.1
+        options:
+          upstream_url: http://ollama:11434/api/chat
+      route_type: llm/v1/chat
+      weight: 100
+      auth:
+        allow_override: false
+      logging:
+        log_payloads: false
+        log_statistics: false
+    - model:
+        provider: ollama
+        name: phi3:mini
+        options:
+          upstream_url: http://ollama:11434/api/chat
+      route_type: llm/v1/chat
+      weight: 100
+      auth:
+        allow_override: false
+      logging:
+        log_payloads: false
+        log_statistics: false
+    llm_format: openai
+    genai_category: text/generation
+    model_name_header: true
+    response_streaming: allow
+    max_request_body_size: 8192

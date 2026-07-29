@@ -1,18 +1,16 @@
 
 
-
 ## command example:
 
-time curl -X POST http://localhost:8000/ai/chat \
+time curl -v -X POST http://localhost:8000/ai/normal/chat \
 -H "Content-Type: application/json" \
--d '{
-  "model": "llama3.1",
-  "messages": [
-    {
-      "role": "user",
-      "content": "Kong API Gatewayの主なメリットを3つ教えてください。"
-    }
-  ]
-}' -v
+-d '{"messages": [{"role": "user", "content": "Kong AI Gatewayのメリットを3つ教えて"}]}'
 
+time curl -v -X POST http://localhost:8000/ai/advanced/chat \
+-H "Content-Type: application/json" \
+-d '{"messages": [{"role": "user", "content": "Kong AI Gatewayのメリットを3つ教えて"}]}'
+
+time curl -v -X POST http://localhost:8000/ai/advanced/chat \
+-H "Content-Type: application/json" \
+-d '{"model": "llama3.1", "messages": [{"role": "user", "content": "Linuxのメリットを3つ教えて"}]}'
 

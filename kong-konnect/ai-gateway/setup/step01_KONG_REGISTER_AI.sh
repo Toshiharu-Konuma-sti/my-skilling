@@ -20,8 +20,10 @@ KONNECT_TOKEN=${KONNECT_PAT}
 # ※ 適用順序を意識して定義すること (サービス → ルート → プラグイン)
 AIGW_FILES=(
 	"${CUR_DIR}/aigw-service-kng.yaml"
-	"${CUR_DIR}/aigw-route-kng.yaml"
-	"${CUR_DIR}/aigw-plugin-ai-proxy-kng.yaml"
+	"${CUR_DIR}/aigw-route-normal-kng.yaml"
+	"${CUR_DIR}/aigw-route-advanced-kng.yaml"
+	"${CUR_DIR}/aigw-plugin-ai-proxy-normal-kng.yaml"
+	"${CUR_DIR}/aigw-plugin-ai-proxy-advanced-kng.yaml"
 )
 
 # {{{ main()
@@ -75,9 +77,11 @@ main()
 	echo ""
 	echo "🎉 Kong AI Gateway の設定が正常に完了しました！"
 	echo "--------------------------------------------------"
-	echo "🤖 AI Chat エンドポイント: http://localhost:8000/ai/chat"
-	echo "   モデル: ollama / llama3.1"
-	echo "   形式: OpenAI 互換 (llm/v1/chat)"
+	echo "🤖 [ai-proxy]          POST http://localhost:8000/ai/normal/chat"
+	echo "   モデル: llama3.1 (固定)"
+	echo ""
+	echo "🤖 [ai-proxy-advanced] POST http://localhost:8000/ai/advanced/chat"
+	echo "   モデル: llama3.1 / phi3:mini (round-robin)"
 	echo "--------------------------------------------------"
 }
 # }}}
