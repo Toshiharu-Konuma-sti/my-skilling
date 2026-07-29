@@ -1,0 +1,18 @@
+
+
+
+## command example:
+
+time curl -X POST http://localhost:8000/ai/chat \
+-H "Content-Type: application/json" \
+-d '{
+  "model": "llama3.1",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Kong API Gatewayの主なメリットを3つ教えてください。"
+    }
+  ]
+}' -v
+
+

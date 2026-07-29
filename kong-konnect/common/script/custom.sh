@@ -30,6 +30,37 @@ destory_api_gw_container()
 # }}}
 
 
+# {{{ create_ai_gw_container()
+# $1: the current directory
+create_ai_gw_container()
+{
+	CUR_DIR=$1
+	echo "\n### START: Create new containers ##########"
+	docker compose \
+		-f $CUR_DIR/docker-compose.yml \
+		-f $CUR_DIR/docker-compose-ollama.yml \
+		-f $CUR_DIR/docker-compose.common.network.yml \
+		-p ai-gw \
+		up -d -V --remove-orphans
+}
+# }}}
+
+# {{{ destory_ai_gw_container()
+# $1: the current directory
+destory_ai_gw_container()
+{
+	CUR_DIR=$1
+	echo "\n### START: Destory existing containers ##########"
+	docker compose \
+		-f $CUR_DIR/docker-compose.yml \
+		-f $CUR_DIR/docker-compose-ollama.yml \
+		-f $CUR_DIR/docker-compose.common.network.yml \
+		-p ai-gw \
+		down -v --remove-orphans
+}
+# }}}
+
+
 # {{{ check_prerequisite_create_container()
 # $1: Base directory (CUR_DIR)
 check_prerequisite_create_container() {

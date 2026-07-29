@@ -6,7 +6,7 @@ services:
     hostname: ollama
     image: ollama/ollama:latest
     volumes:
-      - ollama_data:/root/.ollama
+      - ollama-data:/root/.ollama
     ports:
       - "11434:11434"
     networks:
