@@ -9,7 +9,7 @@ CUR_DIR=$(cd $(dirname $0); pwd)
 ENV_AUTH="${CUR_DIR}/../container/.env-konnect-auth"
 ENV_KC_CLIENT="${CUR_DIR}/.env_keycloak_client"
 
-create_konnect_auth_file "$ENV_AUTH"
+create_konnect_auth_file "$ENV_AUTH" "$1"
 load_env_file "$ENV_AUTH"
 load_env_file "$ENV_KC_CLIENT"
 

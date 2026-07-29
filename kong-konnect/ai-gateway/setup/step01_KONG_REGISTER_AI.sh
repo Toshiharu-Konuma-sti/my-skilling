@@ -8,7 +8,7 @@ CUR_DIR=$(cd $(dirname $0); pwd)
 
 ENV_AUTH="${CUR_DIR}/../container/.env-konnect-auth"
 
-create_konnect_auth_file "$ENV_AUTH"
+create_konnect_auth_file "$ENV_AUTH" "$1"
 load_env_file "$ENV_AUTH"
 
 # 基本設定

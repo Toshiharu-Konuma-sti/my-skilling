@@ -7,7 +7,7 @@ CUR_DIR=$(cd $(dirname $0); pwd)
 . $CUR_DIR/custom.sh
 
 ENV_AUTH="$CUR_DIR/../container/.env-konnect-auth"
-create_konnect_auth_file "$ENV_AUTH"
+create_konnect_auth_file "$ENV_AUTH" "$1"
 load_env_file "$ENV_AUTH"
 
 KONNECT_ADDR="https://${REGION}.api.konghq.com"

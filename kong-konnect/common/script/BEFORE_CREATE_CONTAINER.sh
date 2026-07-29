@@ -9,7 +9,7 @@ CUR_DIR=$(cd $(dirname $0); pwd)
 ENV_AUTH="${CUR_DIR}/.env-konnect-auth"
 ENV_CLUSTER="${CUR_DIR}/.env-konnect-cluster"
 
-create_konnect_auth_file "${ENV_AUTH}"
+create_konnect_auth_file "${ENV_AUTH}" "$1"
 load_env_file "${ENV_AUTH}"
 
 API_BASE_URL="https://${REGION:-$(util_ask_input "🏢 Enter REGION (Control Plane Region): ")}.api.konghq.com/v2"

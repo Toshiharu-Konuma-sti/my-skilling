@@ -89,9 +89,10 @@ check_prerequisite_create_container() {
 }
 # }}}
 
-# {{{ create_konnect_auth_file(file_path)
+# {{{ create_konnect_auth_file(file_path, [reset])
 create_konnect_auth_file() {
 	_path="$1"
+	[ "$2" = "reset" ] && rm -f "$_path"
 	if [ ! -f "$_path" ]; then
 		echo "⚠️ Konnect Auth file not found: $_path"
 		_ans=$(util_ask_input "➡️ Create it now? (y/N): ")
