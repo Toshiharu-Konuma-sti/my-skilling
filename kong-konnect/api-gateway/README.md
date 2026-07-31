@@ -78,7 +78,7 @@ Kong Konnectにアクセスして事前準備をします。
 | スクリプト | 概要 |
 |---|---|
 | [BEFORE_CREATE_CONTAINER.sh](../common/script/BEFORE_CREATE_CONTAINER.sh) | Kong Data Plane 認証用クライアント証明書の作成と Konnect への登録 |
-| [CREATE_CONTAINER.sh](./container/CREATE_CONTAINER.sh) | コンテナの構築（Kong DP + Ollama） |
+| [CREATE_CONTAINER.sh](./container/CREATE_CONTAINER.sh) | コンテナの構築（Kong DP, Keycloak + Redis） |
 
 1. `container/` ディレクトリに移ります。
 
