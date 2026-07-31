@@ -18,7 +18,7 @@
 
 | ハンズオン | 概要 |
 |---|---|
-| [Kong API Gateway 認可アーキテクチャ体験](./api-gateway/) | Keycloak と連携した OAuth 2.1 認可フロー（Authorization Code / Client Credentials）の体験環境です。 |
+| [Kong API Gateway 体験](./api-gateway/) | Keycloak と連携した OAuth 2.1 認可フロー（Authorization Code / Client Credentials）の体験環境です。 |
 | [Kong AI Gateway 体験](./ai-gateway/) | Ollama（ローカル LLM）を使った AI Gateway の構築と体験。AI Proxy / AI Proxy Advanced プラグインを試せます。 |
 | [Kong Dev Portal 体験](./dev-portal/) | Kong Konnect の Dev Portal 機能を使った API カタログ公開の体験環境です。 |
 
