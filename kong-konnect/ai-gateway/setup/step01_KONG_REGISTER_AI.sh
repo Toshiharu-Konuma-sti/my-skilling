@@ -21,9 +21,9 @@ KONNECT_TOKEN=${KONNECT_PAT}
 AIGW_FILES=(
 	"${CUR_DIR}/aigw-service-kng.yaml"
 	"${CUR_DIR}/proxy001/aigw-route-normal-kng.yaml"
-	"${CUR_DIR}/proxy002/aigw-route-advanced-kng.yaml"
+	"${CUR_DIR}/proxy005/aigw-route-advanced-kng.yaml"
 	"${CUR_DIR}/proxy001/aigw-plugin-ai-proxy-normal-kng.yaml"
-	"${CUR_DIR}/proxy002/aigw-plugin-ai-proxy-advanced-kng.yaml"
+	"${CUR_DIR}/proxy005/aigw-plugin-ai-proxy-advanced-kng.yaml"
 )
 
 # {{{ main()
