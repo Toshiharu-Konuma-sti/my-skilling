@@ -50,27 +50,21 @@ SaaS の LLM を一切使わずにローカル環境だけで完結するため�
 
 ### 2-1. 事前準備
 
-#### Kong Konnect での準備
+Kong Konnectにアクセスして事前準備をします。
 
-1. AI Gateway に使用する **Control Plane（CP）** を作成し、リージョンと CP 名を手元に控えておきます。
-2. **Personal Access Token（PAT）** を発行して手元に控えておきます。
+1. AI Gateway として使用する「Control Plane（CP）」を作り、リージョンと CP 名を手元に控えておきます。
 
-#### ローカル環境での準備
+1. 「Personal Access Token（PAT）」を発行して手元に控えておきます。
 
-1. **Docker** をインストールします。
+ローカル環境で事前準備をします。
+
+1. Docker をインストールします。
    - 参考: [初期環境構築: Docker Engine on Ubuntu](https://github.com/Toshiharu-Konuma-sti/setup-docs-for-hands-on/tree/main/setup-docker-engine-on-ubuntu)
 
-2. **decK**（Kong Konnect CLI）をインストールします。
-   - 参考: [https://developer.konghq.com/deck/](https://developer.konghq.com/deck/)
+1. decK をインストールします。
+   - 参考: [decK（Kong Konnect CLI）](../README.md#deckkong-konnect-cli)
 
-   ```bash
-   $ curl -LO https://github.com/Kong/deck/releases/download/v1.55.0/deck_v1.55.0_amd64.deb
-   $ sudo dpkg -i ./deck_v1.55.0_amd64.deb
-   $ deck version
-     decK v1.55.0 (19a389c)
-   ```
-
-3. 体験用のリポジトリを取得します。
+1. 体験用のリポジトリを取得します。
 
    ```bash
    $ mkdir -p ~/handson/
@@ -87,7 +81,7 @@ SaaS の LLM を一切使わずにローカル環境だけで完結するため�
 
 | スクリプト | 概要 |
 |---|---|
-| [BEFORE_CREATE_CONTAINER.sh](./container/BEFORE_CREATE_CONTAINER.sh) | Kong Data Plane 認証用クライアント証明書の作成と Konnect への登録 |
+| [BEFORE_CREATE_CONTAINER.sh](../common/script/BEFORE_CREATE_CONTAINER.sh) | Kong Data Plane 認証用クライアント証明書の作成と Konnect への登録 |
 | [CREATE_CONTAINER.sh](./container/CREATE_CONTAINER.sh) | コンテナの構築（Kong DP + Ollama） |
 
 1. `container/` ディレクトリに移ります。
@@ -96,7 +90,7 @@ SaaS の LLM を一切使わずにローカル環境だけで完結するため�
    $ cd ~/handson/my-skilling/kong-konnect/ai-gateway/container/
    ```
 
-2. 事前準備スクリプトを実行します。初回は Konnect の接続情報の入力を求められます。
+1. 事前準備スクリプトを実行します。初回は Konnect の接続情報の入力を求められます。
 
    ```bash
    $ ./BEFORE_CREATE_CONTAINER.sh
@@ -121,7 +115,7 @@ SaaS の LLM を一切使わずにローカル環境だけで完結するため�
    > $ ./BEFORE_CREATE_CONTAINER.sh reset
    > ```
 
-3. コンテナ構築スクリプトを実行します。
+1. コンテナ構築スクリプトを実行します。
 
    ```bash
    $ ./CREATE_CONTAINER.sh

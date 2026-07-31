@@ -40,24 +40,17 @@ Kong Konnect と Keycloak を使い、主要な認可フローを体験するた
 
 Kong Konnectにアクセスして事前準備をします。
 
-1. API Gatewayに該当する「Control Plane（CP）」を作り、該当のリージョンとCP名を手元に控えておきます。
+1. API Gateway として使用する「Control Plane（CP）」を作り、リージョンと CP 名を手元に控えておきます。
 
 1. 「Personal Access Token（PAT）」を発行して手元に控えておきます。
 
 ローカル環境で事前準備をします。
 
-1. dockerをインストールします。
-   - [初期環境構築: Docker Engine on Ubuntu](https://github.com/Toshiharu-Konuma-sti/setup-docs-for-hands-on/tree/main/setup-docker-engine-on-ubuntu)
+1. Docker をインストールします。
+   - 参考: [初期環境構築: Docker Engine on Ubuntu](https://github.com/Toshiharu-Konuma-sti/setup-docs-for-hands-on/tree/main/setup-docker-engine-on-ubuntu)
 
-1. Kong KonnectのコマンドラインツールであるdecKをインストールします。
-
-   - https://developer.konghq.com/deck/
-     ```
-	 $ curl -LO https://github.com/Kong/deck/releases/download/v1.55.0/deck_v1.55.0_amd64.deb
-     $ sudo dpkg -i ./deck_v1.55.0_amd64.deb
-     $ deck version
-       decK v1.55.0 (19a389c)
-     ```
+1. decK をインストールします。
+   - 参考: [decK（Kong Konnect CLI）](../README.md#deckkong-konnect-cli)
 
 1. 体験用スクリプト内のcurlコマンドがホスト名「keycloak」でコンテナへアクセスできるよう、hostsファイルに名前解決用のエントリを登録します。
    - Linux(WSL): /etc/hosts
@@ -80,27 +73,43 @@ Kong Konnectにアクセスして事前準備をします。
 
 ### 2-2. コンテナ構築
 
-1. コンテナ構築用のディレクトリに移ります。スクリプトは2つあるため実行前に処理概要を理解します。
+`container/` ディレクトリには2つのスクリプトがあります。
 
-    ```
-    $ cd ~/handson/container/
-    ```
-	- [BEFORE_CREATE_CONTAINER.sh](./container/BEFORE_CREATE_CONTAINER.sh)：Kong Data Plane認証用のクライアント証明書および秘密鍵の作成とKonnectへ登録します。
-	- [CREATE_CONTAINER.sh](./container/CREATE_CONTAINER.sh)：コンテナを構築します。
+| スクリプト | 概要 |
+|---|---|
+| [BEFORE_CREATE_CONTAINER.sh](../common/script/BEFORE_CREATE_CONTAINER.sh) | Kong Data Plane 認証用クライアント証明書の作成と Konnect への登録 |
+| [CREATE_CONTAINER.sh](./container/CREATE_CONTAINER.sh) | コンテナの構築（Kong DP + Ollama） |
 
-1. コンテナ構築前の事前準備スクリプトを実行します。体験で利用するKonnectのリージョン、CP名、Konnectを操作するためのPATを求められたら入力します。
+1. `container/` ディレクトリに移ります。
 
-    ```
-	$ ./BEFORE_CREATE_CONTAINER.sh
+   ```bash
+   $ cd ~/handson/my-skilling/kong-konnect/ai-gateway/container/
+   ```
 
-    🏢 Enter REGION (Control Plane Region): us
-    🏢 Enter CP_NAME (Control Plane Name): my-test-cp001
-    🔑 Enter KONNECT_PAT (Secret):
-	############################################################
-	# START SCRIPT
-	############################################################
-	  :
-    ```
+1. 事前準備スクリプトを実行します。初回は Konnect の接続情報の入力を求められます。
+
+   ```bash
+   $ ./BEFORE_CREATE_CONTAINER.sh
+
+   ⚠️ Konnect Auth file not found: .env-konnect-auth
+   ➡️ Create it now? (y/N): y
+   🌐 Enter Konnect REGION (us/eu/au/jp): us
+   🏢 Enter Target Control Plane Name: my-test-cp001
+   🔑 Enter Konnect Personal Access Token:
+   ############################################################
+   # START SCRIPT
+   ############################################################
+     :
+   ############################################################
+   # FINISH SCRIPT (XX seconds)
+   ############################################################
+   ```
+
+   > 2 回目以降は `.env-konnect-auth` が自動で読み込まれ、入力は不要です。  
+   > 接続情報をやり直す場合は `reset` オプションを指定します。
+   > ```bash
+   > $ ./BEFORE_CREATE_CONTAINER.sh reset
+   > ```
 
 1. コンテナ構築スクリプトを実行します。
 
