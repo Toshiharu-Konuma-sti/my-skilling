@@ -1,0 +1,34 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - AI Proxy Plugin
+# Route-scoped: applies to ollama-route-ratelimit only
+# Single target: Ollama / llama3.1
+# =============================================================================
+plugins:
+- name: ai-proxy
+  enabled: true
+  route: ollama-route-ratelimit
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  - ws
+  - wss
+  config:
+    route_type: llm/v1/chat
+    llm_format: openai
+    model_name_header: true
+    response_streaming: allow
+    genai_category: text/generation
+    max_request_body_size: 8192
+    auth:
+      allow_override: false
+    model:
+      provider: ollama
+      name: llama3.1
+      options:
+        upstream_url: http://ollama:11434/api/chat
+    logging:
+      log_payloads: false
+      log_statistics: false

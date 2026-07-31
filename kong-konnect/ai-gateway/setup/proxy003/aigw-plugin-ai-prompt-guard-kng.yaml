@@ -1,0 +1,25 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - AI Prompt Guard Plugin
+# Route-scoped: applies to ollama-route-guard only
+# Mode: deny — returns HTTP 400 if any pattern matches the user prompt
+# Deny patterns:
+#   1. Japanese mobile phone numbers (090/080/070-XXXX-XXXX)
+#   2. "パスワード" or "password" keyword (case-insensitive)
+#   3. Prompt injection attempts ("ignore/forget previous instructions" etc.)
+# =============================================================================
+plugins:
+- name: ai-prompt-guard
+  enabled: true
+  route: ollama-route-guard
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  config:
+    deny_patterns:
+    - "\\b0[789]0[-\\s]?\\d{4}[-\\s]?\\d{4}\\b"
+    - "(?i)パスワード|password"
+    - "(?i)(ignore|forget|disregard).{0,30}(previous|prior|above|all).{0,30}(instruction|prompt|rule|command)"
+    match_all_roles: false

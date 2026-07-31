@@ -1,0 +1,30 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - AI Rate Limiting Advanced Plugin
+# Route-scoped: applies to ollama-route-ratelimit only
+# Strategy: local (in-memory, no Redis required)
+# Limit: 500 total tokens per 60 seconds per IP (demo: easy to trigger HTTP 429)
+# Note: provider name "openai" is used because Ollama returns token usage data
+#       in OpenAI-compatible format (llm_format: openai in ai-proxy).
+#       "ollama" is not in the llm_providers.name enum — openai format applies.
+# =============================================================================
+plugins:
+- name: ai-rate-limiting-advanced
+  enabled: true
+  route: ollama-route-ratelimit
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  config:
+    strategy: local
+    identifier: ip
+    llm_providers:
+    - name: openai
+      window_size:
+      - 60
+      limit:
+      - 500
+    tokens_count_strategy: total_tokens
+    sync_rate: -1
