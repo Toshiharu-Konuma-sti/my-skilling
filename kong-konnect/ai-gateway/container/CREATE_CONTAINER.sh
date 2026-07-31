@@ -30,5 +30,6 @@ case "$1" in
 		show_list_container
 		show_url
 		finish_banner $S_TIME
+		docker logs -f ollama-init
 		;;
 esac

@@ -20,10 +20,10 @@ KONNECT_TOKEN=${KONNECT_PAT}
 # ※ 適用順序を意識して定義すること (サービス → ルート → プラグイン)
 AIGW_FILES=(
 	"${CUR_DIR}/aigw-service-kng.yaml"
-	"${CUR_DIR}/aigw-route-normal-kng.yaml"
-	"${CUR_DIR}/aigw-route-advanced-kng.yaml"
-	"${CUR_DIR}/aigw-plugin-ai-proxy-normal-kng.yaml"
-	"${CUR_DIR}/aigw-plugin-ai-proxy-advanced-kng.yaml"
+	"${CUR_DIR}/proxy001/aigw-route-normal-kng.yaml"
+	"${CUR_DIR}/proxy005/aigw-route-advanced-kng.yaml"
+	"${CUR_DIR}/proxy001/aigw-plugin-ai-proxy-normal-kng.yaml"
+	"${CUR_DIR}/proxy005/aigw-plugin-ai-proxy-advanced-kng.yaml"
 )
 
 # {{{ main()
