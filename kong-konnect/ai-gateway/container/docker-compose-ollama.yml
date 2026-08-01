@@ -5,8 +5,8 @@ services:
     container_name: ollama
     hostname: ollama
     image: &ollamaImage ollama/ollama:0.32.5
-#    environment:
-#      - OLLAMA_DEBUG=1
+    environment:
+      - OLLAMA_DEBUG=1
     volumes:
       - ollama-data:/root/.ollama
     ports:

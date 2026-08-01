@@ -30,6 +30,6 @@ case "$1" in
 		show_list_container
 		show_url_ai_gw
 		finish_banner $S_TIME
-		docker logs -f ollama-init
+		time docker logs -f ollama-init
 		;;
 esac
