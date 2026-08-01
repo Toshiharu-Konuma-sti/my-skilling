@@ -158,24 +158,8 @@ Kong Konnect の CP に AI Gateway のルート・サービス・プラグイン
    ############################################################
    # START SCRIPT
    ############################################################
-     :
-   🎉 Kong AI Gateway の設定が正常に完了しました！
-   --------------------------------------------------
-   🤖 [ai-proxy / llama3.1]  POST http://localhost:8000/ai/normal/chat
-      model: llama3.1 (fixed)
-
-   🤖 [ai-proxy-advanced]    POST http://localhost:8000/ai/advanced/chat
-      model: llama3.1 / phi3:mini (round-robin)
-   --------------------------------------------------
-   ############################################################
-   # FINISH SCRIPT (XX seconds)
-   ############################################################
    ```
-
-   > 接続情報をやり直す場合は `reset` オプションを指定します。
-   > ```bash
-   > $ ./step01_KONG_REGISTER_AI.sh reset
-   > ```
+    - 実行内容は [step01_KONG_REGISTER_AI.sh](./setup/step01_KONG_REGISTER_AI.sh) の main() 関数に書かれているコメントを確認してください。
 
 ---
 
@@ -237,7 +221,7 @@ X-Kong-LLM-Model: llama2/phi3:mini
 
 ### Kong Konnect の設定を削除する
 
-CP 上の全エンティティ（ルート・サービス・プラグイン）を削除します。
+Kong Konnect から CP 上の全エンティティ（ルート・サービス・プラグイン）を削除します。
 
 ```bash
 $ cd ~/handson/my-skilling/kong-konnect/ai-gateway/setup/

@@ -156,9 +156,6 @@ Kong Konnectにアクセスして事前準備をします。
     ```
 	$ ./step02_KONG_REGISTER_API.sh
 
-    🏢 Enter REGION (Control Plane Region): us
-    🏢 Enter CP_NAME (Control Plane Name): my-test-cp001
-    🔑 Enter KONNECT_PAT (Secret):
 	############################################################
 	# START SCRIPT
 	############################################################
@@ -229,44 +226,28 @@ Kong Konnectにアクセスして事前準備をします。
 
 ## 4. 清掃手順
 
-1. 環境構築用のディレクトリに移ります。
+### Kong Konnect の設定を削除する
 
-    ```
-    $ cd ~/handson/setup/
-    ```
+Kong Konnect から CP 上の全エンティティ（ルート・サービス・プラグイン）を削除します。
 
-1. KonnectからCPに登録されている全てのルートとサービスの削除スクリプトを実行します。
+```bash
+$ cd ~/handson/my-skilling/kong-konnect/api-gateway/setup/
+$ ./teardn_KONG_CLEANUP_ALL_ENTITIES_IN_CP.sh
+```
 
-    ```
-	$ ./teardn_KONG_CLEANUP_ALL_ENTITIES_IN_CP.sh
+### コンテナを停止・削除する
 
-    🏢 Enter REGION (Control Plane Region): us
-    🏢 Enter CP_NAME (Control Plane Name): my-test-cp001
-    🔑 Enter KONNECT_PAT (Secret):
-	############################################################
-	# START SCRIPT
-	############################################################
-	  :
-    ```
+```bash
+$ cd ~/handson/my-skilling/kong-konnect/api-gateway/container/
+$ ./CREATE_CONTAINER.sh down
+```
 
-1. コンテナ構築用のディレクトリに移ります。
+### コンテナを停止・削除する
 
-    ```
-    $ cd ~/handson/container/
-    ```
-
-1. コンテナ停止スクリプトを実行します。
-
-    ```
-	$ ./CREATE_CONTAINER.sh down
-
-	############################################################
-	# START SCRIPT
-	############################################################
-	  :
-    ```
-
-1. ローカル環境のhostsに登録したkeycloakを解除する
-    ```
-    # 127.0.0.1 keycloak
-    ```
+ローカル環境のhostsに登録したkeycloakを解除する
+```bash
+$ sudo vim /etc/hosts
+```
+```bash
+# 127.0.0.1 keycloak
+```
