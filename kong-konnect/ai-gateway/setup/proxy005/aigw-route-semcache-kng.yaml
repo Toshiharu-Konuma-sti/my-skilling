@@ -1,0 +1,22 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - Route Definition for AI Semantic Cache Demo
+# Demo: ai-semantic-cache — semantic similarity caching with Redis Stack
+# Depends on: ollama-service (aigw-service-kng.yaml)
+# =============================================================================
+routes:
+- name: ollama-route-semcache
+  service:
+    name: ollama-service
+  paths:
+  - /ai/semcache/chat
+  protocols:
+  - http
+  - https
+  strip_path: true
+  path_handling: v0
+  https_redirect_status_code: 426
+  regex_priority: 0
+  request_buffering: true
+  response_buffering: true
+  preserve_host: false

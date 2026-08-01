@@ -42,10 +42,29 @@ services:
         ollama pull llama3.1
         echo '📦 Pulling phi3:mini ...'
         ollama pull phi3:mini
+        echo '📦 Pulling nomic-embed-text ...'
+        ollama pull nomic-embed-text
         echo '✅ All models pulled successfully'
     networks:
       - internal
     restart: "no"
+
+  # Redis Stack — Vector Similarity Search (VSS) for AI Semantic Cache
+  redis-stack:
+    container_name: redis-stack
+    hostname: redis-stack
+    image: redis/redis-stack-server:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - internal
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 volumes:
   ollama-data:

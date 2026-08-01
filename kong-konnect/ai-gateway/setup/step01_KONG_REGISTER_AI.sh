@@ -25,7 +25,8 @@ AIGW_FILES=(
 	"${CUR_DIR}/proxy002/aigw-route-ratelimit-kng.yaml"
 	"${CUR_DIR}/proxy003/aigw-route-guard-kng.yaml"
 	"${CUR_DIR}/proxy004/aigw-route-decorator-kng.yaml"
-	"${CUR_DIR}/proxy005/aigw-route-advanced-kng.yaml"
+	"${CUR_DIR}/proxy005/aigw-route-semcache-kng.yaml"
+	"${CUR_DIR}/proxy006/aigw-route-advanced-kng.yaml"
 	# --- Plugins ---
 	"${CUR_DIR}/proxy001/aigw-plugin-ai-proxy-normal-kng.yaml"
 	"${CUR_DIR}/proxy002/aigw-plugin-ai-proxy-ratelimit-kng.yaml"
@@ -34,7 +35,9 @@ AIGW_FILES=(
 	"${CUR_DIR}/proxy003/aigw-plugin-ai-prompt-guard-kng.yaml"
 	"${CUR_DIR}/proxy004/aigw-plugin-ai-proxy-decorator-kng.yaml"
 	"${CUR_DIR}/proxy004/aigw-plugin-ai-prompt-decorator-kng.yaml"
-	"${CUR_DIR}/proxy005/aigw-plugin-ai-proxy-advanced-kng.yaml"
+	"${CUR_DIR}/proxy005/aigw-plugin-ai-proxy-semcache-kng.yaml"
+	"${CUR_DIR}/proxy005/aigw-plugin-ai-semantic-cache-kng.yaml"
+	"${CUR_DIR}/proxy006/aigw-plugin-ai-proxy-advanced-kng.yaml"
 )
 
 # {{{ main()
@@ -102,6 +105,11 @@ main()
 	echo "🤖 [ai-proxy + ai-prompt-decorator]"
 	echo "                                     POST http://localhost:8000/ai/decorator/chat"
 	echo "   システムプロンプト: 関西弁で回答 (クライアントから不可視)"
+	echo ""
+	echo "🤖 [ai-proxy + ai-semantic-cache]"
+	echo "                                     POST http://localhost:8000/ai/semcache/chat"
+	echo "   VectorDB: Redis Stack / Embeddings: nomic-embed-text (768dim)"
+	echo "   類似質問を即座に返却 (X-Cache-Status: Hit/Miss)"
 	echo ""
 	echo "🤖 [ai-proxy-advanced]               POST http://localhost:8000/ai/advanced/chat"
 	echo "   モデル: llama3.1 / phi3:mini (round-robin)"
