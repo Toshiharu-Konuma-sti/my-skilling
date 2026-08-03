@@ -30,5 +30,12 @@ plugins:
       options:
         upstream_url: http://ollama:11434/api/chat
     logging:
-      log_payloads: false
-      log_statistics: false
+      log_payloads: true
+      log_statistics: true
+
+- name: file-log
+  enabled: true
+  route: ollama-route-guard
+  config:
+    path: /dev/stdout
+    reopen: false
