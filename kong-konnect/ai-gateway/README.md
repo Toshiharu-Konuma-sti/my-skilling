@@ -18,7 +18,9 @@
 3. [体験](#3-体験)
    - [3-1. ai-proxy: 単一モデルへのプロキシ](#3-1-ai-proxy-単一モデルへのプロキシ)
    - [3-2. ai-proxy-advanced: 複数モデルへの負荷分散](#3-2-ai-proxy-advanced-複数モデルへの負荷分散)
-4. [清掃手順](#4-清掃手順)
+4. [プラグイン動作確認チェックポイント](#4-プラグイン動作確認チェックポイント)
+   - [4-1. ai-rate-limiting-advanced: トークン流量制限](#4-1-ai-rate-limiting-advanced-トークン流量制限)
+5. [清掃手順](#5-清掃手順)
 
 ---
 
@@ -217,7 +219,72 @@ X-Kong-LLM-Model: llama2/phi3:mini
 
 ---
 
-## 4. 清掃手順
+## 4. プラグイン動作確認チェックポイント
+
+各プラグインの動作を確認するときに注目すべきポイントをまとめます。  
+テストには [try-my-hand/testCOMMAND.sh](./try-my-hand/testCOMMAND.sh) を使用します。
+
+---
+
+### 4-1. ai-rate-limiting-advanced: トークン流量制限
+
+`/ai/ratelimit/chat` エンドポイントに対して連続でリクエストを送り、**3回目で HTTP 429 が返ること**を確認します。
+
+#### 注目レスポンスヘッダー
+
+| ヘッダー名 | 意味 |
+|---|---|
+| `X-AI-RateLimit-Limit-300-llama2` | ウィンドウ（300秒）内の上限トークン数 |
+| `X-AI-RateLimit-Remaining-300-llama2` | 残り使用可能トークン数（リクエスト受付**時点**の値） |
+| `X-AI-RateLimit-Reset-300-llama2` | ウィンドウがリセットされるまでの秒数（429時のみ） |
+| `X-AI-RateLimit-Retry-After-300-llama2` | 何秒後に再試行できるか（429時のみ） |
+
+> **ヘッダー名の読み方**
+> ```
+> X-AI-RateLimit-Remaining-300-llama2
+>                          ^^^  ^^^^^  
+>                          │    └── LLMプロバイダー名
+>                          └─────── ウィンドウサイズ（秒）
+> ```
+
+> **`Remaining` の表示タイミングに注意**  
+> `Remaining` はリクエスト受付**時点**（カウンター更新前）の残量が返ります。  
+> そのため 1回目のレスポンスでは `Remaining = Limit` と表示されますが、  
+> カウンターへの加算は内部で正しく行われており、2回目以降のレスポンスに反映されます。
+
+#### 期待される動作パターン
+
+| 回 | HTTP ステータス | `Remaining` | 説明 |
+|:---:|---|---|---|
+| 1回目 | `200 OK` | 350（上限と同じ） | 受付時点ではカウンターが空のため、上限値がそのまま返る |
+| 2回目 | `200 OK` | 59（例） | 1回目の消費トークン（例: 291）が差し引かれた残量が返る |
+| 3回目 | **`429 Too Many Requests`** | 0 | 累計消費トークンが上限（350）を超えたためブロック |
+
+#### 確認コマンド例
+
+```bash
+# testCOMMAND.sh で [2] を選択して3回連続送信
+cd try-my-hand/
+./testCOMMAND.sh   # 1回目 → 200 OK
+./testCOMMAND.sh   # 2回目 → 200 OK  (Remaining に残量が表示される)
+./testCOMMAND.sh   # 3回目 → 429 Too Many Requests
+```
+
+#### 429 レスポンス例
+
+```
+< HTTP/1.1 429 Too Many Requests
+< X-AI-RateLimit-Limit-300-llama2:       350
+< X-AI-RateLimit-Remaining-300-llama2:   0
+< X-AI-RateLimit-Reset-300-llama2:       274   ← 274秒後にリセット
+< X-AI-RateLimit-Retry-After-300-llama2: 274
+
+{ "message": "AI token rate limit exceeded for provider(s): llama2" }
+```
+
+---
+
+## 5. 清掃手順
 
 ### Kong Konnect の設定を削除する
 
