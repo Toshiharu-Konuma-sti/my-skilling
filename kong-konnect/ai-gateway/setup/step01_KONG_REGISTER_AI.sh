@@ -29,6 +29,7 @@ AIGW_FILES=(
 	"${CUR_DIR}/proxy005-semantic-cache/aigw-route-semcache-kng.yaml"
 	"${CUR_DIR}/proxy006-advanced/aigw-route-advanced-kng.yaml"
 	"${CUR_DIR}/proxy007-mcp-proxy/aigw-route-mcp-kng.yaml"
+	"${CUR_DIR}/proxy008-semantic-prompt-guard/aigw-route-semguard-kng.yaml"
 	# --- Plugins ---
 	"${CUR_DIR}/proxy001-normal/aigw-plugin-ai-proxy-normal-kng.yaml"
 	"${CUR_DIR}/proxy002-ratelimit/aigw-plugin-ai-proxy-ratelimit-kng.yaml"
@@ -41,6 +42,8 @@ AIGW_FILES=(
 	"${CUR_DIR}/proxy005-semantic-cache/aigw-plugin-ai-semantic-cache-kng.yaml"
 	"${CUR_DIR}/proxy006-advanced/aigw-plugin-ai-proxy-advanced-kng.yaml"
 	"${CUR_DIR}/proxy007-mcp-proxy/aigw-plugin-ai-mcp-proxy-kng.yaml"
+	"${CUR_DIR}/proxy008-semantic-prompt-guard/aigw-plugin-ai-proxy-semguard-kng.yaml"
+	"${CUR_DIR}/proxy008-semantic-prompt-guard/aigw-plugin-ai-semantic-prompt-guard-kng.yaml"
 )
 
 # {{{ main()
@@ -116,6 +119,11 @@ main()
 	echo ""
 	echo "🤖 [ai-proxy-advanced]               POST http://localhost:8000/ai/advanced/chat"
 	echo "   モデル: llama3.1 / phi3:mini (round-robin)"
+	echo ""
+	echo "🤖 [ai-proxy + ai-semantic-prompt-guard]"
+	echo "                                     POST http://localhost:8000/ai/semguard/chat"
+	echo "   VectorDB: Redis Stack / Embeddings: nomic-embed-text (768dim)"
+	echo "   deny: プロンプトインジェクション / ジェイルブレイク / 危険コンテンツ (コサイン距離 <= 0.31 で HTTP 400)"
 	echo "--------------------------------------------------"
 }
 # }}}
