@@ -1,0 +1,29 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - Route Definition for AI MCP Proxy (SIOS Tech Lab)
+# MCP クライアント (Cursor / MCP Inspector 等) の接続先エンドポイント
+# Depends on: sios-techlab-service (aigw-service-mcp-kng.yaml)
+#
+# MCP クライアントからの接続:
+#   URL: http://localhost:8000/ai/mcp/sios-techlab
+#   Transport: Streamable HTTP
+# =============================================================================
+routes:
+- name: sios-techlab-mcp-route
+  service:
+    name: sios-techlab-service
+  paths:
+  - /ai/mcp/sios-techlab
+  protocols:
+  - http
+  - https
+  methods:
+  - GET
+  - POST
+  strip_path: true
+  path_handling: v0
+  https_redirect_status_code: 426
+  regex_priority: 0
+  request_buffering: true
+  response_buffering: true
+  preserve_host: false

@@ -27,6 +27,7 @@ AIGW_FILES=(
 	"${CUR_DIR}/proxy004/aigw-route-decorator-kng.yaml"
 	"${CUR_DIR}/proxy005/aigw-route-semcache-kng.yaml"
 	"${CUR_DIR}/proxy006/aigw-route-advanced-kng.yaml"
+	"${CUR_DIR}/proxy007/aigw-route-mcp-kng.yaml"
 	# --- Plugins ---
 	"${CUR_DIR}/proxy001/aigw-plugin-ai-proxy-normal-kng.yaml"
 	"${CUR_DIR}/proxy002/aigw-plugin-ai-proxy-ratelimit-kng.yaml"
@@ -38,6 +39,8 @@ AIGW_FILES=(
 	"${CUR_DIR}/proxy005/aigw-plugin-ai-proxy-semcache-kng.yaml"
 	"${CUR_DIR}/proxy005/aigw-plugin-ai-semantic-cache-kng.yaml"
 	"${CUR_DIR}/proxy006/aigw-plugin-ai-proxy-advanced-kng.yaml"
+	"${CUR_DIR}/proxy007/aigw-service-mcp-kng.yaml"
+	"${CUR_DIR}/proxy007/aigw-plugin-ai-mcp-proxy-kng.yaml"
 )
 
 # {{{ main()

@@ -1,0 +1,103 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - AI MCP Proxy Plugin (SIOS Tech Lab)
+# Route-scoped: applies to sios-techlab-mcp-route only
+# Mode: conversion-listener
+#   → WordPress REST API を MCP ツールとして公開する
+#   → MCP クライアントからの Streamable HTTP リクエストを受け付け、
+#     内部で WordPress REST API への HTTP リクエストに変換して返す
+#
+# Upstream: https://tech-lab.sios.jp (WordPress REST API)
+# MCP接続先: http://localhost:8000/ai/mcp/sios-techlab
+#
+# 提供ツール:
+#   - get_articles    : 記事一覧取得（キーワード検索・カテゴリー絞り込み対応）
+#   - get_article_by_id: 記事詳細取得（本文含む）
+#
+# 注意: ai-mcp-proxy は XML レスポンスを非サポートのため、
+#       RSS フィード (/feed) ではなく JSON を返す WordPress REST API を使用している
+# =============================================================================
+plugins:
+- name: ai-mcp-proxy
+  enabled: true
+  route: sios-techlab-mcp-route
+  protocols:
+  - http
+  - https
+  config:
+    mode: conversion-listener
+    server:
+      forward_client_headers: false
+      timeout: 30000
+    tools:
+    # -------------------------------------------------------------------------
+    # Tool 1: get_articles
+    # 記事一覧を取得する。キーワード検索・カテゴリー絞り込み・ページネーション対応。
+    # WordPress REST API: GET /wp-json/wp/v2/posts
+    # -------------------------------------------------------------------------
+    - description: >-
+        SIOS Tech Lab の技術記事一覧を取得する。
+        キーワード検索 (search)、カテゴリー絞り込み (categories)、
+        取得件数 (per_page)、ページ番号 (page) を指定できる。
+        デフォルトでは最新10件を返す。
+      annotations:
+        title: get_articles
+      method: GET
+      path: /ai/mcp/sios-techlab/wp-json/wp/v2/posts
+      parameters:
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+        description: "検索キーワード (例: 'Kubernetes', 'Claude Code', 'セキュリティ')"
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 10
+          minimum: 1
+          maximum: 100
+        description: "取得する記事数 (デフォルト: 10、最大: 100)"
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 1
+          minimum: 1
+        description: "ページ番号 (デフォルト: 1)"
+      - name: categories
+        in: query
+        required: false
+        schema:
+          type: string
+        description: "カテゴリー ID で絞り込む (カンマ区切り複数指定可。主なカテゴリー: AI関連=833)"
+      - name: _fields
+        in: query
+        required: false
+        schema:
+          type: string
+          default: "id,title,link,date,excerpt"
+        description: "レスポンスフィールドを絞り込む (デフォルト: id,title,link,date,excerpt)"
+    # -------------------------------------------------------------------------
+    # Tool 2: get_article_by_id
+    # 指定した記事 ID の詳細（本文を含む）を取得する。
+    # WordPress REST API: GET /wp-json/wp/v2/posts/{id}
+    # -------------------------------------------------------------------------
+    - description: >-
+        指定した ID の SIOS Tech Lab 技術記事の詳細（本文を含む完全なコンテンツ）を取得する。
+        get_articles で取得した記事の id フィールドの値を指定すること。
+      annotations:
+        title: get_article_by_id
+      method: GET
+      path: /ai/mcp/sios-techlab/wp-json/wp/v2/posts/{id}
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: "記事 ID (get_articles で取得した id フィールドの値)"
+    max_request_body_size: 8192

@@ -19,6 +19,10 @@ services:
       KONG_PROXY_LISTEN: 0.0.0.0:8000, 0.0.0.0:8443 ssl
       KONG_ROUTER_FLAVOR: expressions
       KONG_LOG_LEVEL: debug
+      # WordPress REST API のレスポンスヘッダー (content-security-policy 等) が
+      # nginx のデフォルトバッファ (8k) を超えるため 64k に拡張する
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: "64k"
+      KONG_NGINX_PROXY_PROXY_BUFFERS: "8 64k"
     volumes:
       - ./certs:/etc/kong/certs:ro
     ports:
