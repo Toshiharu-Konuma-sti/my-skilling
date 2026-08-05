@@ -21,8 +21,8 @@
 1. [はじめに](#1-はじめに)
 2. [環境説明](#2-環境説明)
 3. [体験環境の構築手順](#3-体験環境の構築手順)
-   - [3-1. コンテナ構築](#3-1-コンテナ構築)
-   - [3-2. Nexus 初期設定](#3-2-nexus-初期設定)
+   - [3-2. コンテナ構築](#3-2-コンテナ構築)
+   - [3-3. Nexus 初期設定](#3-3-nexus-初期設定)
 4. [体験](#4-体験)
    - [4-1. Java (Gradle)](#4-1-java-gradle)
    - [4-2. Java (Maven)](#4-2-java-maven)
@@ -89,7 +89,7 @@ Nexus には以下のリポジトリが構築されます。
 
 ## 3. 体験環境の構築手順
 
-### 3-1. コンテナ構築
+### 3-1. リポジトリ取得
 
 1. リポジトリを取得します。
 
@@ -97,30 +97,38 @@ Nexus には以下のリポジトリが構築されます。
    $ mkdir -p ~/handson/
    $ cd ~/handson/
    $ git clone <repository-url>
-   $ cd ~/handson/sonatype-nexus/
    ```
 
-2. `container/` ディレクトリに移り、コンテナ作成前の事前準備スクリプトを実行します。
+### 3-2. コンテナ構築
+
+`container/` ディレクトリに移り、以下のスクリプトを順番に実行します。
+
+```bash
+$ cd ~/development/my-skilling/sonatype-nexus/proxy-repository/container/
+```
+
+1. コンテナ作成前の事前準備スクリプトを実行します。
 
    `/etc/hosts` へのドメイン追記と `/etc/docker/daemon.json` の設定（HTTP レジストリの許可）を行います。
 
    ```bash
    $ cd ~/handson/sonatype-nexus/container/
-   $ sudo sh BEFORE_CREATE_CONTAINER.sh
+   $ ./BEFORE_CREATE_CONTAINER.sh
+     [sudo: authenticate] パスワード: ********
    ```
 
-3. 続けてコンテナを起動します。
+1. 続けてコンテナを起動します。
 
    ```bash
-   $ docker compose up -d
+   $ ./CREATE_CONTAINER.sh
    ```
 
-### 3-2. Nexus 初期設定
+### 3-3. Nexus 初期設定
 
 `setup/` ディレクトリに移り、以下のスクリプトを順番に実行します。
 
 ```bash
-$ cd ~/handson/sonatype-nexus/setup/
+$ cd ~/development/my-skilling/sonatype-nexus/proxy-repository/setup/
 ```
 
 1. admin の初期パスワードを変更します。
@@ -152,7 +160,7 @@ $ cd ~/handson/sonatype-nexus/setup/
 体験用のディレクトリに移ります。
 
 ```bash
-$ cd ~/handson/sonatype-nexus/try-my-hand/
+$ cd ~/development/my-skilling/sonatype-nexus/proxy-repository/try-my-hand/
 ```
 
 各言語の接続設定ファイルを確認し、Nexus の URL・認証情報が正しいことを確認してから実行してください。
