@@ -9,38 +9,40 @@ KONG_PROXY="http://localhost:8000"
 # =============================================================================
 # 1. プロキシパターンの選択
 # =============================================================================
-echo ""
-echo "=================================================="
-echo "  Kong AI Gateway テスト実行"
-echo "=================================================="
-echo ""
-echo "■ プロキシパターンを選択してください:"
-echo ""
-echo "  [1] ai-proxy-normal     → POST ${KONG_PROXY}/ai/normal/chat"
-echo "      Ollama llama3.1 へ直接プロキシ"
-echo "  [2] ai-proxy-ratelimit  → POST ${KONG_PROXY}/ai/ratelimit/chat"
-echo "      トークン数で流量制限 (500 tokens / 60sec / IP)"
-echo "  [3] ai-prompt-guard     → POST ${KONG_PROXY}/ai/guard/chat"
-echo "      PII・プロンプトインジェクション攻撃をブロック"
-echo "  [4] ai-semantic-prompt-guard → POST ${KONG_PROXY}/ai/semguard/chat"
-echo "      意味的類似でプロンプトをブロック (inject/jailbreak/危険コンテンツ)"
-echo "  [5] ai-proxy-semcache   → POST ${KONG_PROXY}/ai/semcache/chat"
-echo "      類似質問をセマンティックキャッシュで即返却"
-echo "  [6] ai-prompt-decorator → POST ${KONG_PROXY}/ai/decorator/chat"
-echo "      システムプロンプトを強制付与 (関西弁)"
-echo "  [7] ai-proxy-advanced   → POST ${KONG_PROXY}/ai/advanced/chat"
-echo "      llama3.1 / phi3:mini ラウンドロビン"
-echo ""
+cat << EOS
+
+=================================================="
+  Kong AI Gateway テスト実行"
+=================================================="
+
+■ プロキシパターンを選択してください:"
+
+  [1] ai-proxy-normal          → POST ${KONG_PROXY}/ai/normal/chat"
+      Ollama llama3.1 へ直接プロキシ"
+  [2] ai-proxy-ratelimit       → POST ${KONG_PROXY}/ai/ratelimit/chat"
+      トークン数で流量制限 (500 tokens / 60sec / IP)"
+  [3] ai-prompt-guard          → POST ${KONG_PROXY}/ai/guard/chat"
+      PII・プロンプトインジェクション攻撃をブロック"
+  [4] ai-semantic-prompt-guard → POST ${KONG_PROXY}/ai/semguard/chat"
+      意味的類似でプロンプトをブロック (inject/jailbreak/危険コンテンツ)"
+  [5] ai-proxy-semcache        → POST ${KONG_PROXY}/ai/semcache/chat"
+      類似質問をセマンティックキャッシュで即返却"
+  [6] ai-prompt-decorator      → POST ${KONG_PROXY}/ai/decorator/chat"
+      システムプロンプトを強制付与 (関西弁)"
+  [7] ai-proxy-advanced        → POST ${KONG_PROXY}/ai/advanced/chat"
+      llama3.1 / phi3:mini ラウンドロビン"
+
+EOS
 read -rp "番号を入力してください [1-7]: " proxy_num
 
 case "${proxy_num}" in
-  1) ENDPOINT="${KONG_PROXY}/ai/normal/chat";    LABEL="ai-proxy-normal"     ;;
-  2) ENDPOINT="${KONG_PROXY}/ai/ratelimit/chat"; LABEL="ai-proxy-ratelimit"  ;;
-  3) ENDPOINT="${KONG_PROXY}/ai/guard/chat";     LABEL="ai-prompt-guard"     ;;
+  1) ENDPOINT="${KONG_PROXY}/ai/normal/chat";    LABEL="ai-proxy-normal"         ;;
+  2) ENDPOINT="${KONG_PROXY}/ai/ratelimit/chat"; LABEL="ai-proxy-ratelimit"      ;;
+  3) ENDPOINT="${KONG_PROXY}/ai/guard/chat";     LABEL="ai-prompt-guard"         ;;
   4) ENDPOINT="${KONG_PROXY}/ai/semguard/chat"; LABEL="ai-semantic-prompt-guard" ;;
-  5) ENDPOINT="${KONG_PROXY}/ai/semcache/chat";  LABEL="ai-proxy-semcache"   ;;
-  6) ENDPOINT="${KONG_PROXY}/ai/decorator/chat"; LABEL="ai-prompt-decorator" ;;
-  7) ENDPOINT="${KONG_PROXY}/ai/advanced/chat";  LABEL="ai-proxy-advanced"          ;;
+  5) ENDPOINT="${KONG_PROXY}/ai/semcache/chat";  LABEL="ai-proxy-semcache"       ;;
+  6) ENDPOINT="${KONG_PROXY}/ai/decorator/chat"; LABEL="ai-prompt-decorator"     ;;
+  7) ENDPOINT="${KONG_PROXY}/ai/advanced/chat";  LABEL="ai-proxy-advanced"       ;;
   *)
     echo "❌ 無効な番号です: '${proxy_num}' (1〜6 または 8 を入力してください)"
     exit 1
