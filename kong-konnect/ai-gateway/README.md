@@ -16,8 +16,8 @@
    - [2-2. コンテナ構築](#2-2-コンテナ構築)
    - [2-3. Kong Konnect 環境設定](#2-3-kong-konnect-環境設定)
 3. [体験](#3-体験)
-   - [3-1. ai-proxy: 単一モデルへのプロキシ](#3-1-ai-proxy-単一モデルへのプロキシ)
-   - [3-2. ai-proxy-advanced: 複数モデルへの負荷分散](#3-2-ai-proxy-advanced-複数モデルへの負荷分散)
+   - [3-1. AI プロキシのテスト](#3-1-ai-プロキシのテスト)
+   - [3-2. MCP プロキシのテスト](#3-2-mcp-プロキシのテスト)
 4. [プラグイン動作確認チェックポイント](#4-プラグイン動作確認チェックポイント)
    - [4-1. ai-rate-limiting-advanced: トークン流量制限](#4-1-ai-rate-limiting-advanced-トークン流量制限)
 5. [清掃手順](#5-清掃手順)
@@ -167,54 +167,103 @@ Kong Konnect の CP に AI Gateway のルート・サービス・プラグイン
 
 ## 3. 体験
 
-### 3-1. ai-proxy: 単一モデルへのプロキシ
+### 3-1. AI プロキシのテスト
 
-`/ai/normal/chat` エンドポイントは **ai-proxy** プラグインにより、常に **llama3.1** へリクエストを転送します。
+[try-my-hand/testCOMMAND.sh](./try-my-hand/testCOMMAND.sh) は、各 AI プロキシパターンを対話形式で手軽に試せるスクリプトです。
 
 ```bash
-curl -X POST http://localhost:8000/ai/normal/chat \
+$ cd ~/handson/my-skilling/kong-konnect/ai-gateway/try-my-hand/
+$ ./testCOMMAND.sh
+```
+
+起動するとプロキシパターンの選択メニューが表示されます。
+
+```
+==================================================
+  Kong AI Gateway テスト実行
+==================================================
+
+■ プロキシパターンを選択してください:
+
+  [1] ai-proxy-normal          → POST http://localhost:8000/ai/normal/chat
+      Ollama llama3.1 へ直接プロキシ
+  [2] ai-proxy-ratelimit       → POST http://localhost:8000/ai/ratelimit/chat
+      トークン数で流量制限 (500 tokens / 60sec / IP)
+  [3] ai-prompt-guard          → POST http://localhost:8000/ai/guard/chat
+      PII・プロンプトインジェクション攻撃をブロック
+  [4] ai-semantic-prompt-guard → POST http://localhost:8000/ai/semguard/chat
+      意味的類似でプロンプトをブロック (inject/jailbreak/危険コンテンツ)
+  [5] ai-proxy-semcache        → POST http://localhost:8000/ai/semcache/chat
+      類似質問をセマンティックキャッシュで即返却
+  [6] ai-prompt-decorator      → POST http://localhost:8000/ai/decorator/chat
+      システムプロンプトを強制付与 (関西弁)
+  [7] ai-proxy-advanced        → POST http://localhost:8000/ai/advanced/chat
+      llama3.1 / phi3:mini ラウンドロビン
+
+番号を入力してください [1-7]:
+```
+
+番号を選択するとプロンプトの入力を求められます。`[4]` を選択した場合はブロック検証用のデモプリセットも選択できます。  
+入力後は、実行される `curl` コマンドが表示されてからリクエストが送信されます。レスポンスは verbose ヘッダーとボディに分けて出力されます。
+
+```
+==================================================
+  実行コマンド
+==================================================
+curl -sv \
+  -X POST "http://localhost:8000/ai/normal/chat" \
   -H "Content-Type: application/json" \
-  -d '{
-    "model": "llama3.1",
-    "messages": [
-      { "role": "user", "content": "Kong API Gateway の主なメリットを3つ教えてください。" }
-    ]
-  }'
-```
+  -d '{"messages":[{"role":"user","content":"Kong AI Gatewayのメリットを3つ教えて"}]}'
+==================================================
 
-レスポンスの `X-Kong-LLM-Model` ヘッダーで実際に使用されたモデルが確認できます。
+⏳ リクエスト送信中...
 
-```
-X-Kong-LLM-Model: ollama/llama3.1
+--- Verbose Output (Request / Response Headers) ---
+...
+--- Response Body ---
+{
+  "choices": [ ... ]
+}
 ```
 
 ---
 
-### 3-2. ai-proxy-advanced: 複数モデルへの負荷分散
+### 3-2. MCP プロキシのテスト
 
-`/ai/advanced/chat` エンドポイントは **ai-proxy-advanced** プラグインにより、**llama3.1** と **phi3:mini** へリクエストをラウンドロビンで振り分けます。
-
-Kong がモデルを自動選択するため、`"model"` フィールドの値は何でも構いません。
+[try-my-hand/testMCP_INSPECTOR.sh](./try-my-hand/testMCP_INSPECTOR.sh) は、Kong AI Gateway 経由で MCP サーバーをブラウザから操作できる **MCP Inspector** を起動するスクリプトです。  
+対象エンドポイントは `/ai/mcp/sios-techlab`（SIOS Tech Lab MCP サーバー）です。
 
 ```bash
-curl -X POST http://localhost:8000/ai/advanced/chat \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "any",
-    "messages": [
-      { "role": "user", "content": "Kong API Gateway の主なメリットを3つ教えてください。" }
-    ]
-  }'
+$ cd ~/handson/my-skilling/kong-konnect/ai-gateway/try-my-hand/
+$ ./testMCP_INSPECTOR.sh
 ```
 
-リクエストごとに `X-Kong-LLM-Model` ヘッダーの値が交互に変わることで、負荷分散を確認できます。
+Kong DP への疎通確認後、MCP Inspector が起動し以下のような出力が表示されます。
 
 ```
-# 1回目
-X-Kong-LLM-Model: ollama/llama3.1
+  ブラウザで以下の URL を開いてください:
+  http://localhost:6274
 
-# 2回目
-X-Kong-LLM-Model: llama2/phi3:mini
+  接続後、[Connect] ボタンをクリックしてツールを操作できます。
+  (終了するには Ctrl+C を押してください)
+```
+
+ブラウザで URL を開いたら、以下の手順で操作します。
+
+1. 画面上の **[Connect]** ボタンをクリックして MCP サーバーに接続する
+2. **[Tools]** タブを開き、使用するツールを選択して実行する
+
+利用可能なツールは以下のとおりです。
+
+| ツール名 | 説明 |
+|---|---|
+| `get-articles` | 最新記事一覧の取得（キーワード検索・件数指定・カテゴリ指定可） |
+| `get-article-by-id` | 記事 ID を指定して詳細を取得 |
+
+Inspector のポートを変更したい場合は `--port` オプションを指定します。
+
+```bash
+$ ./testMCP_INSPECTOR.sh --port 6300
 ```
 
 ---
