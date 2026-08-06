@@ -96,6 +96,9 @@ Kong API Gateway（Data Plane）
 | [proxy011](./setup/proxy011-advanced/) | `POST http://localhost:8000/ai/advanced/chat` | [ai-proxy-advanced](https://developer.konghq.com/plugins/ai-proxy-advanced/) | llama3.1 / phi3:mini ラウンドロビン |
 | [proxy012](./setup/proxy012-mcp-proxy/) | `POST http://localhost:8000/ai/mcp/sios-techlab` | [ai-mcp-proxy](https://developer.konghq.com/plugins/ai-mcp-proxy/) | 既存の REST API を MCP サーバーとして公開 |
 
+> **本ハンズオン対象外のプラグインについて**  
+> [ai-sanitizer](https://developer.konghq.com/plugins/ai-sanitizer/) は NLP 処理用コンテナ（Kong プライベートリポジトリ）が別途必要なため、本ハンズオンの対象外としています。
+
 ---
 
 ## 2. 体験環境の構築手順
@@ -478,12 +481,26 @@ cd try-my-hand/
 > そのため 1回目のレスポンスでは `Remaining = Limit` と表示されますが、  
 > カウンターへの加算は内部で正しく行われており、2回目以降のレスポンスに反映されます。
 
+#### トークン消費量について
+
+1回のリクエストで消費されるトークン数は、**入力トークン（プロンプト）と出力トークン（LLMの回答）の合計**です。
+
+$$\text{消費トークン} = \text{入力トークン（プロンプト）} + \text{出力トークン（LLMの回答）}$$
+
+| 要素 | 特性 |
+|---|---|
+| 入力トークン数 | 同じプロンプト文字列なら**ほぼ固定** |
+| 出力トークン数 | LLM の回答は非決定論的なため**毎回変動する** |
+
+消費トークン数の大部分は**出力トークン（回答側）**が占めます。  
+そのため、同じプロンプトを送っても毎回異なる値になります。以降の動作パターン表に示す数値は**実行時の一例**です。
+
 #### 期待される動作パターン
 
 | 回 | HTTP ステータス | `Remaining` | 説明 |
 |:---:|---|---|---|
 | 1回目 | `200 OK` | 350（上限と同じ） | 受付時点ではカウンターが空のため、上限値がそのまま返る |
-| 2回目 | `200 OK` | 59（例） | 1回目の消費トークン（例: 291）が差し引かれた残量が返る |
+| 2回目 | `200 OK` | 59（実行例） | 1回目の消費トークン（実行例: 291）が差し引かれた残量が返る。消費量は毎回異なる |
 | 3回目 | **`429 Too Many Requests`** | 0 | 累計消費トークンが上限（350）を超えたためブロック |
 
 #### 確認コマンド例
