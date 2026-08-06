@@ -96,6 +96,9 @@ Kong API Gateway（Data Plane）
 | [proxy011](./setup/proxy011-advanced/) | `POST http://localhost:8000/ai/advanced/chat` | [ai-proxy-advanced](https://developer.konghq.com/plugins/ai-proxy-advanced/) | llama3.1 / phi3:mini ラウンドロビン |
 | [proxy012](./setup/proxy012-mcp-proxy/) | `POST http://localhost:8000/ai/mcp/sios-techlab` | [ai-mcp-proxy](https://developer.konghq.com/plugins/ai-mcp-proxy/) | 既存の REST API を MCP サーバーとして公開 |
 
+> **本ハンズオン対象外のプラグインについて**  
+> [ai-sanitizer](https://developer.konghq.com/plugins/ai-sanitizer/) は NLP 処理用コンテナ（Kong プライベートリポジトリ）が別途必要なため、本ハンズオンの対象外としています。
+
 ---
 
 ## 2. 体験環境の構築手順
