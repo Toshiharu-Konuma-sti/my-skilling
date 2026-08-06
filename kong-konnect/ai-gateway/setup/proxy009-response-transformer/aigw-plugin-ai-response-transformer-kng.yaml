@@ -1,0 +1,40 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - AI Response Transformer Plugin
+# Route-scoped: applies to ollama-route-restransform only
+# Transform: llama3.1 の回答を phi3:mini で3点の箇条書きに整形してクライアントへ返す
+#
+# Demo:
+#   llama3.1 が通常の文章で回答
+#   → phi3:mini が回答テキストを3点の箇条書きに要約
+#   → クライアントへプレーンテキストとして返却
+#   (レスポンスが OpenAI JSON 形式ではなくなるため testCOMMAND.sh は cat フォールバックで表示)
+# =============================================================================
+plugins:
+- name: ai-response-transformer
+  enabled: true
+  route: ollama-route-restransform
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  config:
+    prompt: >-
+      You will receive an LLM API response JSON object. Extract the assistant's answer
+      text from the "choices[0].message.content" field and summarize it into exactly
+      3 concise bullet points in the same language as the answer text.
+      Return ONLY the 3 bullet points, each starting with "・", with no other text.
+    http_timeout: 300000
+    llm:
+      route_type: llm/v1/chat
+      auth:
+        allow_override: false
+      model:
+        provider: ollama
+        name: phi3:mini
+        options:
+          upstream_url: http://ollama:11434/api/chat
+      logging:
+        log_payloads: false
+        log_statistics: true

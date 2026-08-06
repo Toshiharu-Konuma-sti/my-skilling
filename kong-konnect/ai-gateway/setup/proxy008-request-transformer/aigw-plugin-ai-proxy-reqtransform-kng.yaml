@@ -1,13 +1,14 @@
 _format_version: "3.0"
 # =============================================================================
 # Kong AI Gateway - AI Proxy Plugin
-# Route-scoped: applies to ollama-route only
+# Route-scoped: applies to ollama-route-reqtransform only
 # Single target: Ollama / llama3.1
+# Used in combination with ai-request-transformer (runs after transformation)
 # =============================================================================
 plugins:
 - name: ai-proxy
   enabled: true
-  route: ollama-route
+  route: ollama-route-reqtransform
   protocols:
   - grpc
   - grpcs
@@ -30,5 +31,12 @@ plugins:
       options:
         upstream_url: http://ollama:11434/api/chat
     logging:
-      log_payloads: false
-      log_statistics: false
+      log_payloads: true
+      log_statistics: true
+
+- name: file-log
+  enabled: true
+  route: ollama-route-reqtransform
+  config:
+    path: /dev/stdout
+    reopen: false

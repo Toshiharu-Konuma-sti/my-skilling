@@ -1,0 +1,44 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - AI Request Transformer Plugin
+# Route-scoped: applies to ollama-route-reqtransform only
+# Transform: phi3:mini がリクエストを整形 → llama3.1 へ転送
+#
+# 注意: ローカル Ollama モデルが厳密な JSON を返さない場合は失敗することがあります
+#       (Known failure mode: AI Request Transformer with AI Proxy)
+#
+# Demo:
+#   クライアントが送信した質問を phi3:mini で明確な英語の質問に整形し、
+#   整形後のリクエストを llama3.1 に転送して回答を得る
+#   → X-Kong-LLM-Model ヘッダーで最終的に使用されたモデルを確認
+# =============================================================================
+plugins:
+- name: ai-request-transformer
+  enabled: true
+  route: ollama-route-reqtransform
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  config:
+    prompt: >-
+      You are a JSON request body formatter. You will receive a JSON object as input.
+      Your only task: extract the user question from the "content" field of the last
+      user message, rewrite it as a clear and specific English question, then return
+      ONLY this exact single-line JSON — no markdown, no code fences, no explanation:
+      {"messages":[{"role":"user","content":"<rewritten English question>"}]}
+    transformation_extract_pattern: '(?s)\{.*\}'
+    http_timeout: 300000
+    llm:
+      route_type: llm/v1/chat
+      auth:
+        allow_override: false
+      model:
+        provider: ollama
+        name: phi3:mini
+        options:
+          upstream_url: http://ollama:11434/api/chat
+      logging:
+        log_payloads: false
+        log_statistics: true

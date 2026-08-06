@@ -1,0 +1,62 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - AI LLM as Judge Plugin
+# Route-scoped: applies to ollama-route-judge only
+# Judge LLM: llama3.1 — 回答の品質を 1〜100 でスコアリング
+#
+# Demo:
+#   リクエストごとに llama3.1 または phi3:mini が回答を生成し、
+#   その回答を別途 llama3.1 が採点 (llm_accuracy: 1〜100) する
+#   スコアは Kong ログに記録され showLLM_LOG.sh で確認できる
+#
+# スコアの読み方:
+#   100 → 完全に正確・理想的な回答
+#     1 → 完全に不正確・無関係な回答
+#
+# 注意:
+#   - 同一モデルファミリーを judge に使うと preference leakage が起きる場合がある
+#   - スコアは human preference との整合性が保証されないため参考値として扱う
+#   - sampling_rate / message_countback / ignore_* は DP スキーマ検証エラーを
+#     引き起こすため省略し Kong のデフォルト値 (各 1 / true) に委ねる
+# =============================================================================
+plugins:
+- name: ai-llm-as-judge
+  enabled: true
+  route: ollama-route-judge
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  config:
+    prompt: >-
+      You are a strict evaluator. You will be given a prompt and a response.
+      Your task is to judge whether the response is correct or incorrect.
+      You must assign a score between 1 and 100, where:
+      100 represents a completely correct and ideal response,
+      1 represents a completely incorrect or irrelevant response.
+      Your score must be a single number only — no text, labels, or explanations.
+      Use the full range of values (e.g., 13, 47, 86), not just round numbers like
+      10, 50, or 100. Be accurate and consistent, as this score will be used by
+      another model for learning and evaluation.
+    http_timeout: 300000
+    # sampling_rate: 1 は DP スキーマ検証エラー / nil は sampling.lua クラッシュのため 0.5 を設定
+    sampling_rate: 0.5
+    llm:
+      route_type: llm/v1/chat
+      auth:
+        allow_override: false
+      model:
+        # ai-llm-as-judge の DP スキーマは ollama provider 未対応のため llama2 + llama2_format: ollama で代替
+        provider: llama2
+        name: llama3.1
+        options:
+          upstream_url: http://ollama:11434/api/chat
+          llama2_format: ollama
+          temperature: 2
+          max_tokens: 5
+          top_p: 1
+      logging:
+        log_payloads: false
+        log_statistics: true
+        log_statistics: true

@@ -1,0 +1,46 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - AI Semantic Cache Plugin
+# Route-scoped: applies to ollama-route-semcache only
+# VectorDB: Redis Stack (VSS) — vector similarity search
+# Embeddings: Ollama / nomic-embed-text (768 dimensions)
+#
+# Demo flow:
+#   1st request  → X-Cache-Status: Miss  → Ollama が応答 (数秒)
+#   同じ質問     → X-Cache-Status: Hit   → 即座に返却
+#   表現が違う類似質問 → X-Cache-Status: Hit   → 即座に返却 ← ここが見せ場
+#
+# 事前準備:
+#   - Redis Stack コンテナ起動 (docker-compose-ollama.yml に定義済み)
+#   - nomic-embed-text モデルの pull (ollama-init コンテナで自動実行)
+# =============================================================================
+plugins:
+- name: ai-semantic-cache
+  enabled: true
+  route: ollama-route-semcache
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  config:
+    embeddings:
+      model:
+        provider: openai
+        name: nomic-embed-text
+        options:
+          upstream_url: http://ollama:11434/v1/embeddings
+    vectordb:
+      strategy: redis
+      redis:
+        host: redis-stack
+        port: 6379
+      dimensions: 768
+      distance_metric: cosine
+      # threshold はコサイン距離の上限値 (距離 = 1 - コサイン類似度)
+      # nomic-embed-text による日本語テキストの実測値:
+      #   類似質問 (言い換え) : 0.027 〜 0.072  → Hit させたい
+      #   無関係なトピック    : 0.276 〜 0.421  → Miss させたい
+      threshold: 0.15
+    cache_ttl: 600
+    message_countback: 1

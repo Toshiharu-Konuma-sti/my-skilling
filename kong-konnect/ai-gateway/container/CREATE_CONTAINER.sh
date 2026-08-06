@@ -20,7 +20,7 @@ case "$1" in
 		;;
 
 	"info")
-		show_url
+		show_url_ai_gw
 		;;
 	"")
 		start_banner
@@ -28,8 +28,8 @@ case "$1" in
 		destory_ai_gw_container $CUR_DIR
 		create_ai_gw_container $CUR_DIR
 		show_list_container
-		show_url
+		show_url_ai_gw
 		finish_banner $S_TIME
-		docker logs -f ollama-init
+		time docker logs -f ollama-init
 		;;
 esac

@@ -1,0 +1,44 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - AI Rate Limiting Advanced Plugin
+# Route-scoped: applies to ollama-route-ratelimit only
+# Strategy: local (in-memory, nginx shared dict — shared across all workers)
+# Limit: 350 total_tokens per 300 seconds per IP (demo: triggers 429 on 3rd request)
+#
+# Token count per request (observed):
+#   min: ~181 tokens / max: ~326 tokens / typical: ~230-290 tokens
+#   1st request: counter = ~250       (<350 → pass)
+#   2nd request: counter = ~250+250   (>350 → 3rd request blocked)
+#
+# Provider name resolution:
+#   ai-proxy config   : provider=ollama, model=llama3.1
+#   Kong internal name: "llama2" (Kong maps llama3.x → llama2 family)
+#   Evidence          : X-Kong-LLM-Model: llama2/llama3.1
+#                       file-log: "provider_name": "llama2"
+#   → llm_providers.name MUST be "llama2", not "openai"
+#
+# Why total_tokens + window_size 300:
+#   - total_tokens はレスポンス受信後にカウントされる (usage.total_tokens を参照)
+#   - Ollama の応答に 40〜70 秒かかるため window_size は 300 秒に設定
+#   - limit:150 により 1回目(~180-300 tokens)でカウンターが超え、2回目で 429 を返す
+# =============================================================================
+plugins:
+- name: ai-rate-limiting-advanced
+  enabled: true
+  route: ollama-route-ratelimit
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  config:
+    strategy: local
+    identifier: ip
+    llm_providers:
+    - name: llama2
+      window_size:
+      - 300
+      limit:
+      - 350
+    tokens_count_strategy: total_tokens
+    sync_rate: -1

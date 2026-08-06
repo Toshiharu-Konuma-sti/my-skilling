@@ -117,20 +117,20 @@ EOF
 }
 # }}}
 
-# {{{ show_url()
-show_url()
+# {{{ show_url_api_gw()
+show_url_api_gw()
 {
 echo "--------------------------------------------------"
 echo "🎉 構築完了！"
 echo "Kong Proxy:    http://localhost:8000"
 echo "Keycloak:      http://localhost:8080"
 echo "Redis Insight: http://localhost:8001"
-echo "- - - - - - - - - - - - - - - - - - - - - - - - - "
-echo "URL"
-echo "  - http://localhost:8000/handson/oauth/v1/auth-code/api-gw-pep"
-echo "  - http://localhost:8000/handson/oauth/v1/auth-code/oidc-bff"
-echo "  - http://localhost:8000/handson/oauth/v1/client-cred"
-echo "  - http://localhost:8000/handson/oauth/bff/login"
+#	echo "- - - - - - - - - - - - - - - - - - - - - - - - - "
+#	echo "URL"
+#	echo "  - http://localhost:8000/handson/oauth/v1/auth-code/api-gw-pep"
+#	echo "  - http://localhost:8000/handson/oauth/v1/auth-code/oidc-bff"
+#	echo "  - http://localhost:8000/handson/oauth/v1/client-cred"
+#	echo "  - http://localhost:8000/handson/oauth/bff/login"
 echo "--------------------------------------------------"
 echo "* hosts ファイルを編集"
 echo "  - Windows:    C:\Windows\System32\drivers\etc\hosts"
@@ -138,6 +138,20 @@ echo "  - Linux(WSL): /etc/hosts"
 echo "  - MacOS:      /private/etc/hosts"
 echo "  - 127.0.0.1 keycloak"
 echo "--------------------------------------------------"
+}
+# }}}
+
+# {{{ show_url_ai_gw()
+show_url_ai_gw()
+{
+	cat << EOS
+--------------------------------------------------
+🎉 構築完了！
+Kong Proxy:    http://localhost:8000
+Ollama:        http://localhost:11434
+Redis Insight: http://localhost:8001
+--------------------------------------------------
+EOS
 }
 # }}}
 
@@ -745,20 +759,6 @@ upload_konnect_portal_asset()
 # }}}
 
 
-# {{{ fetch_konnect_apis()
-# $1: API base URL  (e.g. https://au.api.konghq.com)
-# $2: Personal access token
-fetch_konnect_apis()
-{
-	local api_base_url="$1"
-	local pat="$2"
-
-	curl -s -X GET \
-		"${api_base_url}/v3/apis" \
-		-H "Authorization: Bearer ${pat}"
-}
-# }}}
-
 # {{{ fetch_konnect_api_by_name()
 # name の完全一致フィルターで API を検索する (ページネーション問題を回避)
 # $1: API base URL  (e.g. https://au.api.konghq.com)
@@ -827,40 +827,6 @@ update_konnect_api()
 }
 # }}}
 
-# {{{ fetch_konnect_api_by_slug()
-# slug フィルターで API を検索する
-# $1: API base URL  (e.g. https://au.api.konghq.com)
-# $2: Personal access token
-# $3: slug 文字列 (e.g. yahoo-topics-rss-api)
-fetch_konnect_api_by_slug()
-{
-	local api_base_url="$1"
-	local pat="$2"
-	local slug="$3"
-
-	curl -s -X GET \
-		"${api_base_url}/v3/apis?filter%5Bslug%5D%5Beq%5D=${slug}" \
-		-H "Authorization: Bearer ${pat}"
-}
-# }}}
-
-
-# {{{ fetch_konnect_api_versions()
-# $1: API base URL  (e.g. https://au.api.konghq.com)
-# $2: Personal access token
-# $3: API ID
-fetch_konnect_api_versions()
-{
-	local api_base_url="$1"
-	local pat="$2"
-	local api_id="$3"
-
-	curl -s -X GET \
-		"${api_base_url}/v3/apis/${api_id}/versions" \
-		-H "Authorization: Bearer ${pat}"
-}
-# }}}
-
 # {{{ create_konnect_api_version()
 # $1: API base URL  (e.g. https://au.api.konghq.com)
 # $2: Personal access token
@@ -881,34 +847,6 @@ create_konnect_api_version()
 		-w "%{http_code}" \
 		-X POST \
 		"${api_base_url}/v3/apis/${api_id}/versions" \
-		-H "Authorization: Bearer ${pat}" \
-		-H "Content-Type: application/json" \
-		-d "${payload}"
-}
-# }}}
-
-# {{{ update_konnect_api_version()
-# $1: API base URL  (e.g. https://au.api.konghq.com)
-# $2: Personal access token
-# $3: API ID
-# $4: Version ID
-# $5: JSON ペイロード文字列 (version + spec.content)
-# $6: レスポンスボディの書き込み先 tmp ファイルパス
-# stdout: HTTP ステータスコード
-update_konnect_api_version()
-{
-	local api_base_url="$1"
-	local pat="$2"
-	local api_id="$3"
-	local version_id="$4"
-	local payload="$5"
-	local tmp_body="$6"
-
-	curl -s \
-		-o "${tmp_body}" \
-		-w "%{http_code}" \
-		-X PATCH \
-		"${api_base_url}/v3/apis/${api_id}/versions/${version_id}" \
 		-H "Authorization: Bearer ${pat}" \
 		-H "Content-Type: application/json" \
 		-d "${payload}"

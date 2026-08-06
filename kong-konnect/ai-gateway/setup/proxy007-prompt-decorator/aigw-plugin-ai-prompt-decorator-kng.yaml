@@ -1,0 +1,22 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - AI Prompt Decorator Plugin
+# Route-scoped: applies to ollama-route-decorator only
+# Prepend: system prompt forcing Kansai dialect (invisible to the client)
+# Demo: user sends any question → Kong automatically injects the system prompt
+#       → LLM responds in Kansai dialect regardless of the question language
+# =============================================================================
+plugins:
+- name: ai-prompt-decorator
+  enabled: true
+  route: ollama-route-decorator
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  config:
+    prompts:
+      prepend:
+      - role: system
+        content: "あなたは親しみやすいAIアシスタントです。必ず関西弁で回答してください。難しい内容も「〜やで」「〜やん」「〜やろ」などの関西弁で、楽しく分かりやすく説明してください。"

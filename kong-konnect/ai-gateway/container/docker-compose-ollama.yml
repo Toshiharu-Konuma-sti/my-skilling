@@ -5,8 +5,8 @@ services:
     container_name: ollama
     hostname: ollama
     image: &ollamaImage ollama/ollama:0.32.5
-#    environment:
-#      - OLLAMA_DEBUG=1
+    environment:
+      - OLLAMA_DEBUG=1
     volumes:
       - ollama-data:/root/.ollama
     ports:
@@ -42,10 +42,32 @@ services:
         ollama pull llama3.1
         echo '📦 Pulling phi3:mini ...'
         ollama pull phi3:mini
+        echo '📦 Pulling nomic-embed-text ...'
+        ollama pull nomic-embed-text
         echo '✅ All models pulled successfully'
     networks:
       - internal
     restart: "no"
+
+  # Redis Stack — Vector Similarity Search (VSS) for AI Semantic Cache
+  # redis/redis-stack (full image) includes RedisInsight Web UI on port 8001
+  redis-stack:
+    container_name: redis-stack
+    hostname: redis-stack
+    image: redis/redis-stack:7.4.0-v8
+    ports:
+      - "6379:6379"
+      - "8001:8001"   # RedisInsight Web UI: http://localhost:8001
+    networks:
+      - internal
+      - external
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 volumes:
   ollama-data:

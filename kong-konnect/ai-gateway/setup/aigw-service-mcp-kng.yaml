@@ -1,0 +1,19 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - Service Definition for SIOS Tech Lab MCP Proxy
+# Upstream: WordPress REST API (tech-lab.sios.jp)
+# Used by: sios-techlab-mcp-route (proxy007)
+#
+# Note: ai-mcp-proxy plugin の tool.path がアップストリームパスとして使われるため、
+#       このサービスの path 設定は使用されない。
+# =============================================================================
+services:
+- name: sios-techlab-service
+  host: tech-lab.sios.jp
+  port: 443
+  protocol: https
+  connect_timeout: 60000
+  read_timeout: 30000
+  write_timeout: 30000
+  retries: 3
+  enabled: true

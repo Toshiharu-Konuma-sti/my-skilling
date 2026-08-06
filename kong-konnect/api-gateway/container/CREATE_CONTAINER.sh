@@ -20,7 +20,7 @@ case "$1" in
 		;;
 
 	"info")
-		show_url
+		show_url_api_gw
 		;;
 	"")
 		start_banner
@@ -28,7 +28,7 @@ case "$1" in
 		destory_api_gw_container $CUR_DIR
 		create_api_gw_container $CUR_DIR
 		show_list_container
-		show_url
+		show_url_api_gw
 		finish_banner $S_TIME
 		;;
 esac
