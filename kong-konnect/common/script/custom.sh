@@ -144,11 +144,14 @@ echo "--------------------------------------------------"
 # {{{ show_url_ai_gw()
 show_url_ai_gw()
 {
-echo "--------------------------------------------------"
-echo "🎉 構築完了！"
-echo "Kong Proxy:    http://localhost:8000"
-echo "Ollama:        http://localhost:11434"
-echo "--------------------------------------------------"
+	cat << EOS
+--------------------------------------------------
+🎉 構築完了！
+Kong Proxy:    http://localhost:8000
+Ollama:        http://localhost:11434
+Redis Insight: http://localhost:8001
+--------------------------------------------------
+EOS
 }
 # }}}
 
