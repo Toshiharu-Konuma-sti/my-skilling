@@ -16,11 +16,14 @@
    - [2-2. コンテナ構築](#2-2-コンテナ構築)
    - [2-3. Kong Konnect 環境設定](#2-3-kong-konnect-環境設定)
 3. [体験](#3-体験)
-   - [3-1. AI プロキシのテスト](#3-1-ai-プロキシのテスト)
-   - [3-2. MCP プロキシのテスト](#3-2-mcp-プロキシのテスト)
+   - [3-1. AI プロキシのテスト: testAI_GATEWAY.sh](#3-1-ai-プロキシのテスト-testai_gatewaysh)
+   - [3-2. MCP プロキシのテスト: testMCP_INSPECTOR.sh](#3-2-mcp-プロキシのテスト-testmcp_inspectorsh)
+   - [3-3. AI ログの確認: showLLM_LOG.sh](#3-3-ai-ログの確認-showllm_logsh)
+   - [3-4. セマンティックキャッシュの類似度確認: showSIMILARITY.sh](#3-4-セマンティックキャッシュの類似度確認-showsimilaritysh)
 4. [プラグイン動作確認チェックポイント](#4-プラグイン動作確認チェックポイント)
    - [4-1. ai-rate-limiting-advanced: トークン流量制限](#4-1-ai-rate-limiting-advanced-トークン流量制限)
-   - [4-2. ai-llm-as-judge: LLM 回答の自動採点](#4-2-ai-llm-as-judge-llm-回答の自動採点)
+   - [4-2. ai-semantic-response-guard: LLM 回答の意味的ガード](#4-2-ai-semantic-response-guard-llm-回答の意味的ガード)
+   - [4-3. ai-llm-as-judge: LLM 回答の自動採点](#4-3-ai-llm-as-judge-llm-回答の自動採点)
 5. [清掃手順](#5-清掃手順)
 
 ---
@@ -168,13 +171,13 @@ Kong Konnect の CP に AI Gateway のルート・サービス・プラグイン
 
 ## 3. 体験
 
-### 3-1. AI プロキシのテスト
+### 3-1. AI プロキシのテスト: testAI_GATEWAY.sh
 
-[try-my-hand/testCOMMAND.sh](./try-my-hand/testCOMMAND.sh) は、各 AI プロキシパターンを対話形式で手軽に試せるスクリプトです。
+[try-my-hand/testAI_GATEWAY.sh](./try-my-hand/testAI_GATEWAY.sh) は、各 AI プロキシパターンを対話形式で手軽に試せるスクリプトです。
 
 ```bash
 $ cd ~/handson/my-skilling/kong-konnect/ai-gateway/try-my-hand/
-$ ./testCOMMAND.sh
+$ ./testAI_GATEWAY.sh
 ```
 
 起動するとプロキシパターンの選択メニューが表示されます。
@@ -229,7 +232,7 @@ curl -sv \
 
 ---
 
-### 3-2. MCP プロキシのテスト
+### 3-2. MCP プロキシのテスト: testMCP_INSPECTOR.sh
 
 [try-my-hand/testMCP_INSPECTOR.sh](./try-my-hand/testMCP_INSPECTOR.sh) は、Kong AI Gateway 経由で MCP サーバーをブラウザから操作できる **MCP Inspector** を起動するスクリプトです。  
 対象エンドポイントは `/ai/mcp/sios-techlab`（SIOS Tech Lab MCP サーバー）です。
@@ -266,6 +269,83 @@ Inspector のポートを変更したい場合は `--port` オプションを指
 ```bash
 $ ./testMCP_INSPECTOR.sh --port 6300
 ```
+
+---
+
+### 3-3. AI ログの確認: showLLM_LOG.sh
+
+[try-my-hand/showLLM_LOG.sh](./try-my-hand/showLLM_LOG.sh) は、`kong-dp` コンテナの stdout に出力された `file-log` プラグインの JSON ログを整形して表示するスクリプトです。  
+モデル名・トークン数・レイテンシ・リクエスト/レスポンスのペイロードを一覧で確認できます。
+
+```bash
+$ cd ~/handson/my-skilling/kong-konnect/ai-gateway/try-my-hand/
+$ ./showLLM_LOG.sh        # 直近 1 件を表示
+$ ./showLLM_LOG.sh 3      # 直近 3 件を表示
+$ ./showLLM_LOG.sh --all  # 全件を表示
+```
+
+出力例:
+
+```json
+{
+  "■ エンドポイント": "/ai/normal/chat",
+  "■ リクエストID":   "257d94521c20...",
+  "■ 日時":           "2026-08-06T00:17:29Z",
+  "■ モデル":         { "provider": "llama2", "model": "llama3.1" },
+  "■ レイテンシ (ms)": { "llm_latency": 81607, "kong_latency": 3, "total_request": 81611 },
+  "■ トークン使用量":  { "prompt_tokens": 23, "completion_tokens": 267, "total_tokens": 290 },
+  "■ LLM 評価スコア": "(対象外)",
+  "■ 送信プロンプト":  { "messages": [{"role": "user", "content": "..."}] },
+  "■ LLM レスポンス":  { "choices": [{ "message": { "content": "..." } }] }
+}
+```
+
+> `■ LLM 評価スコア` は `[9] ai-llm-as-judge` エンドポイントを使用した場合のみスコアが表示されます。
+
+---
+
+### 3-4. セマンティックキャッシュの類似度確認: showSIMILARITY.sh
+
+[try-my-hand/showSIMILARITY.sh](./try-my-hand/showSIMILARITY.sh) は、任意のプロンプトを Redis Stack のキャッシュと照合し、**コサイン距離・類似度・Hit/Miss 判定**を表示するスクリプトです。  
+`[5] ai-proxy-semcache` のキャッシュが実際に何を記憶しているかを可視化するために使います。
+
+```bash
+$ cd ~/handson/my-skilling/kong-konnect/ai-gateway/try-my-hand/
+
+# 引数でプロンプトを指定
+$ ./showSIMILARITY.sh "Kong AI Gatewayのメリットを3つ教えて"
+
+# 引数なしの場合は対話入力
+$ ./showSIMILARITY.sh
+```
+
+出力例:
+
+```
+🔍 プロンプト: Kong AI Gatewayのメリットを3つ教えて
+⏳ Ollama (nomic-embed-text) でベクトル生成中 ...
+   ✅ 768 次元ベクトル取得完了
+   📦 インデックス: ai-semantic-cache-index
+
+─────────────────────────────────────────────────────────────────
+  Redis キャッシュとの類似度 (上位 5 件)
+  threshold: 0.15  (cosine distance ≤ 0.15 → Hit)
+─────────────────────────────────────────────────────────────────
+
+  #1
+    cosine distance  : 0.0312        ← 非常に近い (同じ質問)
+    cosine similarity: 96.9%
+    判定 (threshold=0.15): ✅ Hit
+    cached response  : Kong AI Gatewayの主な利点は...
+
+  #2
+    cosine distance  : 0.2841        ← 遠い (違う質問)
+    cosine similarity: 71.6%
+    判定 (threshold=0.15): ❌ Miss
+    cached response  : Pythonでフィボナッチ数列を...
+```
+
+> このスクリプトは `redis-stack` コンテナ内の Python 3 で動作します。ホスト側への追加パッケージのインストールは不要です。
 
 ---
 
@@ -334,7 +414,7 @@ cd try-my-hand/
 
 ---
 
-### 4-2. ai-llm-as-judge: LLM 回答の自動採点
+### 4-2. ai-semantic-response-guard: LLM 回答の意味的ガード
 
 `/ai/judge/chat` エンドポイントにリクエストを送り、`showLLM_LOG.sh` で採点スコアを確認します。
 
@@ -386,6 +466,65 @@ cd try-my-hand/
 現在 `sampling_rate: 0.5`（約 50% のリクエストを採点）に設定しています。採点されなかったリクエストのログには `"■ LLM 評価スコア": "(対象外)"` と表示されます。スコアを確実に確認するには **2〜3 回リクエストを送ってください**。
 
 > **注意**: Kong 3.13.0.8 の DP スキーマバグにより `sampling_rate: 1`（全件採点）は設定できません。
+
+---
+
+### 4-3. ai-llm-as-judge: LLM 回答の自動採点
+
+`/ai/semrespguard/chat` エンドポイントで **ブロックされるはずのプロンプト** を送り、LLM の回答が Kong によって遮断されることを確認します。
+
+#### proxy004 との違い（2層防御の構造）
+
+| | 対象 | タイミング | ブロックされるもの |
+|---|---|---|---|
+| proxy004 `ai-semantic-prompt-guard` | ユーザーの**質問** | LLM に届く前 | 有害なプロンプト |
+| proxy005 `ai-semantic-response-guard` | LLM の**回答** | クライアントに届く前 | 有害な内容を含む回答 |
+
+```
+[proxy004 が守るライン]
+    有害なプロンプト → Kong がブロック → LLM に届かない
+
+[proxy005 が守るライン]
+    有害なプロンプトがすり抜けた場合
+    または LLM 自身が安全フィルターを持たない場合
+    → LLM が有害な回答を生成 → Kong が最後の砦として遮断
+```
+
+#### LLM に phi3:mini を使う理由
+
+llama3.1 は自前の安全フィルターが強力なため、有害なプロンプトに対して常に断り文句を返します。  
+proxy005 では安全フィルターの緩い **phi3:mini** を使用することで、LLM が有害な内容を実際に出力する状況を再現しています。
+
+#### 確認手順
+
+```bash
+cd try-my-hand/
+./testAI_GATEWAY.sh   # [5] を選択
+```
+
+`[5]` を選択するとデモ用プリセットが表示されます。
+
+#### 期待される動作パターン
+
+| プロンプト種別 | phi3:mini の回答 | Kong の判定 | HTTP |
+|---|---|---|:---:|
+| 通常の技術質問 ([1][2][3]) | 正常な回答 | deny に非類似 → 通過 | 200 |
+| 有害な質問 ([4][5][6][7]) | 危険な内容を含む回答 | deny に類似 → **ブロック** | **400** |
+
+> **注意**: phi3:mini が有害な質問に対して断り文句を返した場合（安全フィルターが働いた場合）は 200 になることがあります。これは正常な動作です。断り文句は `deny_responses` パターンと意味的に離れているため、Kong は通過させます。
+
+#### 400 ブロック時のレスポンス例
+
+```
+< HTTP/1.1 400 Bad Request
+< X-Kong-Response-Latency: 30000
+
+{
+  "error": {
+    "message": "bad response"
+  }
+}
+```
 
 ---
 

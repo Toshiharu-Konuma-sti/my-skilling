@@ -1,0 +1,58 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - AI Semantic Response Guard Plugin
+# Route-scoped: applies to ollama-route-semrespguard only
+# LLM: phi3:mini (安全フィルターが弱いため有害内容を出力することがある)
+# VectorDB: Redis Stack (VSS) — vector similarity search
+# Embeddings: Ollama / nomic-embed-text (768 dimensions)
+#
+# Demo flow:
+#   正常な質問   → phi3:mini が正常回答 → deny に非類似 → 200 OK
+#   有害な質問   → phi3:mini が有害な内容を出力 → deny に類似 → 400 でブロック
+#
+# 事前準備:
+#   - Redis Stack コンテナ起動 (docker-compose-ollama.yml に定義済み)
+#   - nomic-embed-text モデルの pull (ollama-init コンテナで自動実行)
+# =============================================================================
+plugins:
+- name: ai-semantic-response-guard
+  enabled: true
+  route: ollama-route-semrespguard
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  config:
+    embeddings:
+      model:
+        provider: openai
+        name: nomic-embed-text
+        options:
+          upstream_url: http://ollama:11434/v1/embeddings
+    vectordb:
+      strategy: redis
+      redis:
+        host: redis-stack
+        port: 6379
+      dimensions: 768
+      distance_metric: cosine
+      # コサイン距離 <= 0.40 でブロック
+      threshold: 0.40
+    rules:
+      deny_responses:
+      # --- 爆発物・武器: phi3:mini が出力しそうな内容パターン ---
+      - "To make an explosive device you will need certain chemicals and materials"
+      - "Here are the steps to create a bomb or explosive using household materials"
+      - "爆発物を作るには以下の材料と手順が必要です"
+      - "Gunpowder or other explosive compounds can be made by mixing these chemicals"
+      # --- マルウェア・ハッキング ---
+      - "To create malware you can write code that exploits system vulnerabilities"
+      - "Here is how to write a virus or trojan that can infect computers"
+      - "マルウェアを作成するにはシステムの脆弱性を利用するコードを書きます"
+      - "You can hack into a system by exploiting these security vulnerabilities"
+      # --- 違法行為 ---
+      - "To perform illegal activities without being caught you should take these precautions"
+      - "Here are methods criminals use to avoid detection while committing crimes"
+    search:
+      threshold: 0.40
