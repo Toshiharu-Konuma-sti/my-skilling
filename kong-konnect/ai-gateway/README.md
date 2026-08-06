@@ -27,7 +27,11 @@
    - [4-4. ai-semantic-prompt-guard: プロンプトの意味的ガード](#4-4-ai-semantic-prompt-guard-プロンプトの意味的ガード)
    - [4-5. ai-semantic-response-guard: LLM 回答の意味的ガード](#4-5-ai-semantic-response-guard-llm-回答の意味的ガード)
    - [4-6. ai-semantic-cache: セマンティックキャッシュ](#4-6-ai-semantic-cache-セマンティックキャッシュ)
-   - [4-7. ai-llm-as-judge: LLM 回答の自動採点](#4-7-ai-llm-as-judge-llm-回答の自動採点)
+   - [4-7. ai-prompt-decorator: システムプロンプトの強制付与](#4-7-ai-prompt-decorator-システムプロンプトの強制付与)
+   - [4-8. ai-request-transformer: リクエストの LLM 変換](#4-8-ai-request-transformer-リクエストの-llm-変換)
+   - [4-9. ai-response-transformer: レスポンスの LLM 変換](#4-9-ai-response-transformer-レスポンスの-llm-変換)
+   - [4-10. ai-llm-as-judge: LLM 回答の自動採点](#4-10-ai-llm-as-judge-llm-回答の自動採点)
+   - [4-11. ai-proxy-advanced: 複数モデルへのラウンドロビン](#4-11-ai-proxy-advanced-複数モデルへのラウンドロビン)
 5. [清掃手順](#5-清掃手順)
 
 ---
@@ -54,7 +58,7 @@ Kong API Gateway（Data Plane）
 
 ### 必要なライセンスについて
 
-Kong AI Gateway のすべての機能を体験するには、以下が必要です。
+本ハンズオンの機能を体験するには、以下が必要です。
 
 | 必要なもの | 説明 |
 |---|---|
@@ -762,7 +766,107 @@ Hit 判定の内訳（コサイン距離・類似度・キャッシュ済みレ�
 
 ---
 
-### 4-7. ai-llm-as-judge: LLM 回答の自動採点
+### 4-7. ai-prompt-decorator: システムプロンプトの強制付与
+
+> 📄 設定ファイル: [aigw-plugin-ai-proxy-decorator-kng.yaml](./setup/proxy007-prompt-decorator/aigw-plugin-ai-proxy-decorator-kng.yaml) / [aigw-plugin-ai-prompt-decorator-kng.yaml](./setup/proxy007-prompt-decorator/aigw-plugin-ai-prompt-decorator-kng.yaml)
+
+`/ai/decorator/chat` エンドポイントにリクエストを送り、LLM の回答が**クライアントから見えないシステムプロンプトの影響を受けていること**（関西弁での回答）を確認します。
+
+#### 動作の仕組み
+
+クライアントが送ったプロンプトに、Kong が自動でシステムプロンプトを付加してから LLM に転送します。クライアントはシステムプロンプトの存在を知りません。
+
+```
+クライアントの送信内容:
+  {"messages":[{"role":"user","content":"Pythonとは何ですか？"}]}
+
+Kong が LLM へ転送する内容（Kong が prepend で追加）:
+  {"messages":[
+    {"role":"system","content":"あなたは親しみやすいAIアシスタントです。必ず関西弁で回答してください。"},
+    {"role":"user",  "content":"Pythonとは何ですか？"}
+  ]}
+```
+
+#### 確認のポイント
+
+同じ質問を proxy001 (`/ai/normal/chat`) と proxy007 (`/ai/decorator/chat`) に送り比較します。
+
+| エンドポイント | 回答スタイル |
+|---|---|
+| `/ai/normal/chat` | 標準的な日本語 |
+| `/ai/decorator/chat` | **関西弁**（「〜やで」「〜やん」「〜やろ」など） |
+
+#### 確認手順
+
+```bash
+cd try-my-hand/
+./testAI_GATEWAY.sh   # [7] を選択
+```
+
+LLM の回答が関西弁になっていれば成功です。クライアント側のリクエストには一切変更を加えていないことがポイントです。
+
+---
+
+### 4-8. ai-request-transformer: リクエストの LLM 変換
+
+> 📄 設定ファイル: [aigw-plugin-ai-proxy-reqtransform-kng.yaml](./setup/proxy008-request-transformer/aigw-plugin-ai-proxy-reqtransform-kng.yaml) / [aigw-plugin-ai-request-transformer-kng.yaml](./setup/proxy008-request-transformer/aigw-plugin-ai-request-transformer-kng.yaml)
+
+`/ai/reqtransform/chat` エンドポイントにリクエストを送り、**クライアントの質問が phi3:mini によって英語に整形されてから llama3.1 に転送されること**を確認します。
+
+#### 動作の仕組み
+
+```
+クライアント → (日本語質問) → phi3:mini が英語に整形 → llama3.1 が回答 → クライアント
+```
+
+1. クライアントが日本語でプロンプトを送信
+2. `ai-request-transformer` が phi3:mini を使ってプロンプトを英語に変換
+3. 変換後のプロンプトを llama3.1 に転送して回答を得る
+
+#### 確認のポイント
+
+```bash
+cd try-my-hand/
+./testAI_GATEWAY.sh   # [8] を選択
+```
+
+- `X-Kong-LLM-Model` ヘッダーで **llama3.1** が最終的に使われたことを確認
+- `showLLM_LOG.sh` でリクエスト変換前後のログを確認
+
+> **注意**: ローカル Ollama モデルが厳密な JSON を返さない場合、変換が失敗することがあります（Kong 公式の Known failure mode）。その場合はリクエストを再送してください。
+
+---
+
+### 4-9. ai-response-transformer: レスポンスの LLM 変換
+
+> 📄 設定ファイル: [aigw-plugin-ai-proxy-restransform-kng.yaml](./setup/proxy009-response-transformer/aigw-plugin-ai-proxy-restransform-kng.yaml) / [aigw-plugin-ai-response-transformer-kng.yaml](./setup/proxy009-response-transformer/aigw-plugin-ai-response-transformer-kng.yaml)
+
+`/ai/restransform/chat` エンドポイントにリクエストを送り、**llama3.1 の回答が phi3:mini によって3点の箇条書きに整形されてからクライアントに返却されること**を確認します。
+
+#### 動作の仕組み
+
+```
+クライアント → llama3.1 が回答生成 → phi3:mini が3点箇条書きに整形 → クライアント
+```
+
+1. クライアントのリクエストをそのまま llama3.1 に転送
+2. llama3.1 の回答を `ai-response-transformer` が phi3:mini に渡して整形
+3. phi3:mini が「・箇条書き1\n・箇条書き2\n・箇条書き3」形式に変換してクライアントへ返却
+
+#### 確認のポイント
+
+```bash
+cd try-my-hand/
+./testAI_GATEWAY.sh   # [9] を選択
+```
+
+- レスポンスボディが JSON ではなく**プレーンテキストの3点箇条書き**になっていることを確認
+- レスポンスヘッダーの `Content-Type: application/json` と本文がテキストの不一致は正常な動作（Kong が元の Content-Type を引き継ぐため）
+- `X-Kong-Upstream-Latency` が通常より長い（LLM を2回呼ぶため）
+
+---
+
+### 4-10. ai-llm-as-judge: LLM 回答の自動採点
 
 > 📄 設定ファイル: [aigw-plugin-ai-proxy-advanced-judge-kng.yaml](./setup/proxy010-llm-as-judge/aigw-plugin-ai-proxy-advanced-judge-kng.yaml) / [aigw-plugin-ai-llm-as-judge-kng.yaml](./setup/proxy010-llm-as-judge/aigw-plugin-ai-llm-as-judge-kng.yaml)
 
@@ -816,6 +920,57 @@ cd try-my-hand/
 現在 `sampling_rate: 0.5`（約 50% のリクエストを採点）に設定しています。採点されなかったリクエストのログには `"■ LLM 評価スコア": "(対象外)"` と表示されます。スコアを確実に確認するには **2〜3 回リクエストを送ってください**。
 
 > **注意**: Kong 3.13.0.8 の DP スキーマバグにより `sampling_rate: 1`（全件採点）は設定できません。
+
+---
+
+### 4-11. ai-proxy-advanced: 複数モデルへのラウンドロビン
+
+> 📄 設定ファイル: [aigw-plugin-ai-proxy-advanced-kng.yaml](./setup/proxy011-advanced/aigw-plugin-ai-proxy-advanced-kng.yaml)
+
+`/ai/advanced/chat` エンドポイントにリクエストを繰り返し送り、**llama3.1 と phi3:mini がラウンドロビンで交互に選択されること**を確認します。
+
+#### 動作の仕組み
+
+`ai-proxy-advanced` は複数の LLM ターゲットを定義し、バランサーアルゴリズムに従ってリクエストを振り分けます。
+
+```
+現在の設定:
+  algorithm: round-robin
+  targets:
+    - llama3.1 (weight: 100)
+    - phi3:mini (weight: 100)
+```
+
+weight が等しいため、1回目 → llama3.1、2回目 → phi3:mini、3回目 → llama3.1 … と交互に振り分けられます。
+
+#### 注目レスポンスヘッダー
+
+```
+X-Kong-LLM-Model: llama2/llama3.1   ← 1回目
+X-Kong-LLM-Model: llama2/phi3:mini  ← 2回目
+X-Kong-LLM-Model: llama2/llama3.1   ← 3回目（ラウンドロビンで戻る）
+```
+
+#### 確認手順
+
+```bash
+cd try-my-hand/
+./testAI_GATEWAY.sh   # [11] を選択して3回連続送信
+./testAI_GATEWAY.sh
+./testAI_GATEWAY.sh
+```
+
+3回のリクエストで `X-Kong-LLM-Model` ヘッダーが `llama3.1` → `phi3:mini` → `llama3.1` と交互に変わることを確認します。
+
+#### proxy001 との比較
+
+| | proxy001 (`/ai/normal/chat`) | proxy011 (`/ai/advanced/chat`) |
+|---|---|---|
+| プラグイン | ai-proxy | ai-proxy-advanced |
+| モデル | llama3.1 固定 | llama3.1 / phi3:mini ラウンドロビン |
+| `X-Kong-LLM-Model` | 常に `llama2/llama3.1` | リクエストごとに変わる |
+
+> **発展**: `algorithm` を `round-robin` から `lowest-latency`・`lowest-usage`・`semantic` などに変更することで、応答時間・使用量・リクエスト内容に応じた動的なモデル選択が可能になります。
 
 ---
 
