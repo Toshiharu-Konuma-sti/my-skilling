@@ -42,22 +42,24 @@ SaaS の LLM を一切使わずにローカル環境だけで完結するため�
 | Ollama | ローカル LLM サーバー。llama3.1・phi3:mini を提供（コンテナ） |
 | Redis Stack | ベクトル DB。セマンティックキャッシュ・セマンティックガードに使用（コンテナ） |
 
+<img src="./image/kong-konnect-ai-gateway_overview.png" width="600">
+
 体験できるエンドポイントは以下のとおりです。
 
-| エンドポイント | プラグイン | 動作 |
-|---|---|---|
-| `POST http://localhost:8000/ai/normal/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) | llama3.1 固定プロキシ |
-| `POST http://localhost:8000/ai/ratelimit/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-rate-limiting-advanced](https://developer.konghq.com/plugins/ai-rate-limiting-advanced/) | トークン数で流量制限 |
-| `POST http://localhost:8000/ai/guard/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-prompt-guard](https://developer.konghq.com/plugins/ai-prompt-guard/) | PII・インジェクション攻撃をブロック |
-| `POST http://localhost:8000/ai/semguard/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-semantic-prompt-guard](https://developer.konghq.com/plugins/ai-semantic-prompt-guard/) | 意味的類似でプロンプトをブロック |
-| `POST http://localhost:8000/ai/semrespguard/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-semantic-response-guard](https://developer.konghq.com/plugins/ai-semantic-response-guard/) | 意味的類似で LLM 回答をブロック |
-| `POST http://localhost:8000/ai/semcache/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-semantic-cache](https://developer.konghq.com/plugins/ai-semantic-cache/) | 類似質問をセマンティックキャッシュで即返却 |
-| `POST http://localhost:8000/ai/decorator/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-prompt-decorator](https://developer.konghq.com/plugins/ai-prompt-decorator/) | システムプロンプトを強制付与 |
-| `POST http://localhost:8000/ai/reqtransform/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-request-transformer](https://developer.konghq.com/plugins/ai-request-transformer/) | リクエストを LLM で変換してから転送 |
-| `POST http://localhost:8000/ai/restransform/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-response-transformer](https://developer.konghq.com/plugins/ai-response-transformer/) | LLM 回答を別 LLM で変換してから返却 |
-| `POST http://localhost:8000/ai/judge/chat` | [ai-proxy-advanced](https://developer.konghq.com/plugins/ai-proxy-advanced/) + [ai-llm-as-judge](https://developer.konghq.com/plugins/ai-llm-as-judge/) | LLM 回答を別 LLM が 1〜100 で採点 |
-| `POST http://localhost:8000/ai/advanced/chat` | [ai-proxy-advanced](https://developer.konghq.com/plugins/ai-proxy-advanced/) | llama3.1 / phi3:mini ラウンドロビン |
-| `POST http://localhost:8000/ai/mcp/sios-techlab` | [ai-mcp-proxy](https://developer.konghq.com/plugins/ai-mcp-proxy/) | 既存の REST API を MCP サーバーとして公開 |
+| 設定 | エンドポイント | プラグイン | 動作 |
+|---|---|---|---|
+| [proxy001](./setup/proxy001-normal/) | `POST http://localhost:8000/ai/normal/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) | llama3.1 固定プロキシ |
+| [proxy002](./setup/proxy002-ratelimit/) | `POST http://localhost:8000/ai/ratelimit/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-rate-limiting-advanced](https://developer.konghq.com/plugins/ai-rate-limiting-advanced/) | トークン数で流量制限 |
+| [proxy003](./setup/proxy003-prompt-guard/) | `POST http://localhost:8000/ai/guard/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-prompt-guard](https://developer.konghq.com/plugins/ai-prompt-guard/) | PII・インジェクション攻撃をブロック |
+| [proxy004](./setup/proxy004-semantic-prompt-guard/) | `POST http://localhost:8000/ai/semguard/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-semantic-prompt-guard](https://developer.konghq.com/plugins/ai-semantic-prompt-guard/) | 意味的類似でプロンプトをブロック |
+| [proxy005](./setup/proxy005-semantic-response-guard/) | `POST http://localhost:8000/ai/semrespguard/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-semantic-response-guard](https://developer.konghq.com/plugins/ai-semantic-response-guard/) | 意味的類似で LLM 回答をブロック |
+| [proxy006](./setup/proxy006-semantic-cache/) | `POST http://localhost:8000/ai/semcache/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-semantic-cache](https://developer.konghq.com/plugins/ai-semantic-cache/) | 類似質問をセマンティックキャッシュで即返却 |
+| [proxy007](./setup/proxy007-prompt-decorator/) | `POST http://localhost:8000/ai/decorator/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-prompt-decorator](https://developer.konghq.com/plugins/ai-prompt-decorator/) | システムプロンプトを強制付与 |
+| [proxy008](./setup/proxy008-request-transformer/) | `POST http://localhost:8000/ai/reqtransform/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-request-transformer](https://developer.konghq.com/plugins/ai-request-transformer/) | リクエストを LLM で変換してから転送 |
+| [proxy009](./setup/proxy009-response-transformer/) | `POST http://localhost:8000/ai/restransform/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-response-transformer](https://developer.konghq.com/plugins/ai-response-transformer/) | LLM 回答を別 LLM で変換してから返却 |
+| [proxy010](./setup/proxy010-llm-as-judge/) | `POST http://localhost:8000/ai/judge/chat` | [ai-proxy-advanced](https://developer.konghq.com/plugins/ai-proxy-advanced/) + [ai-llm-as-judge](https://developer.konghq.com/plugins/ai-llm-as-judge/) | LLM 回答を別 LLM が 1〜100 で採点 |
+| [proxy011](./setup/proxy011-advanced/) | `POST http://localhost:8000/ai/advanced/chat` | [ai-proxy-advanced](https://developer.konghq.com/plugins/ai-proxy-advanced/) | llama3.1 / phi3:mini ラウンドロビン |
+| [proxy012](./setup/proxy012-mcp-proxy/) | `POST http://localhost:8000/ai/mcp/sios-techlab` | [ai-mcp-proxy](https://developer.konghq.com/plugins/ai-mcp-proxy/) | 既存の REST API を MCP サーバーとして公開 |
 
 ---
 
