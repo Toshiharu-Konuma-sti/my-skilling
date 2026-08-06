@@ -1,0 +1,51 @@
+_format_version: "3.0"
+# =============================================================================
+# Kong AI Gateway - AI Proxy + Audit Log Plugin
+# Route-scoped: applies to ollama-route-auditlog only
+# Single target: Ollama / llama3.1
+#
+# Demo: AI 監査ログの体験
+#   - log_payloads: true  → リクエスト/レスポンスの全ペイロードを記録
+#   - log_statistics: true → トークン数・モデル名・レイテンシを記録
+#   - file-log: kong-dp コンテナの stdout にログを出力
+#
+#   確認方法:
+#     $ cd try-my-hand/
+#     $ ./testCOMMAND.sh     # [10] を選択してリクエストを送信
+#     $ ./showLLM_LOG.sh     # 直近ログを整形表示 (リクエスト/レスポンスペイロード含む)
+# =============================================================================
+plugins:
+- name: ai-proxy
+  enabled: true
+  route: ollama-route-auditlog
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  - ws
+  - wss
+  config:
+    route_type: llm/v1/chat
+    llm_format: openai
+    model_name_header: true
+    response_streaming: allow
+    genai_category: text/generation
+    max_request_body_size: 8192
+    auth:
+      allow_override: false
+    model:
+      provider: ollama
+      name: llama3.1
+      options:
+        upstream_url: http://ollama:11434/api/chat
+    logging:
+      log_payloads: true
+      log_statistics: true
+
+- name: file-log
+  enabled: true
+  route: ollama-route-auditlog
+  config:
+    path: /dev/stdout
+    reopen: false
