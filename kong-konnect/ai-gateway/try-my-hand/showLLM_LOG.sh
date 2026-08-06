@@ -68,6 +68,7 @@ echo "${LOGS}" | while IFS= read -r line; do
       "completion_tokens": .ai.proxy.usage.completion_tokens,
       "total_tokens":      .ai.proxy.usage.total_tokens
     },
+    "■ LLM 評価スコア":    (.ai["ai-llm-as-judge"].usage.llm_accuracy // "(対象外)"),
     "■ 送信プロンプト":    $req,
     "■ LLM レスポンス":    $res
   }'

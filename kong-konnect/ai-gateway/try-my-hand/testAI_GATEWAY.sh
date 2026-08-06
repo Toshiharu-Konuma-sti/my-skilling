@@ -38,22 +38,25 @@ select_proxy() {
       phi3:mini でリクエストを英語に整形 → llama3.1 へ転送
   [8] ai-response-transformer  → POST ${KONG_PROXY}/ai/restransform/chat
       llama3.1 の回答を phi3:mini で3点の箇条書きに整形
-  [9] ai-proxy-advanced        → POST ${KONG_PROXY}/ai/advanced/chat
+  [9] ai-llm-as-judge          → POST ${KONG_PROXY}/ai/judge/chat
+      llama3.1 / phi3:mini の回答を llama3.1 が 1〜100 でスコアリング
+  [10] ai-proxy-advanced       → POST ${KONG_PROXY}/ai/advanced/chat
       llama3.1 / phi3:mini ラウンドロビン
 
 EOS
-  read -rp "番号を入力してください [1-9]: " proxy_num
+  read -rp "番号を入力してください [1-10]: " proxy_num
 
   case "${proxy_num}" in
-    1)  ENDPOINT="${KONG_PROXY}/ai/normal/chat";       LABEL="ai-proxy-normal"          ;;
-    2)  ENDPOINT="${KONG_PROXY}/ai/ratelimit/chat";    LABEL="ai-proxy-ratelimit"       ;;
-    3)  ENDPOINT="${KONG_PROXY}/ai/guard/chat";        LABEL="ai-prompt-guard"          ;;
-    4)  ENDPOINT="${KONG_PROXY}/ai/semguard/chat";     LABEL="ai-semantic-prompt-guard" ;;
-    5)  ENDPOINT="${KONG_PROXY}/ai/semcache/chat";     LABEL="ai-proxy-semcache"        ;;
-    6)  ENDPOINT="${KONG_PROXY}/ai/decorator/chat";    LABEL="ai-prompt-decorator"      ;;
-    7)  ENDPOINT="${KONG_PROXY}/ai/reqtransform/chat"; LABEL="ai-request-transformer"   ;;
-    8)  ENDPOINT="${KONG_PROXY}/ai/restransform/chat"; LABEL="ai-response-transformer"  ;;
-    9)  ENDPOINT="${KONG_PROXY}/ai/advanced/chat";     LABEL="ai-proxy-advanced"        ;;
+    1)   ENDPOINT="${KONG_PROXY}/ai/normal/chat";       LABEL="ai-proxy-normal"          ;;
+    2)   ENDPOINT="${KONG_PROXY}/ai/ratelimit/chat";    LABEL="ai-proxy-ratelimit"       ;;
+    3)   ENDPOINT="${KONG_PROXY}/ai/guard/chat";        LABEL="ai-prompt-guard"          ;;
+    4)   ENDPOINT="${KONG_PROXY}/ai/semguard/chat";     LABEL="ai-semantic-prompt-guard" ;;
+    5)   ENDPOINT="${KONG_PROXY}/ai/semcache/chat";     LABEL="ai-proxy-semcache"        ;;
+    6)   ENDPOINT="${KONG_PROXY}/ai/decorator/chat";    LABEL="ai-prompt-decorator"      ;;
+    7)   ENDPOINT="${KONG_PROXY}/ai/reqtransform/chat"; LABEL="ai-request-transformer"   ;;
+    8)   ENDPOINT="${KONG_PROXY}/ai/restransform/chat"; LABEL="ai-response-transformer"  ;;
+    9)   ENDPOINT="${KONG_PROXY}/ai/judge/chat";        LABEL="ai-llm-as-judge"          ;;
+    10)  ENDPOINT="${KONG_PROXY}/ai/advanced/chat";     LABEL="ai-proxy-advanced"        ;;
     *)
       echo "❌ 無効な番号です: '${proxy_num}' (1〜10 を入力してください)"
       exit 1
