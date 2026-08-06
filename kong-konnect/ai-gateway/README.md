@@ -23,7 +23,7 @@
 4. [プラグイン動作確認チェックポイント](#4-プラグイン動作確認チェックポイント)
    - [4-1. ai-proxy: AI Gateway 基礎確認](#4-1-ai-proxy-ai-gateway-基礎確認)
    - [4-2. ai-rate-limiting-advanced: トークン流量制限](#4-2-ai-rate-limiting-advanced-トークン流量制限)
-   - [4-3. ai-prompt-guard: PII・プロンプトインジェクションをブロック](#4-3-ai-prompt-guard-pii・プロンプトインジェクションをブロック)
+   - [4-3. ai-prompt-guard: PII・プロンプトインジェクションをブロック](#4-3-ai-prompt-guard-piiプロンプトインジェクションをブロック)
    - [4-4. ai-semantic-prompt-guard: プロンプトの意味的ガード](#4-4-ai-semantic-prompt-guard-プロンプトの意味的ガード)
    - [4-5. ai-semantic-response-guard: LLM 回答の意味的ガード](#4-5-ai-semantic-response-guard-llm-回答の意味的ガード)
    - [4-6. ai-semantic-cache: セマンティックキャッシュ](#4-6-ai-semantic-cache-セマンティックキャッシュ)
