@@ -392,6 +392,8 @@ $ ./showSIMILARITY.sh
 
 ### 4-1. ai-proxy: AI Gateway 基礎確認
 
+> 📄 設定ファイル: [aigw-plugin-ai-proxy-normal-kng.yaml](./setup/proxy001-normal/aigw-plugin-ai-proxy-normal-kng.yaml)
+
 `/ai/normal/chat` エンドポイントにリクエストを送り、Kong AI Gateway が正常に動作していることをレスポンスヘッダーで確認します。
 
 #### 注目レスポンスヘッダー
@@ -443,6 +445,8 @@ cd try-my-hand/
 ---
 
 ### 4-2. ai-rate-limiting-advanced: トークン流量制限
+
+> 📄 設定ファイル: [aigw-plugin-ai-proxy-ratelimit-kng.yaml](./setup/proxy002-ratelimit/aigw-plugin-ai-proxy-ratelimit-kng.yaml) / [aigw-plugin-ai-rate-limiting-advanced-kng.yaml](./setup/proxy002-ratelimit/aigw-plugin-ai-rate-limiting-advanced-kng.yaml)
 
 `/ai/ratelimit/chat` エンドポイントに対して連続でリクエストを送り、**3回目で HTTP 429 が返ること**を確認します。
 
@@ -502,6 +506,8 @@ cd try-my-hand/
 
 ### 4-3. ai-prompt-guard: PII・プロンプトインジェクションをブロック
 
+> 📄 設定ファイル: [aigw-plugin-ai-proxy-guard-kng.yaml](./setup/proxy003-prompt-guard/aigw-plugin-ai-proxy-guard-kng.yaml) / [aigw-plugin-ai-prompt-guard-kng.yaml](./setup/proxy003-prompt-guard/aigw-plugin-ai-prompt-guard-kng.yaml)
+
 `/ai/guard/chat` エンドポイントに対して、個人情報や注入攻撃を含むプロンプトを送り、**HTTP 400 でブロックされること**を確認します。
 
 #### deny_patterns の内容
@@ -550,60 +556,7 @@ cd try-my-hand/
 
 ### 4-4. ai-semantic-prompt-guard: プロンプトの意味的ガード
 
-`/ai/judge/chat` エンドポイントにリクエストを送り、`showLLM_LOG.sh` で採点スコアを確認します。
-
-#### 動作の仕組み
-
-`ai-llm-as-judge` は**クライアントへのレスポンスを変えません**。スコアは Kong の内部ログに記録されます。
-
-```
-クライアント → Kong → llama3.1（or phi3:mini）が回答を生成
-                          ↓（バックグラウンドで非同期実行）
-                   llama3.1（judge）が回答を 1〜100 で採点
-                          ↓
-                   スコアを Kong ログに記録
-クライアント ← 元の LLM 回答をそのまま返す（レスポンスは変わらない）
-```
-
-そのため、レスポンスボディは `[9] ai-proxy-advanced` と同じに見えます。これは正常な動作です。
-
-#### 確認手順
-
-```bash
-cd try-my-hand/
-./testAI_GATEWAY.sh   # [10] を選択してリクエストを送信（2〜3回送る）
-./showLLM_LOG.sh      # 直近1件のログを整形表示
-```
-
-`showLLM_LOG.sh` の出力で `■ LLM 評価スコア` フィールドを確認します。
-
-```json
-{
-  "■ エンドポイント": "/ai/judge/chat",
-  "■ モデル":        { "provider": "llama2", "model": "llama3.1" },
-  "■ トークン使用量": { "prompt_tokens": 23, "completion_tokens": 256, "total_tokens": 279 },
-  "■ LLM 評価スコア": 74,
-  ...
-}
-```
-
-#### スコアの読み方
-
-| スコア範囲 | 意味 |
-|:---:|---|
-| 80〜100 | 完全に正確・理想的な回答 |
-| 50〜79 | おおむね正確だが改善の余地あり |
-| 1〜49 | 不正確または無関係な回答 |
-
-#### sampling_rate について
-
-現在 `sampling_rate: 0.5`（約 50% のリクエストを採点）に設定しています。採点されなかったリクエストのログには `"■ LLM 評価スコア": "(対象外)"` と表示されます。スコアを確実に確認するには **2〜3 回リクエストを送ってください**。
-
-> **注意**: Kong 3.13.0.8 の DP スキーマバグにより `sampling_rate: 1`（全件採点）は設定できません。
-
----
-
-### 4-5. ai-semantic-response-guard: LLM 回答の意味的ガード
+> 📄 設定ファイル: [aigw-plugin-ai-proxy-semguard-kng.yaml](./setup/proxy004-semantic-prompt-guard/aigw-plugin-ai-proxy-semguard-kng.yaml) / [aigw-plugin-ai-semantic-prompt-guard-kng.yaml](./setup/proxy004-semantic-prompt-guard/aigw-plugin-ai-semantic-prompt-guard-kng.yaml)
 
 `/ai/semguard/chat` エンドポイントに対して、通常のプロンプトとブロック対象のプロンプトを送り、**意味的類似度でブロックされること**を確認します。
 
@@ -670,7 +623,9 @@ cd try-my-hand/
 
 ---
 
-### 4-6. ai-semantic-cache: セマンティックキャッシュ
+### 4-5. ai-semantic-response-guard: LLM 回答の意味的ガード
+
+> 📄 設定ファイル: [aigw-plugin-ai-proxy-semrespguard-kng.yaml](./setup/proxy005-semantic-response-guard/aigw-plugin-ai-proxy-semrespguard-kng.yaml) / [aigw-plugin-ai-semantic-response-guard-kng.yaml](./setup/proxy005-semantic-response-guard/aigw-plugin-ai-semantic-response-guard-kng.yaml)
 
 `/ai/semrespguard/chat` エンドポイントで **ブロックされるはずのプロンプト** を送り、LLM の回答が Kong によって遮断されることを確認します。
 
@@ -729,7 +684,9 @@ cd try-my-hand/
 
 ---
 
-### 4-7. ai-llm-as-judge: LLM 回答の自動採点
+### 4-6. ai-semantic-cache: セマンティックキャッシュ
+
+> 📄 設定ファイル: [aigw-plugin-ai-proxy-semcache-kng.yaml](./setup/proxy006-semantic-cache/aigw-plugin-ai-proxy-semcache-kng.yaml) / [aigw-plugin-ai-semantic-cache-kng.yaml](./setup/proxy006-semantic-cache/aigw-plugin-ai-semantic-cache-kng.yaml)
 
 `/ai/semcache/chat` エンドポイントに同じ質問・または表現の異なる類似質問を繰り返し送り、**2回目以降がキャッシュから即座に返却されること**を確認します。
 
@@ -802,6 +759,63 @@ cd try-my-hand/
 ```
 
 Hit 判定の内訳（コサイン距離・類似度・キャッシュ済みレスポンスの先頭）が表示されます。詳細は [3-4. showSIMILARITY.sh](#3-4-セマンティックキャッシュの類似度確認-showsimilaritysh) を参照してください。
+
+---
+
+### 4-7. ai-llm-as-judge: LLM 回答の自動採点
+
+> 📄 設定ファイル: [aigw-plugin-ai-proxy-advanced-judge-kng.yaml](./setup/proxy010-llm-as-judge/aigw-plugin-ai-proxy-advanced-judge-kng.yaml) / [aigw-plugin-ai-llm-as-judge-kng.yaml](./setup/proxy010-llm-as-judge/aigw-plugin-ai-llm-as-judge-kng.yaml)
+
+`/ai/judge/chat` エンドポイントにリクエストを送り、`showLLM_LOG.sh` で採点スコアを確認します。
+
+#### 動作の仕組み
+
+`ai-llm-as-judge` は**クライアントへのレスポンスを変えません**。スコアは Kong の内部ログに記録されます。
+
+```
+クライアント → Kong → llama3.1（or phi3:mini）が回答を生成
+                          ↓（バックグラウンドで非同期実行）
+                   llama3.1（judge）が回答を 1〜100 で採点
+                          ↓
+                   スコアを Kong ログに記録
+クライアント ← 元の LLM 回答をそのまま返す（レスポンスは変わらない）
+```
+
+そのため、レスポンスボディは `[9] ai-proxy-advanced` と同じに見えます。これは正常な動作です。
+
+#### 確認手順
+
+```bash
+cd try-my-hand/
+./testAI_GATEWAY.sh   # [10] を選択してリクエストを送信（2〜3回送る）
+./showLLM_LOG.sh      # 直近1件のログを整形表示
+```
+
+`showLLM_LOG.sh` の出力で `■ LLM 評価スコア` フィールドを確認します。
+
+```json
+{
+  "■ エンドポイント": "/ai/judge/chat",
+  "■ モデル":        { "provider": "llama2", "model": "llama3.1" },
+  "■ トークン使用量": { "prompt_tokens": 23, "completion_tokens": 256, "total_tokens": 279 },
+  "■ LLM 評価スコア": 74,
+  ...
+}
+```
+
+#### スコアの読み方
+
+| スコア範囲 | 意味 |
+|:---:|---|
+| 80〜100 | 完全に正確・理想的な回答 |
+| 50〜79 | おおむね正確だが改善の余地あり |
+| 1〜49 | 不正確または無関係な回答 |
+
+#### sampling_rate について
+
+現在 `sampling_rate: 0.5`（約 50% のリクエストを採点）に設定しています。採点されなかったリクエストのログには `"■ LLM 評価スコア": "(対象外)"` と表示されます。スコアを確実に確認するには **2〜3 回リクエストを送ってください**。
+
+> **注意**: Kong 3.13.0.8 の DP スキーマバグにより `sampling_rate: 1`（全件採点）は設定できません。
 
 ---
 
