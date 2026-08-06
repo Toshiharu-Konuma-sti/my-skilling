@@ -20,7 +20,6 @@
    - [3-2. MCP プロキシのテスト](#3-2-mcp-プロキシのテスト)
 4. [プラグイン動作確認チェックポイント](#4-プラグイン動作確認チェックポイント)
    - [4-1. ai-rate-limiting-advanced: トークン流量制限](#4-1-ai-rate-limiting-advanced-トークン流量制限)
-   - [4-2. ai-audit-log: AI 監査ログ](#4-2-ai-audit-log-ai-監査ログ)
 5. [清掃手順](#5-清掃手順)
 
 ---
@@ -330,56 +329,6 @@ cd try-my-hand/
 < X-AI-RateLimit-Retry-After-300-llama2: 274
 
 { "message": "AI token rate limit exceeded for provider(s): llama2" }
-```
-
----
-
-### 4-2. ai-audit-log: AI 監査ログ
-
-`/ai/auditlog/chat` エンドポイントでリクエストを送信した後、`showLLM_LOG.sh` で Kong のログを確認します。
-
-```bash
-cd try-my-hand/
-./testAI_GATEWAY.sh   # [10] を選択してリクエストを送信
-./showLLM_LOG.sh      # 直近1件のログを整形表示
-```
-
-#### 確認できる内容
-
-| 項目 | ログフィールド | 用途 |
-|---|---|---|
-| 送信プロンプト | `■ 送信プロンプト` | コンプライアンス・監査（誰が何を送ったか） |
-| LLM レスポンス | `■ LLM レスポンス` | 監査（モデルが何と返したかの再現） |
-| モデル情報 | `■ モデル` | マルチモデル環境での利用モデル追跡 |
-| トークン使用量 | `■ トークン使用量` | コスト管理・課金配賦の根拠 |
-| レイテンシ | `■ レイテンシ (ms)` | SLA 監視・障害調査 |
-
-#### レイテンシの見方
-
-```json
-"■ レイテンシ (ms)": {
-  "llm_latency":   81607,
-  "kong_latency":  3,
-  "total_request": 81611
-}
-```
-
-`kong_latency` が数 ms であるのに対して `llm_latency` が大半を占めます。  
-**Kong 自体のオーバーヘッドは無視できるほど小さく、遅延の原因が LLM 側にあることをログで証明できます。**
-
-#### 出力例（showLLM_LOG.sh）
-
-```json
-{
-  "■ エンドポイント": "/ai/auditlog/chat",
-  "■ リクエストID":  "257d94521c20a36f215caf26f39f9b02",
-  "■ 日時":          "2026-08-06T00:17:29Z",
-  "■ モデル":        { "provider": "llama2", "model": "llama3.1" },
-  "■ レイテンシ (ms)": { "llm_latency": 81607, "kong_latency": 3, "total_request": 81611 },
-  "■ トークン使用量": { "prompt_tokens": 23, "completion_tokens": 267, "total_tokens": 290 },
-  "■ 送信プロンプト": { "messages": [{"role": "user", "content": "Kong AI Gatewayのメリットを3つ教えて"}] },
-  "■ LLM レスポンス": { "model": "llama3.1", "choices": [{ "message": { "content": "..." } }] }
-}
 ```
 
 ---

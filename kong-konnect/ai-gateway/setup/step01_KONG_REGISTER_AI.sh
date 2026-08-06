@@ -30,9 +30,8 @@ AIGW_FILES=(
 	"${CUR_DIR}/proxy006-prompt-decorator/aigw-route-decorator-kng.yaml"
 	"${CUR_DIR}/proxy007-request-transformer/aigw-route-reqtransform-kng.yaml"
 	"${CUR_DIR}/proxy008-response-transformer/aigw-route-restransform-kng.yaml"
-	"${CUR_DIR}/proxy009-audit-log/aigw-route-auditlog-kng.yaml"
-	"${CUR_DIR}/proxy010-advanced/aigw-route-advanced-kng.yaml"
-	"${CUR_DIR}/proxy011-mcp-proxy/aigw-route-mcp-kng.yaml"
+	"${CUR_DIR}/proxy009-advanced/aigw-route-advanced-kng.yaml"
+	"${CUR_DIR}/proxy010-mcp-proxy/aigw-route-mcp-kng.yaml"
 	# --- Plugins ---
 	"${CUR_DIR}/proxy001-normal/aigw-plugin-ai-proxy-normal-kng.yaml"
 	"${CUR_DIR}/proxy002-ratelimit/aigw-plugin-ai-proxy-ratelimit-kng.yaml"
@@ -49,9 +48,8 @@ AIGW_FILES=(
 	"${CUR_DIR}/proxy007-request-transformer/aigw-plugin-ai-request-transformer-kng.yaml"
 	"${CUR_DIR}/proxy008-response-transformer/aigw-plugin-ai-proxy-restransform-kng.yaml"
 	"${CUR_DIR}/proxy008-response-transformer/aigw-plugin-ai-response-transformer-kng.yaml"
-	"${CUR_DIR}/proxy009-audit-log/aigw-plugin-ai-proxy-auditlog-kng.yaml"
-	"${CUR_DIR}/proxy010-advanced/aigw-plugin-ai-proxy-advanced-kng.yaml"
-	"${CUR_DIR}/proxy011-mcp-proxy/aigw-plugin-ai-mcp-proxy-kng.yaml"
+	"${CUR_DIR}/proxy009-advanced/aigw-plugin-ai-proxy-advanced-kng.yaml"
+	"${CUR_DIR}/proxy010-mcp-proxy/aigw-plugin-ai-mcp-proxy-kng.yaml"
 )
 
 # {{{ main()
@@ -140,10 +138,6 @@ main()
 	echo "🤖 [ai-proxy + ai-response-transformer]"
 	echo "                                     POST http://localhost:8000/ai/restransform/chat"
 	echo "   変換: llama3.1 の回答を phi3:mini で3点の箇条書きに整形"
-	echo ""
-	echo "🤖 [ai-proxy + ai-audit-log]"
-	echo "                                     POST http://localhost:8000/ai/auditlog/chat"
-	echo "   ログ: ペイロード+トークン統計を完全記録 (showLLM_LOG.sh で確認)"
 	echo ""
 	echo "--------------------------------------------------"
 }
