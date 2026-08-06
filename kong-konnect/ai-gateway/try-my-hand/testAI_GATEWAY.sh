@@ -1,4 +1,8 @@
 #!/bin/bash
+
+CUR_DIR=$(cd $(dirname $0); pwd)
+. $CUR_DIR/common.sh
+
 # =============================================================================
 # Kong AI Gateway - Interactive Test Script
 # 対話形式でプロキシパターンとプロンプトを選択してリクエストを送信する
@@ -206,6 +210,7 @@ run_request() {
 # Main
 # =============================================================================
 main() {
+  check_required_commands "curl" "jq"
   select_proxy
   input_prompt
   build_and_show_curl_cmd

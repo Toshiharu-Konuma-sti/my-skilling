@@ -9,6 +9,7 @@ CUR_DIR=$(cd $(dirname $0); pwd)
 case "$1" in
 	"down")
 		start_banner
+		check_required_commands "docker"
 		destory_ai_gw_container $CUR_DIR
 		show_list_container
 		finish_banner $S_TIME
@@ -24,6 +25,7 @@ case "$1" in
 		;;
 	"")
 		start_banner
+		check_required_commands "docker"
 		check_prerequisite_create_container $CUR_DIR
 		destory_ai_gw_container $CUR_DIR
 		create_ai_gw_container $CUR_DIR

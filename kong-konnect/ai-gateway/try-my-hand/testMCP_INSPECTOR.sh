@@ -1,4 +1,8 @@
 #!/bin/bash
+
+CUR_DIR=$(cd $(dirname $0); pwd)
+. $CUR_DIR/common.sh
+
 # =============================================================================
 # Kong AI Gateway - MCP Inspector 起動スクリプト
 # SIOS Tech Lab MCP サーバーをブラウザで操作できる MCP Inspector を起動する
@@ -20,73 +24,95 @@ KONG_PROXY="http://localhost:8000"
 MCP_ENDPOINT="${KONG_PROXY}/ai/mcp/sios-techlab"
 INSPECTOR_PORT="${CLIENT_PORT:-6274}"
 
-# --- オプション解析 ---
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --port)
-      INSPECTOR_PORT="$2"
-      shift 2
-      ;;
-    *)
-      echo "❌ 不明なオプション: $1"
-      echo "Usage: $0 [--port <port>]"
-      exit 1
-      ;;
-  esac
-done
+# =============================================================================
+# Functions
+# =============================================================================
 
-# --- Kong DP 疎通確認 ---
-echo ""
-echo "=================================================="
-echo "  MCP Inspector 起動"
-echo "=================================================="
-echo ""
-echo "⏳ Kong Data Plane への疎通を確認中 ..."
+# {{{ parse_args()
+# コマンドライン引数を解析し INSPECTOR_PORT を設定する
+parse_args() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --port)
+        INSPECTOR_PORT="$2"
+        shift 2
+        ;;
+      *)
+        echo "❌ 不明なオプション: $1"
+        echo "Usage: $0 [--port <port>]"
+        exit 1
+        ;;
+    esac
+  done
+}
+# }}}
 
-HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 \
-  -X POST "${MCP_ENDPOINT}" \
-  -H "Content-Type: application/json" \
-  -H "Accept: application/json, text/event-stream" \
-  -d '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"health-check","version":"0"}}}' \
-  2>/dev/null)
+# {{{ check_kong_dp()
+# Kong DP への疎通確認を行い、失敗時はエラー終了する
+check_kong_dp() {
+  echo ""
+  echo "=================================================="
+  echo "  MCP Inspector 起動"
+  echo "=================================================="
+  echo ""
+  echo "⏳ Kong Data Plane への疎通を確認中 ..."
 
-if [[ "${HTTP_STATUS}" != "200" ]]; then
-  echo "❌ MCP サーバーに接続できません (HTTP ${HTTP_STATUS})"
-  echo "   以下を確認してください:"
-  echo "   - Kong DP コンテナが起動しているか: docker ps | grep kong-dp"
-  echo "   - Kong Konnect の設定が適用されているか: cd setup/ && ./step01_KONG_REGISTER_AI.sh"
-  exit 1
-fi
+  local http_status
+  http_status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 \
+    -X POST "${MCP_ENDPOINT}" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json, text/event-stream" \
+    -d '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"health-check","version":"0"}}}' \
+    2>/dev/null)
 
-echo "   ✅ MCP サーバー応答確認 (HTTP ${HTTP_STATUS})"
-echo ""
-echo "  MCP サーバー : ${MCP_ENDPOINT}"
-echo "  Transport    : Streamable HTTP"
-echo "  利用ツール:"
-echo "    - get-articles      : 記事一覧取得（search / per_page / categories 指定可）"
-echo "    - get-article-by-id : 記事詳細取得（id 指定必須）"
-echo ""
-echo "=================================================="
-echo ""
+  if [[ "${http_status}" != "200" ]]; then
+    echo "❌ MCP サーバーに接続できません (HTTP ${http_status})"
+    echo "   以下を確認してください:"
+    echo "   - Kong DP コンテナが起動しているか: docker ps | grep kong-dp"
+    echo "   - Kong Konnect の設定が適用されているか: cd setup/ && ./step01_KONG_REGISTER_AI.sh"
+    exit 1
+  fi
 
-# --- npx コマンド確認 ---
-if ! command -v npx &>/dev/null; then
-  echo "❌ npx が見つかりません。Node.js をインストールしてください。"
-  echo "   参考: https://nodejs.org/"
-  exit 1
-fi
+  echo "   ✅ MCP サーバー応答確認 (HTTP ${http_status})"
+  echo ""
+  echo "  MCP サーバー : ${MCP_ENDPOINT}"
+  echo "  Transport    : Streamable HTTP"
+  echo "  利用ツール:"
+  echo "    - get-articles      : 記事一覧取得（search / per_page / categories 指定可）"
+  echo "    - get-article-by-id : 記事詳細取得（id 指定必須）"
+  echo ""
+  echo "=================================================="
+  echo ""
+}
+# }}}
 
-echo "🚀 MCP Inspector を起動します ..."
-echo ""
-echo "  ブラウザで以下の URL を開いてください:"
-echo "  http://localhost:${INSPECTOR_PORT}"
-echo ""
-echo "  接続後、[Connect] ボタンをクリックしてツールを操作できます。"
-echo "  (終了するには Ctrl+C を押してください)"
-echo ""
+# {{{ launch_inspector()
+# MCP Inspector を起動する
+launch_inspector() {
+  echo "🚀 MCP Inspector を起動します ..."
+  echo ""
+  echo "  ブラウザで以下の URL を開いてください:"
+  echo "  http://localhost:${INSPECTOR_PORT}"
+  echo ""
+  echo "  接続後、[Connect] ボタンをクリックしてツールを操作できます。"
+  echo "  (終了するには Ctrl+C を押してください)"
+  echo ""
 
-# --- MCP Inspector 起動 ---
-CLIENT_PORT="${INSPECTOR_PORT}" \
-  npx -y @modelcontextprotocol/inspector \
-    --server-url "${MCP_ENDPOINT}" \
-    --transport http
+  CLIENT_PORT="${INSPECTOR_PORT}" \
+    npx -y @modelcontextprotocol/inspector \
+      --server-url "${MCP_ENDPOINT}" \
+      --transport http
+}
+# }}}
+
+# =============================================================================
+# Main
+# =============================================================================
+main() {
+  check_required_commands "curl" "npx"
+  parse_args "$@"
+  check_kong_dp
+  launch_inspector
+}
+
+main "$@"
