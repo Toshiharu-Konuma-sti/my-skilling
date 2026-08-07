@@ -116,8 +116,13 @@ Kong Konnectにアクセスして事前準備をします。
 1. Docker をインストールします。
    - 参考: [初期環境構築: Docker Engine on Ubuntu](https://github.com/Toshiharu-Konuma-sti/setup-docs-for-hands-on/tree/main/setup-docker-engine-on-ubuntu)
 
-1. decK をインストールします。
-   - 参考: [decK（Kong Konnect CLI）](../README.md#deckkong-konnect-cli)
+1. 各種ツールをインストールします。
+
+   | ツール | 参照先 | 利用箇所 |
+   |---|---|---|
+   | decK | [decK（Kong Konnect CLI）](../README.md#deckkong-konnect-cli) | [setup/](./setup/)  配下のスクリプト |
+   | jq | [初期環境構築: ユーティリティツール on Ubuntu > jq](https://github.com/Toshiharu-Konuma-sti/setup-docs-for-hands-on/tree/main/setup-utils-on-ubuntu#jq-%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89) | [container/](./container/), [try-my-hand/](./try-my-hand/)  配下のスクリプト |
+   | npx | [初期環境構築: ユーティリティツール on Ubuntu > npx](https://github.com/Toshiharu-Konuma-sti/setup-docs-for-hands-on/tree/main/setup-utils-on-ubuntu#npx-%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89) | [try-my-hand/testMCP_INSPECTOR.sh](./try-my-hand/testMCP_INSPECTOR.sh) |
 
 1. 体験用のリポジトリを取得します。
 
@@ -274,8 +279,6 @@ curl -sv \
 ---
 
 ### 3-2. MCP プロキシのテスト: testMCP_INSPECTOR.sh
-
-> **前提**: このスクリプトは `npx` を使用します。未インストールの場合は [ツールのインストール手順 > npx](https://github.com/Toshiharu-Konuma-sti/setup-docs-for-hands-on/tree/main/setup-utils-on-ubuntu#npx-%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89) を参照してください。
 
 [try-my-hand/testMCP_INSPECTOR.sh](./try-my-hand/testMCP_INSPECTOR.sh) は、Kong AI Gateway 経由で MCP サーバーをブラウザから操作できる **MCP Inspector** を起動するスクリプトです。  
 対象エンドポイントは `/ai/mcp/sios-techlab`（SIOS Tech Lab MCP サーバー）です。
