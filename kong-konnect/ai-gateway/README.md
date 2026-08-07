@@ -275,7 +275,7 @@ curl -sv \
 
 ### 3-2. MCP プロキシのテスト: testMCP_INSPECTOR.sh
 
-> **前提**: このスクリプトは `npx` を使用します。未インストールの場合は [ツールのインストール手順 > npx](../README.md#npx) を参照してください。
+> **前提**: このスクリプトは `npx` を使用します。未インストールの場合は [ツールのインストール手順 > npx](https://github.com/Toshiharu-Konuma-sti/setup-docs-for-hands-on/tree/main/setup-utils-on-ubuntu#npx-%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89) を参照してください。
 
 [try-my-hand/testMCP_INSPECTOR.sh](./try-my-hand/testMCP_INSPECTOR.sh) は、Kong AI Gateway 経由で MCP サーバーをブラウザから操作できる **MCP Inspector** を起動するスクリプトです。  
 対象エンドポイントは `/ai/mcp/sios-techlab`（SIOS Tech Lab MCP サーバー）です。

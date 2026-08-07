@@ -11,8 +11,6 @@
 1. [ハンズオン一覧](#1-ハンズオン一覧)
 2. [ツールのインストール手順](#2-ツールのインストール手順)
    - [decK（Kong Konnect CLI）](#deckkong-konnect-cli)
-   - [jq](#jq)
-   - [npx](#npx)
 
 ---
 
@@ -43,26 +41,4 @@ $ sudo dpkg -i ./deck_v1.55.0_amd64.deb
 # インストール確認
 $ deck version
 decK v1.55.0 (19a389c)
-```
-
-### jq
-
-JSON を整形・抽出するためのコマンドラインツールです。一部のハンズオンで使用します。
-
-```bash
-$ sudo apt install -y jq
-
-# インストール確認
-$ jq --version
-```
-
-### npx
-
-Node.js パッケージを直接実行するためのツールです。一部のハンズオンで使用します。
-
-```bash
-$ sudo apt install -y npm
-
-# インストール確認
-$ npx --version
 ```
