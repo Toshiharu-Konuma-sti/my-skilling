@@ -103,9 +103,27 @@ load_env_file() {
 check_required_commands()
 {
 	echo "\n### START: Check required commands ##########"
+	# WSL: Windows drive mounts live under /mnt/<drive-letter>/; reject them as non-Linux
+	local _is_wsl=0
+	case "$(uname -r 2>/dev/null)" in
+		*[Mm]icrosoft*|*[Ww][Ss][Ll]*) _is_wsl=1 ;;
+	esac
 	local missing_cmds=""
 	for cmd in $*; do
-		if ! command -v "${cmd}" >/dev/null 2>&1; then
+		local _cmd_path
+		_cmd_path=$(command -v "${cmd}" 2>/dev/null)
+		local _found=0
+		if [ -n "$_cmd_path" ]; then
+			if [ "$_is_wsl" -eq 1 ]; then
+				case "$_cmd_path" in
+					/mnt/[a-zA-Z]/*) _found=0 ;;
+					*) _found=1 ;;
+				esac
+			else
+				_found=1
+			fi
+		fi
+		if [ "$_found" -eq 0 ]; then
 			if [ -z "$missing_cmds" ]; then
 				missing_cmds="${cmd}"
 			else

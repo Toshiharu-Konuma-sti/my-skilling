@@ -2,8 +2,8 @@ _format_version: "3.0"
 # =============================================================================
 # Kong AI Gateway - AI Proxy Plugin
 # Route-scoped: applies to ollama-route-semrespguard only
-# Single target: Ollama / phi3:mini
-# phi3:mini は llama3.1 より安全フィルターが緩いため、有害コンテンツを
+# Single target: Ollama / tinyllama
+# tinyllama は qwen2.5:1.5b より安全フィルターが緩いため、有害コンテンツを
 # 生成することがある → ai-semantic-response-guard で回答側をガードする
 # =============================================================================
 plugins:
@@ -28,7 +28,7 @@ plugins:
       allow_override: false
     model:
       provider: ollama
-      name: phi3:mini
+      name: tinyllama
       options:
         upstream_url: http://ollama:11434/api/chat
     logging:

@@ -9,6 +9,7 @@ services:
       - OLLAMA_DEBUG=1
     volumes:
       - ollama-data:/root/.ollama
+      - ./models:/models:ro   # ollama create 用: GGUF をサーバー側ファイルシステムから参照する
     ports:
       - "11434:11434"
     networks:
@@ -34,20 +35,76 @@ services:
         condition: service_healthy
     environment:
       - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      - ./models:/models:ro   # BEFORE_CONTAINER_DOWNLOAD_MODELS.sh で事前ダウンロードした GGUF を参照 (サーバー側に同じパスでマウント済み)
     entrypoint:
       - "/bin/sh"
       - "-c"
       - |
-        echo '📦 Pulling llama3.1 ...'
-        ollama pull llama3.1
-        echo '📦 Pulling phi3:mini ...'
-        ollama pull phi3:mini
-        echo '📦 Pulling nomic-embed-text ...'
-        ollama pull nomic-embed-text
-        echo '✅ All models pulled successfully'
+        register_model() {
+          local name="$$1" gguf="/models/$$2"
+          if ollama list 2>/dev/null | grep -q "^$${name}"; then
+            echo "✅ $${name} already registered, skipping"
+            return 0
+          fi
+          if [ -f "$$gguf" ]; then
+            echo "📦 Registering $${name} from local GGUF ..."
+            echo "FROM $${gguf}" > /tmp/ollama_mf && \
+            if ollama create "$$name" -f /tmp/ollama_mf; then
+              echo "✅ $${name} registered from GGUF"
+              return 0
+            fi
+            echo "⚠️  ollama create failed, falling back to ollama pull ..."
+          else
+            echo "📦 Pulling $${name} from Ollama registry ..."
+          fi
+          until ollama pull "$$name"; do
+            echo "⚠️  Pull interrupted, resuming in 15s ..."
+            sleep 15
+          done
+          echo "✅ $${name} ready"
+        }
+        # qwen2.5:1.5b は ChatML テンプレートを明示設定しないと system プロンプトが無視される
+        register_qwen2() {
+          local gguf="/models/$$1" model="$$2"
+          if ollama list 2>/dev/null | grep -q "^$${model}"; then
+            echo "✅ $${model} already registered, skipping"
+            return 0
+          fi
+          echo "📦 Registering $${model} from local GGUF (with ChatML template) ..."
+          local src="FROM $${gguf}"
+          [ -f "$$gguf" ] || src="FROM $${model}"
+          printf '%s\n' 'FROM GGUF_PLACEHOLDER' \
+            'TEMPLATE """{{- if .System }}<|im_start|>system' \
+            '{{ .System }}<|im_end|>' \
+            '{{ end }}{{- range .Messages }}<|im_start|>{{ .Role }}' \
+            '{{ .Content }}<|im_end|>' \
+            '{{ end }}<|im_start|>assistant' \
+            '"""' \
+            'PARAMETER stop "<|im_end|>"' \
+            'PARAMETER stop "<|im_start|>"' \
+            'PARAMETER temperature 0' > /tmp/qwen2_mf
+          sed -i "s|FROM GGUF_PLACEHOLDER|$${src}|" /tmp/qwen2_mf
+          if ollama create "$${model}" -f /tmp/qwen2_mf; then
+            echo "✅ $${model} registered from GGUF"
+            return 0
+          fi
+          echo "⚠️  ollama create failed, falling back to ollama pull ..."
+          until ollama pull "$${model}"; do sleep 15; done
+          echo "✅ $${model} ready"
+        }
+        register_qwen2 qwen2.5-1.5b.gguf qwen2.5:1.5b
+        register_qwen2 qwen2.5-3b.gguf   qwen2.5:3b
+        register_model tinyllama      tinyllama.gguf
+        register_model phi3:mini      phi3-mini.gguf
+        register_model nomic-embed-text nomic-embed-text.gguf
+        echo '✅ All models ready'
+        echo ''
+        ollama list
     networks:
       - internal
-    restart: "no"
+    # on-failure: コンテナ自体がクラッシュした場合の保険
+    restart: on-failure:10
 
   # Redis Stack — Vector Similarity Search (VSS) for AI Semantic Cache
   # redis/redis-stack (full image) includes RedisInsight Web UI on port 8001

@@ -2,13 +2,13 @@ _format_version: "3.0"
 # =============================================================================
 # Kong AI Gateway - AI Semantic Response Guard Plugin
 # Route-scoped: applies to ollama-route-semrespguard only
-# LLM: phi3:mini (安全フィルターが弱いため有害内容を出力することがある)
+# LLM: tinyllama (安全フィルターが弱いため有害内容を出力することがある)
 # VectorDB: Redis Stack (VSS) — vector similarity search
 # Embeddings: Ollama / nomic-embed-text (768 dimensions)
 #
 # Demo flow:
-#   正常な質問   → phi3:mini が正常回答 → deny に非類似 → 200 OK
-#   有害な質問   → phi3:mini が有害な内容を出力 → deny に類似 → 400 でブロック
+#   正常な質問   → tinyllama が正常回答 → deny に非類似 → 200 OK
+#   有害な質問   → tinyllama が有害な内容を出力 → deny に類似 → 400 でブロック
 #
 # 事前準備:
 #   - Redis Stack コンテナ起動 (docker-compose-ollama.yml に定義済み)
@@ -41,7 +41,7 @@ plugins:
       threshold: 0.40
     rules:
       deny_responses:
-      # --- 爆発物・武器: phi3:mini が出力しそうな内容パターン ---
+      # --- 爆発物・武器: tinyllama が出力しそうな内容パターン ---
       - "To make an explosive device you will need certain chemicals and materials"
       - "Here are the steps to create a bomb or explosive using household materials"
       - "爆発物を作るには以下の材料と手順が必要です"

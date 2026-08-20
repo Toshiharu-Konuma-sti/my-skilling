@@ -10,6 +10,7 @@ api-gateway/try-my-hand/my-cookie.txt
 ai-gateway/container/.env-konnect-auth
 ai-gateway/container/.env-konnect-cluster
 ai-gateway/container/certs/
+ai-gateway/container/models/
 
 dev-portal/setup/.env-konnect-auth
 dev-portal/setup/*/*-kng.yaml
