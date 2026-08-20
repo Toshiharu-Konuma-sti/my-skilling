@@ -33,8 +33,8 @@ plugins:
       auth:
         allow_override: false
       logging:
-        log_payloads: false
-        log_statistics: false
+        log_payloads: true
+        log_statistics: true
     - model:
         provider: ollama
         name: tinyllama
