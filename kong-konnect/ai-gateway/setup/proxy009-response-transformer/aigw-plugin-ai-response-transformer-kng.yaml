@@ -2,13 +2,13 @@ _format_version: "3.0"
 # =============================================================================
 # Kong AI Gateway - AI Response Transformer Plugin
 # Route-scoped: applies to ollama-route-restransform only
-# Transform: llama3.1 の回答を phi3:mini で3点の箇条書きに整形してクライアントへ返す
+# Transform: qwen2.5:1.5b の回答を qwen2.5:1.5b で3点の箇条書きに整形してクライアントへ返す
 #
 # Demo:
-#   llama3.1 が通常の文章で回答
-#   → phi3:mini が回答テキストを3点の箇条書きに要約
+#   qwen2.5:1.5b が通常の文章で回答
+#   → qwen2.5:1.5b が回答テキストを3点の箇条書きに要約 (temperature=0 で一貫性あり)
 #   → クライアントへプレーンテキストとして返却
-#   (レスポンスが OpenAI JSON 形式ではなくなるため testCOMMAND.sh は cat フォールバックで表示)
+#   (phi3:miniはCPU環境でタイムアウトになるため同モデルで対応)
 # =============================================================================
 plugins:
 - name: ai-response-transformer
@@ -32,7 +32,7 @@ plugins:
         allow_override: false
       model:
         provider: ollama
-        name: phi3:mini
+        name: qwen2.5:1.5b
         options:
           upstream_url: http://ollama:11434/api/chat
       logging:

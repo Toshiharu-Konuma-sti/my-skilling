@@ -1,12 +1,13 @@
 #!/bin/bash
 # =============================================================================
-# Kong AI Gateway - LLM プロンプト確認スクリプト
+# Kong AI Gateway - LLM リクエスト/レスポンス表示スクリプト
 # kong-dp コンテナログから file-log プラグインの JSON を抽出・整形して表示する
+# 表示内容: LLM への送信メッセージ・レスポンス・トークン使用量・評価スコアなど
 #
 # Usage:
-#   ./showLLM_LOG.sh         # 直近1件を表示
-#   ./showLLM_LOG.sh 3       # 直近3件を表示
-#   ./showLLM_LOG.sh --all   # 全件を表示
+#   ./showLLM_REQEST_AND_RESPONSE.sh         # 直近1件を表示
+#   ./showLLM_REQEST_AND_RESPONSE.sh 3       # 直近3件を表示
+#   ./showLLM_REQEST_AND_RESPONSE.sh --all   # 全件を表示
 # =============================================================================
 
 CONTAINER="kong-dp"
@@ -68,7 +69,7 @@ echo "${LOGS}" | while IFS= read -r line; do
       "completion_tokens": .ai.proxy.usage.completion_tokens,
       "total_tokens":      .ai.proxy.usage.total_tokens
     },
-    "■ LLM 評価スコア":    (.ai["ai-llm-as-judge"].usage.llm_accuracy // "(対象外)"),
+    "■ LLM 評価スコア":    (.ai.proxy.usage.llm_accuracy // "(対象外)"),
     "■ 送信プロンプト":    $req,
     "■ LLM レスポンス":    $res
   }'

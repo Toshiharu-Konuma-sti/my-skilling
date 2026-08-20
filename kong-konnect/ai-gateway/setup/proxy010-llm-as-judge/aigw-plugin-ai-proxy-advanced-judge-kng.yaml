@@ -2,7 +2,7 @@ _format_version: "3.0"
 # =============================================================================
 # Kong AI Gateway - AI Proxy Advanced Plugin (for LLM as Judge)
 # Route-scoped: applies to ollama-route-judge only
-# Balancing: round-robin — llama3.1 / phi3:mini を交互に選択
+# Balancing: round-robin — qwen2.5:1.5b / tinyllama を交互に選択
 # tokens_count_strategy: llm-accuracy — ai-llm-as-judge の必須設定
 #   → 各リクエストの評価スコアをバランサーの精度指標として記録する
 # =============================================================================
@@ -23,10 +23,12 @@ plugins:
       read_timeout: 300000
       write_timeout: 300000
       connect_timeout: 60000
+      # ai-llm-as-judge の必須設定: バランサーの精度指標として評価スコアを記録する
+      tokens_count_strategy: llm-accuracy
     targets:
     - model:
         provider: ollama
-        name: llama3.1
+        name: qwen2.5:1.5b
         options:
           upstream_url: http://ollama:11434/api/chat
       route_type: llm/v1/chat
@@ -38,7 +40,7 @@ plugins:
         log_statistics: true
     - model:
         provider: ollama
-        name: phi3:mini
+        name: tinyllama
         options:
           upstream_url: http://ollama:11434/api/chat
       route_type: llm/v1/chat

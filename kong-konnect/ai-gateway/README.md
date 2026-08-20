@@ -18,7 +18,7 @@
 3. [体験](#3-体験)
    - [3-1. AI プロキシのテスト: testAI_GATEWAY.sh](#3-1-ai-プロキシのテスト-testai_gatewaysh)
    - [3-2. MCP プロキシのテスト: testMCP_INSPECTOR.sh](#3-2-mcp-プロキシのテスト-testmcp_inspectorsh)
-   - [3-3. AI ログの確認: showLLM_LOG.sh](#3-3-ai-ログの確認-showllm_logsh)
+   - [3-3. AI リクエスト/レスポンスの確認: showLLM_REQEST_AND_RESPONSE.sh](#3-3-ai-リクエストレスポンスの確認-showllm_reqest_and_responsesh)
    - [3-4. セマンティックキャッシュの類似度確認: showSIMILARITY.sh](#3-4-セマンティックキャッシュの類似度確認-showsimilaritysh)
 4. [プラグイン動作確認チェックポイント](#4-プラグイン動作確認チェックポイント)
    - [4-1. ai-proxy: AI Gateway 基礎確認](#4-1-ai-proxy-ai-gateway-基礎確認)
@@ -32,6 +32,7 @@
    - [4-9. ai-response-transformer: レスポンスの LLM 変換](#4-9-ai-response-transformer-レスポンスの-llm-変換)
    - [4-10. ai-llm-as-judge: LLM 回答の自動採点](#4-10-ai-llm-as-judge-llm-回答の自動採点)
    - [4-11. ai-proxy-advanced: 複数モデルへのラウンドロビン](#4-11-ai-proxy-advanced-複数モデルへのラウンドロビン)
+   - [4-12. ai-mcp-proxy: REST API を MCP サーバーとして公開](#4-12-ai-mcp-proxy-rest-api-を-mcp-サーバーとして公開)
 5. [清掃手順](#5-清掃手順)
 
 ---
@@ -318,16 +319,17 @@ $ ./testMCP_INSPECTOR.sh --port 6300
 
 ---
 
-### 3-3. AI ログの確認: showLLM_LOG.sh
+### 3-3. AI リクエスト/レスポンスの確認: showLLM_REQEST_AND_RESPONSE.sh
 
-[try-my-hand/showLLM_LOG.sh](./try-my-hand/showLLM_LOG.sh) は、`kong-dp` コンテナの stdout に出力された `file-log` プラグインの JSON ログを整形して表示するスクリプトです。  
+[try-my-hand/showLLM_REQEST_AND_RESPONSE.sh](./try-my-hand/showLLM_REQEST_AND_RESPONSE.sh) は、`kong-dp` コンテナの stdout に出力された `file-log` プラグインの JSON ログを整形して表示するスクリプトです。
+LLM への送信メッセージ・レスポンス・トークン使用量・評価スコアなどの内部状況を確認できます。  
 モデル名・トークン数・レイテンシ・リクエスト/レスポンスのペイロードを一覧で確認できます。
 
 ```bash
 $ cd ~/handson/my-skilling/kong-konnect/ai-gateway/try-my-hand/
-$ ./showLLM_LOG.sh        # 直近 1 件を表示
-$ ./showLLM_LOG.sh 3      # 直近 3 件を表示
-$ ./showLLM_LOG.sh --all  # 全件を表示
+$ ./showLLM_REQEST_AND_RESPONSE.sh        # 直近 1 件を表示
+$ ./showLLM_REQEST_AND_RESPONSE.sh 3      # 直近 3 件を表示
+$ ./showLLM_REQEST_AND_RESPONSE.sh --all  # 全件を表示
 ```
 
 出力例:
@@ -792,20 +794,21 @@ Hit 判定の内訳（コサイン距離・類似度・キャッシュ済みレ�
 
 > 📄 設定ファイル: [aigw-plugin-ai-proxy-decorator-kng.yaml](./setup/proxy007-prompt-decorator/aigw-plugin-ai-proxy-decorator-kng.yaml) / [aigw-plugin-ai-prompt-decorator-kng.yaml](./setup/proxy007-prompt-decorator/aigw-plugin-ai-prompt-decorator-kng.yaml)
 
-`/ai/decorator/chat` エンドポイントにリクエストを送り、LLM の回答が**クライアントから見えないシステムプロンプトの影響を受けていること**（関西弁での回答）を確認します。
+`/ai/decorator/chat` エンドポイントにリクエストを送り、LLM の回答が**クライアントから見えないシステムプロンプトの影響を受けていること**を確認します。
 
 #### 動作の仕組み
 
-クライアントが送ったプロンプトに、Kong が自動でシステムプロンプトを付加してから LLM に転送します。クライアントはシステムプロンプトの存在を知りません。
+クライアントが送ったメッセージに、Kong が自動で **prepend（先頭）** と **append（末尾）** を挿入してから `qwen2.5:3b` に転送します。クライアントは追加内容の存在を知りません。
 
 ```
 クライアントの送信内容:
-  {"messages":[{"role":"user","content":"Pythonとは何ですか？"}]}
+  {"messages":[{"role":"user","content":"Kong AI Gatewayのメリットを3つ教えて"}]}
 
-Kong が LLM へ転送する内容（Kong が prepend で追加）:
+Kong が LLM へ転送する内容（Kong が自動付加）:
   {"messages":[
-    {"role":"system","content":"あなたは親しみやすいAIアシスタントです。必ず関西弁で回答してください。"},
-    {"role":"user",  "content":"Pythonとは何ですか？"}
+    {"role":"system","content":"必ず日本語で回答してください。"},          ← prepend
+    {"role":"user",  "content":"Kong AI Gatewayのメリットを3つ教えて"},    ← クライアント送信
+    {"role":"user",  "content":"回答の後に次の行を必ず追加してください: --- Powered by Kong AI Gateway ---"}  ← append
   ]}
 ```
 
@@ -813,19 +816,22 @@ Kong が LLM へ転送する内容（Kong が prepend で追加）:
 
 同じ質問を proxy001 (`/ai/normal/chat`) と proxy007 (`/ai/decorator/chat`) に送り比較します。
 
-| エンドポイント | 回答スタイル |
-|---|---|
-| `/ai/normal/chat` | 標準的な日本語 |
-| `/ai/decorator/chat` | **関西弁**（「〜やで」「〜やん」「〜やろ」など） |
+| エンドポイント | モデル | 特徴 |
+|---|---|---|
+| `/ai/normal/chat` | qwen2.5:1.5b | 素の回答 |
+| `/ai/decorator/chat` | **qwen2.5:3b** | 日本語固定 + **`--- Powered by Kong AI Gateway ---`** フッター |
+
+フッターが毎回末尾に付くことで、クライアントが送っていない指示が Kong によって強制されていることを視覚的に確認できます。
 
 #### 確認手順
 
 ```bash
 cd try-my-hand/
 ./testAI_GATEWAY.sh   # [7] を選択
+./showLLM_REQEST_AND_RESPONSE.sh   # LLM への送信内容（prepend/append 含む）を確認
 ```
 
-LLM の回答が関西弁になっていれば成功です。クライアント側のリクエストには一切変更を加えていないことがポイントです。
+`showLLM_REQEST_AND_RESPONSE.sh` の `■ 送信プロンプト` で、クライアントが送っていない system メッセージと末尾の user メッセージが Kong によって追加されていることを確認できます。
 
 ---
 
@@ -853,7 +859,7 @@ cd try-my-hand/
 ```
 
 - `X-Kong-LLM-Model` ヘッダーで **llama3.1** が最終的に使われたことを確認
-- `showLLM_LOG.sh` でリクエスト変換前後のログを確認
+- `showLLM_REQEST_AND_RESPONSE.sh` でリクエスト変換前後のログを確認
 
 > **注意**: ローカル Ollama モデルが厳密な JSON を返さない場合、変換が失敗することがあります（Kong 公式の Known failure mode）。その場合はリクエストを再送してください。
 
@@ -892,42 +898,46 @@ cd try-my-hand/
 
 > 📄 設定ファイル: [aigw-plugin-ai-proxy-advanced-judge-kng.yaml](./setup/proxy010-llm-as-judge/aigw-plugin-ai-proxy-advanced-judge-kng.yaml) / [aigw-plugin-ai-llm-as-judge-kng.yaml](./setup/proxy010-llm-as-judge/aigw-plugin-ai-llm-as-judge-kng.yaml)
 
-`/ai/judge/chat` エンドポイントにリクエストを送り、`showLLM_LOG.sh` で採点スコアを確認します。
+**何を採点しているか**: `ai-llm-as-judge` は、メインの LLM が生成した**回答の品質（正確さ・適切さ）**を、別の LLM（判定用モデル）を使ってリアルタイムに 1〜100 の数値で自動採点するプラグインです。ユーザーに回答を返す裏側で、「この AI の回答は質問に対してどれくらい正しいか？」を人間のかわりに AI が自動で検定・スコアリングします。
+
+`/ai/judge/chat` エンドポイントにリクエストを送り、`showLLM_REQEST_AND_RESPONSE.sh` で採点スコアを確認します。
 
 #### 動作の仕組み
 
 `ai-llm-as-judge` は**クライアントへのレスポンスを変えません**。スコアは Kong の内部ログに記録されます。
 
 ```
-クライアント → Kong → llama3.1（or phi3:mini）が回答を生成
+クライアント → Kong → qwen2.5:1.5b / tinyllama が回答を生成（ラウンドロビン）
                           ↓（バックグラウンドで非同期実行）
-                   llama3.1（judge）が回答を 1〜100 で採点
+                   qwen2.5:3b（judge）が回答を 1〜100 で採点
                           ↓
                    スコアを Kong ログに記録
 クライアント ← 元の LLM 回答をそのまま返す（レスポンスは変わらない）
 ```
 
-そのため、レスポンスボディは `[9] ai-proxy-advanced` と同じに見えます。これは正常な動作です。
+そのため、レスポンスボディは `[11] ai-proxy-advanced` と同じに見えます。これは正常な動作です。
 
 #### 確認手順
 
 ```bash
 cd try-my-hand/
 ./testAI_GATEWAY.sh   # [10] を選択してリクエストを送信（2〜3回送る）
-./showLLM_LOG.sh      # 直近1件のログを整形表示
+./showLLM_REQEST_AND_RESPONSE.sh      # 直近1件のログを整形表示
 ```
 
-`showLLM_LOG.sh` の出力で `■ LLM 評価スコア` フィールドを確認します。
+`showLLM_REQEST_AND_RESPONSE.sh` の出力で `■ LLM 評価スコア` フィールドを確認します。
 
 ```json
 {
   "■ エンドポイント": "/ai/judge/chat",
-  "■ モデル":        { "provider": "llama2", "model": "llama3.1" },
+  "■ モデル":        { "provider": "ollama", "model": "qwen2.5:1.5b" },
   "■ トークン使用量": { "prompt_tokens": 23, "completion_tokens": 256, "total_tokens": 279 },
   "■ LLM 評価スコア": 74,
   ...
 }
 ```
+
+> ラウンドロビンにより、`"model"` は `"qwen2.5:1.5b"` と `"tinyllama"` が交互に表示されます。
 
 #### スコアの読み方
 
@@ -939,9 +949,9 @@ cd try-my-hand/
 
 #### sampling_rate について
 
-現在 `sampling_rate: 0.5`（約 50% のリクエストを採点）に設定しています。採点されなかったリクエストのログには `"■ LLM 評価スコア": "(対象外)"` と表示されます。スコアを確実に確認するには **2〜3 回リクエストを送ってください**。
+現在 `sampling_rate: 0.99`（事実上 100% のリクエストを採点）に設定しています。採点されなかったリクエストのログには `"■ LLM 評価スコア": "(対象外)"` と表示されます。
 
-> **注意**: Kong 3.13.0.8 の DP スキーマバグにより `sampling_rate: 1`（全件採点）は設定できません。
+> `sampling_rate: 1`（厳密な全件採点）は Kong の DP スキーマ検証エラーを引き起こすため、`0.99` で代替しています。
 
 ---
 
@@ -993,6 +1003,40 @@ cd try-my-hand/
 | `X-Kong-LLM-Model` | 常に `llama2/llama3.1` | リクエストごとに変わる |
 
 > **発展**: `algorithm` を `round-robin` から `lowest-latency`・`lowest-usage`・`semantic` などに変更することで、応答時間・使用量・リクエスト内容に応じた動的なモデル選択が可能になります。
+
+---
+
+### 4-12. ai-mcp-proxy: REST API を MCP サーバーとして公開
+
+> 📄 設定ファイル: [aigw-plugin-ai-mcp-proxy-kng.yaml](./setup/proxy012-mcp-proxy/aigw-plugin-ai-mcp-proxy-kng.yaml)
+
+`ai-mcp-proxy` は既存の REST API を **MCP（Model Context Protocol）サーバー**として公開するプラグインです。MCP クライアント（MCP Inspector・Cursor など）からの Streamable HTTP リクエストを受け取り、内部で WordPress REST API への HTTP リクエストに変換して結果を返します。
+
+#### 動作の仕組み
+
+```
+MCP クライアント（MCP Inspector / Cursor 等）
+      ↓ Streamable HTTP（MCP プロトコル）
+   Kong /ai/mcp/sios-techlab
+      ↓ ai-mcp-proxy（mode: conversion-listener）
+   ツール呼び出しを WordPress REST API リクエストに変換
+      ↓ HTTP GET
+   https://tech-lab.sios.jp（WordPress REST API）
+      ↓
+   JSON レスポンスを MCP フォーマットに変換して返す
+MCP クライアント ← 記事一覧・記事詳細などのデータを受け取る
+```
+
+本設定では以下の 2 つの MCP ツールを公開しています。
+
+| ツール名 | 対応する REST API | 概要 |
+|---|---|---|
+| `get_articles` | `GET /wp-json/wp/v2/posts` | 記事一覧取得（キーワード検索・カテゴリ・件数指定対応） |
+| `get_article_by_id` | `GET /wp-json/wp/v2/posts/{id}` | 記事 ID を指定して本文を含む詳細を取得 |
+
+#### 確認手順
+
+[3-2. MCP プロキシのテスト: testMCP_INSPECTOR.sh](#3-2-mcp-プロキシのテスト-testmcp_inspectorsh) を参照してください。
 
 ---
 

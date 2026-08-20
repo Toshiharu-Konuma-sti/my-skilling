@@ -2,7 +2,7 @@ _format_version: "3.0"
 # =============================================================================
 # Kong AI Gateway - AI Proxy Plugin
 # Route-scoped: applies to ollama-route-ratelimit only
-# Single target: Ollama / llama3.1
+# Single target: Ollama / qwen2.5:1.5b
 # =============================================================================
 plugins:
 - name: ai-proxy
@@ -26,7 +26,7 @@ plugins:
       allow_override: false
     model:
       provider: ollama
-      name: llama3.1
+      name: qwen2.5:1.5b
       options:
         upstream_url: http://ollama:11434/api/chat
     logging:

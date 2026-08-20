@@ -2,7 +2,7 @@ _format_version: "3.0"
 # =============================================================================
 # Kong AI Gateway - AI Proxy Advanced Plugin
 # Route-scoped: applies to ollama-route-advanced only
-# Balancing: round-robin — Kong selects llama3.1 or phi3:mini automatically
+# Balancing: round-robin — Kong selects qwen2.5:1.5b or tinyllama automatically
 # Client: "model" field value is ignored (overwritten by Kong)
 # =============================================================================
 plugins:
@@ -25,7 +25,7 @@ plugins:
     targets:
     - model:
         provider: ollama
-        name: llama3.1
+        name: qwen2.5:1.5b
         options:
           upstream_url: http://ollama:11434/api/chat
       route_type: llm/v1/chat
@@ -37,7 +37,7 @@ plugins:
         log_statistics: false
     - model:
         provider: ollama
-        name: phi3:mini
+        name: tinyllama
         options:
           upstream_url: http://ollama:11434/api/chat
       route_type: llm/v1/chat

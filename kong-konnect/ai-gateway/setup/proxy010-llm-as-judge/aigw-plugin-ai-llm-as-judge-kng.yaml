@@ -2,12 +2,12 @@ _format_version: "3.0"
 # =============================================================================
 # Kong AI Gateway - AI LLM as Judge Plugin
 # Route-scoped: applies to ollama-route-judge only
-# Judge LLM: llama3.1 — 回答の品質を 1〜100 でスコアリング
+# Judge LLM: qwen2.5:3b — 回答の品質を 1～100 でスコアリング (評価対象とは別モデル)
 #
 # Demo:
-#   リクエストごとに llama3.1 または phi3:mini が回答を生成し、
-#   その回答を別途 llama3.1 が採点 (llm_accuracy: 1〜100) する
-#   スコアは Kong ログに記録され showLLM_LOG.sh で確認できる
+#   リクエストごとに qwen2.5:1.5b または tinyllama が回答を生成し、
+#   その回答を別途 qwen2.5:3b が採点 (llm_accuracy: 1～100) する
+#   スコアは Kong ログに記録され showLLM_REQEST_AND_RESPONSE.sh で確認できる
 #
 # スコアの読み方:
 #   100 → 完全に正確・理想的な回答
@@ -40,20 +40,21 @@ plugins:
       10, 50, or 100. Be accurate and consistent, as this score will be used by
       another model for learning and evaluation.
     http_timeout: 300000
-    # sampling_rate: 1 は DP スキーマ検証エラー / nil は sampling.lua クラッシュのため 0.5 を設定
-    sampling_rate: 0.5
+    # sampling_rate: 1 は DP スキーマ検証エラーのため 0.99 (事実上100%) を設定
+    sampling_rate: 0.99
     llm:
       route_type: llm/v1/chat
       auth:
         allow_override: false
       model:
-        # ai-llm-as-judge の DP スキーマは ollama provider 未対応のため llama2 + llama2_format: ollama で代替
+        # ollama provider は judge スキーマ未対応のため llama2 + llama2_format: ollama で代替
+        # temperature: 0 で数値のみ確実に返す（2 だとランダムテキストになる）
         provider: llama2
-        name: llama3.1
+        name: qwen2.5:3b
         options:
           upstream_url: http://ollama:11434/api/chat
           llama2_format: ollama
-          temperature: 2
+          temperature: 0
           max_tokens: 5
           top_p: 1
       logging:

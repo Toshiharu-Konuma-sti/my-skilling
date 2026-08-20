@@ -2,14 +2,14 @@ _format_version: "3.0"
 # =============================================================================
 # Kong AI Gateway - AI Request Transformer Plugin
 # Route-scoped: applies to ollama-route-reqtransform only
-# Transform: phi3:mini がリクエストを整形 → llama3.1 へ転送
+# Transform: tinyllama がリクエストを整形 → qwen2.5:1.5b へ転送
 #
 # 注意: ローカル Ollama モデルが厳密な JSON を返さない場合は失敗することがあります
 #       (Known failure mode: AI Request Transformer with AI Proxy)
 #
 # Demo:
-#   クライアントが送信した質問を phi3:mini で明確な英語の質問に整形し、
-#   整形後のリクエストを llama3.1 に転送して回答を得る
+#   クライアントが送信した質問を tinyllama で明確な英語の質問に整形し、
+#   整形後のリクエストを qwen2.5:1.5b に転送して回答を得る
 #   → X-Kong-LLM-Model ヘッダーで最終的に使用されたモデルを確認
 # =============================================================================
 plugins:
@@ -36,7 +36,7 @@ plugins:
         allow_override: false
       model:
         provider: ollama
-        name: phi3:mini
+        name: tinyllama
         options:
           upstream_url: http://ollama:11434/api/chat
       logging:

@@ -1,1 +1,0 @@
-../../common/script/BEFORE_CREATE_CONTAINER.sh
