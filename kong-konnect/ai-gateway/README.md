@@ -91,7 +91,7 @@ Kong API Gateway（Data Plane）
 | [proxy005](./setup/proxy005-semantic-response-guard/) | `POST http://localhost:8000/ai/semrespguard/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-semantic-response-guard](https://developer.konghq.com/plugins/ai-semantic-response-guard/) | 意味的類似で LLM 回答をブロック |
 | [proxy006](./setup/proxy006-semantic-cache/) | `POST http://localhost:8000/ai/semcache/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-semantic-cache](https://developer.konghq.com/plugins/ai-semantic-cache/) | 類似質問をセマンティックキャッシュで即返却 |
 | [proxy007](./setup/proxy007-prompt-decorator/) | `POST http://localhost:8000/ai/decorator/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-prompt-decorator](https://developer.konghq.com/plugins/ai-prompt-decorator/) | システムプロンプトを強制付与 |
-| [proxy008](./setup/proxy008-request-transformer/) | `POST http://localhost:8000/ai/reqtransform/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-request-transformer](https://developer.konghq.com/plugins/ai-request-transformer/) | リクエストを LLM で変換してから転送 |
+| [proxy008](./setup/proxy008-request-transformer/) | `POST http://localhost:8000/ai/reqtransform/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-request-transformer](https://developer.konghq.com/plugins/ai-request-transformer/) | リクエストを LLM で加工させてからメイン LLM へ送信 |
 | [proxy009](./setup/proxy009-response-transformer/) | `POST http://localhost:8000/ai/restransform/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-response-transformer](https://developer.konghq.com/plugins/ai-response-transformer/) | LLM 回答を別 LLM で変換してから返却 |
 | [proxy010](./setup/proxy010-llm-as-judge/) | `POST http://localhost:8000/ai/judge/chat` | [ai-proxy-advanced](https://developer.konghq.com/plugins/ai-proxy-advanced/) + [ai-llm-as-judge](https://developer.konghq.com/plugins/ai-llm-as-judge/) | LLM 回答を別 LLM が 1〜100 で採点 |
 | [proxy011](./setup/proxy011-advanced/) | `POST http://localhost:8000/ai/advanced/chat` | [ai-proxy-advanced](https://developer.konghq.com/plugins/ai-proxy-advanced/) | qwen2.5:1.5b / tinyllama ラウンドロビン |
@@ -108,7 +108,7 @@ Kong API Gateway（Data Plane）
 | | リクエスト変換器 | proxy008 |
 | | ラウンドロビン対象 | proxy010, 011 |
 | `qwen2.5:3b` | メイン LLM（回答生成） | proxy007 |
-| | リクエスト変換後の回答器 | proxy008 |
+| | リクエスト変換後のメイン LLM（回答生成） | proxy008 |
 | | judge LLM（回答品質の自動採点） | proxy010 |
 | `tinyllama` | メイン LLM（回答生成） | proxy005 |
 | | ラウンドロビン対象 | proxy010, 011 |
