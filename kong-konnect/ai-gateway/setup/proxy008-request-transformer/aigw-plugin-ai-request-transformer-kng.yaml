@@ -2,14 +2,14 @@ _format_version: "3.0"
 # =============================================================================
 # Kong AI Gateway - AI Request Transformer Plugin
 # Route-scoped: applies to ollama-route-reqtransform only
-# Transform: tinyllama がリクエストを整形 → qwen2.5:1.5b へ転送
+# Transform: qwen2.5:1.5b がリクエストを整形 → qwen2.5:3b へ転送
 #
 # 注意: ローカル Ollama モデルが厳密な JSON を返さない場合は失敗することがあります
 #       (Known failure mode: AI Request Transformer with AI Proxy)
 #
 # Demo:
-#   クライアントが送信した質問を tinyllama で明確な英語の質問に整形し、
-#   整形後のリクエストを qwen2.5:1.5b に転送して回答を得る
+#   クライアントが送信した質問を qwen2.5:1.5b で明確な英語の質問に整形し、
+#   整形後のリクエストを qwen2.5:3b に転送して回答を得る
 #   → X-Kong-LLM-Model ヘッダーで最終的に使用されたモデルを確認
 # =============================================================================
 plugins:
@@ -23,11 +23,11 @@ plugins:
   - https
   config:
     prompt: >-
-      You are a JSON request body formatter. You will receive a JSON object as input.
-      Your only task: extract the user question from the "content" field of the last
-      user message, rewrite it as a clear and specific English question, then return
-      ONLY this exact single-line JSON — no markdown, no code fences, no explanation:
-      {"messages":[{"role":"user","content":"<rewritten English question>"}]}
+      Translate the user question in the JSON input to English.
+      Return ONLY a single-line JSON. No markdown, no code fences, no explanation.
+      Example input: {"messages":[{"role":"user","content":"Kong AI Gatewayとは何ですか？"}]}
+      Example output: {"messages":[{"role":"user","content":"What is Kong AI Gateway?"}]}
+      Apply the same translation to the actual input you receive and return only the JSON.
     transformation_extract_pattern: '(?s)\{.*\}'
     http_timeout: 300000
     llm:
@@ -36,7 +36,7 @@ plugins:
         allow_override: false
       model:
         provider: ollama
-        name: tinyllama
+        name: qwen2.5:1.5b
         options:
           upstream_url: http://ollama:11434/api/chat
       logging:

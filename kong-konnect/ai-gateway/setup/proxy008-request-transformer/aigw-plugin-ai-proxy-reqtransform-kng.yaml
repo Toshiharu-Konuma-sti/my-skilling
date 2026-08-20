@@ -2,7 +2,7 @@ _format_version: "3.0"
 # =============================================================================
 # Kong AI Gateway - AI Proxy Plugin
 # Route-scoped: applies to ollama-route-reqtransform only
-# Single target: Ollama / qwen2.5:1.5b
+# Single target: Ollama / qwen2.5:3b
 # Used in combination with ai-request-transformer (runs after transformation)
 # =============================================================================
 plugins:
@@ -27,7 +27,7 @@ plugins:
       allow_override: false
     model:
       provider: ollama
-      name: qwen2.5:1.5b
+      name: qwen2.5:3b
       options:
         upstream_url: http://ollama:11434/api/chat
     logging:

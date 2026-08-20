@@ -38,6 +38,17 @@ echo "  LLM プロンプトログ (${COUNT} 件)"
 echo "  コンテナ: ${CONTAINER}"
 echo "=================================================="
 
+# JSON として解釈できない値 (プレーンテキスト等) を JSON 文字列として安全に変換する
+safe_json() {
+  local raw="$1"
+  [ -z "${raw}" ] && echo 'null' && return
+  if echo "${raw}" | jq '.' >/dev/null 2>&1; then
+    echo "${raw}" | jq '.'
+  else
+    echo "${raw}" | jq -Rs '.'
+  fi
+}
+
 i=1
 echo "${LOGS}" | while IFS= read -r line; do
   echo ""
@@ -49,8 +60,8 @@ echo "${LOGS}" | while IFS= read -r line; do
   REQUEST_RAW=$(echo "${line}" | jq -r '.ai.proxy.payload.request // empty')
   RESPONSE_RAW=$(echo "${line}" | jq -r '.ai.proxy.payload.response // empty')
 
-  echo "${line}" | jq --argjson req "$(echo "${REQUEST_RAW}" | jq '.' 2>/dev/null || echo 'null')" \
-                      --argjson res "$(echo "${RESPONSE_RAW}" | jq '.' 2>/dev/null || echo 'null')" \
+  echo "${line}" | jq --argjson req "$(safe_json "${REQUEST_RAW}")" \
+                      --argjson res "$(safe_json "${RESPONSE_RAW}")" \
   '{
     "■ エンドポイント":    .request.uri,
     "■ リクエストID":      .request.id,
@@ -71,7 +82,7 @@ echo "${LOGS}" | while IFS= read -r line; do
     },
     "■ LLM 評価スコア":    (.ai.proxy.usage.llm_accuracy // "(対象外)"),
     "■ 送信プロンプト":    $req,
-    "■ LLM レスポンス":    $res
+    "■ LLM レスポンス":    (if $res == null then "(ログ未記録 — プレーンテキスト変換後のレスポンスは testAI_GATEWAY.sh の出力を参照)" else $res end)
   }'
 
   i=$((i + 1))

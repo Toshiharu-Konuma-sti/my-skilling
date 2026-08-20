@@ -3,12 +3,17 @@ _format_version: "3.0"
 # Kong AI Gateway - AI Rate Limiting Advanced Plugin
 # Route-scoped: applies to ollama-route-ratelimit only
 # Strategy: local (in-memory, nginx shared dict — shared across all workers)
-# Limit: 700 total_tokens per 90 seconds per IP (demo: triggers 429 on 3rd request)
+# Limit: 500 total_tokens per 180 seconds per IP (demo: triggers 429 on 3rd request)
 #
 # Token count per request (observed with qwen2.5:1.5b):
-#   typical: ~350-500 tokens (prompt + completion)
-#   1st request: counter = ~400       (<700 → pass)
-#   2nd request: counter = ~400+400   (>700 → 3rd request blocked)
+#   typical: ~350-450 tokens (prompt + completion)
+#   1st request: counter = ~404       (<500 → pass)
+#   2nd request: counter = ~404+404   (>500 → 3rd request blocked)
+#
+# Why window_size 180:
+#   - 各リクエストに ~30秒 + ユーザー操作 ~30秒 = 1サイクル約2分
+#   - window_size 90 では 3リクエスト目チェック時に 1件目トークンが山欲失恐契切れする
+#   - 180秒に延長することでスライディングウィンドウ内に 2 件分のトークンが確実に残る
 #
 # Provider name resolution:
 #   ai-proxy config   : provider=ollama, model=qwen2.5:1.5b
@@ -16,10 +21,9 @@ _format_version: "3.0"
 #   allowed values    : openai|azure|anthropic|cohere|mistral|llama2|bedrock|gemini|huggingface|requestPrompt|customCost
 #   → llm_providers.name は必ず "llama2" にすること
 #
-# Why total_tokens + window_size 90:
+# Why total_tokens + window_size 180:
 #   - total_tokens はレスポンス受信後にカウントされる (usage.total_tokens を参照)
-#   - window_size 90: 429 後のリセット待ちが最大 90 秒 (デモ向け)
-#   - X-AI-RateLimit-Reset-90-llama2 ヘッダーで残り秒数を確認可能
+#   - X-AI-RateLimit-Reset-180-llama2 ヘッダーで残り秒数を確認可能
 # =============================================================================
 plugins:
 - name: ai-rate-limiting-advanced
@@ -36,8 +40,8 @@ plugins:
     llm_providers:
     - name: llama2   # Kong の固定 enum: Ollama 経由モデルはモデル名に関わらず llama2 ファミリー扱い
       window_size:
-      - 90
+      - 180
       limit:
-      - 700
+      - 500
     tokens_count_strategy: total_tokens
     sync_rate: -1
