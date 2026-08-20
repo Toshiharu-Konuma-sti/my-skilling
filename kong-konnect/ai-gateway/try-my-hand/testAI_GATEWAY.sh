@@ -26,34 +26,34 @@ select_proxy() {
 
 ■ プロキシパターンを選択してください:
 
-  [1] ai-proxy-normal            → POST ${KONG_PROXY}/ai/normal/chat
+  [1] ai-prox                    → POST ${KONG_PROXY}/ai/normal/chat
       Ollama qwen2.5:1.5b へ直接プロキシ
   [2] ai-proxy-ratelimit         → POST ${KONG_PROXY}/ai/ratelimit/chat
-      トークン数で流量制限 (500 tokens / 60sec / IP)
+      トークン数で流量制限 (500 tokens / 180sec / IP)
   [3] ai-prompt-guard            → POST ${KONG_PROXY}/ai/guard/chat
       PII・プロンプトインジェクション攻撃をブロック
   [4] ai-semantic-prompt-guard   → POST ${KONG_PROXY}/ai/semguard/chat
       意味的類似でプロンプトをブロック (inject/jailbreak/危険コンテンツ)
   [5] ai-semantic-response-guard → POST ${KONG_PROXY}/ai/semrespguard/chat
       tinyllama の有害な回答を意味的にブロック
-  [6] ai-proxy-semcache         → POST ${KONG_PROXY}/ai/semcache/chat
+  [6] ai-proxy-semcache          → POST ${KONG_PROXY}/ai/semcache/chat
       類似質問をセマンティックキャッシュで即返却
-  [7] ai-prompt-decorator       → POST ${KONG_PROXY}/ai/decorator/chat
+  [7] ai-prompt-decorator        → POST ${KONG_PROXY}/ai/decorator/chat
       日本語回答強制 + フッター付与 (systemプロンプトをクライアントに見せずに注入)
-  [8] ai-request-transformer    → POST ${KONG_PROXY}/ai/reqtransform/chat
-      tinyllama でリクエストを英語に整形 → qwen2.5:1.5b へ転送
-  [9] ai-response-transformer   → POST ${KONG_PROXY}/ai/restransform/chat
+  [8] ai-request-transformer     → POST ${KONG_PROXY}/ai/reqtransform/chat
+      qwen2.5:1.5b でリクエストを英語に整形 → qwen2.5:3b へ転送
+  [9] ai-response-transformer    → POST ${KONG_PROXY}/ai/restransform/chat
       qwen2.5:1.5b の回答を qwen2.5:1.5b で3点の箇条書きに整形
-  [10] ai-llm-as-judge          → POST ${KONG_PROXY}/ai/judge/chat
+  [10] ai-llm-as-judge           → POST ${KONG_PROXY}/ai/judge/chat
       qwen2.5:1.5b / tinyllama の回答を qwen2.5:3b が 1～100 でスコアリング
-  [11] ai-proxy-advanced        → POST ${KONG_PROXY}/ai/advanced/chat
+  [11] ai-proxy-advanced         → POST ${KONG_PROXY}/ai/advanced/chat
       qwen2.5:1.5b / tinyllama ラウンドロビン
 
 EOS
   read -rp "番号を入力してください [1-11]: " proxy_num
 
   case "${proxy_num}" in
-    1)   ENDPOINT="${KONG_PROXY}/ai/normal/chat";          LABEL="ai-proxy-normal"              ;;
+    1)   ENDPOINT="${KONG_PROXY}/ai/normal/chat";          LABEL="ai-proxy"                     ;;
     2)   ENDPOINT="${KONG_PROXY}/ai/ratelimit/chat";       LABEL="ai-proxy-ratelimit"           ;;
     3)   ENDPOINT="${KONG_PROXY}/ai/guard/chat";           LABEL="ai-prompt-guard"              ;;
     4)   ENDPOINT="${KONG_PROXY}/ai/semguard/chat";        LABEL="ai-semantic-prompt-guard"     ;;

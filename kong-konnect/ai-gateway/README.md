@@ -466,20 +466,32 @@ cd try-my-hand/
 
 #### 注目レスポンスヘッダー
 
+**通常リクエスト時（200 OK）**
+
 | ヘッダー名 | 意味 |
 |---|---|
-| `X-AI-RateLimit-Limit-300-llama2` | ウィンドウ（300秒）内の上限トークン数 |
-| `X-AI-RateLimit-Remaining-300-llama2` | 残り使用可能トークン数（リクエスト受付**時点**の値） |
-| `X-AI-RateLimit-Reset-300-llama2` | ウィンドウがリセットされるまでの秒数（429時のみ） |
-| `X-AI-RateLimit-Retry-After-300-llama2` | 何秒後に再試行できるか（429時のみ） |
+| `X-AI-RateLimit-Limit-180-llama2` | ウィンドウ（180秒）内の上限トークン数 |
+| `X-AI-RateLimit-Remaining-180-llama2` | 残り使用可能トークン数（リクエスト受付**時点**の値） |
+
+**上限超過時（429 Too Many Requests）**
+
+| ヘッダー名 | 意味 |
+|---|---|
+| `X-AI-RateLimit-Reset` | ウィンドウがリセットされるまでの秒数 |
+| `X-AI-RateLimit-Limit-180-llama2` | ウィンドウ（180秒）内の上限トークン数 |
+| `X-AI-RateLimit-Remaining-180-llama2` | 残り使用可能トークン数（= 0） |
+| `X-AI-RateLimit-Retry-After-180-llama2` | 何秒後に再試行できるか（プロバイダー別） |
+| `X-AI-RateLimit-Reset-180-llama2` | ウィンドウがリセットされるまでの秒数（プロバイダー別） |
+| `X-AI-RateLimit-Retry-After` | 何秒後に再試行できるか |
 
 > **ヘッダー名の読み方**
 > ```
-> X-AI-RateLimit-Remaining-300-llama2
->                          ^^^  ^^^^^  
+> X-AI-RateLimit-Remaining-180-llama2
+>                          ^^^  ^^^^^
 >                          │    └── LLMプロバイダー名
 >                          └─────── ウィンドウサイズ（秒）
 > ```
+> サフィックスなし版（`X-AI-RateLimit-Reset` / `X-AI-RateLimit-Retry-After`）はプロバイダー集計値で、429 時のみ出現します。
 
 > **`Remaining` の表示タイミングに注意**  
 > `Remaining` はリクエスト受付**時点**（カウンター更新前）の残量が返ります。  
@@ -504,9 +516,9 @@ $$\text{消費トークン} = \text{入力トークン（プロンプト）} + \
 
 | 回 | HTTP ステータス | `Remaining` | 説明 |
 |:---:|---|---|---|
-| 1回目 | `200 OK` | 350（上限と同じ） | 受付時点ではカウンターが空のため、上限値がそのまま返る |
-| 2回目 | `200 OK` | 59（実行例） | 1回目の消費トークン（実行例: 291）が差し引かれた残量が返る。消費量は毎回異なる |
-| 3回目 | **`429 Too Many Requests`** | 0 | 累計消費トークンが上限（350）を超えたためブロック |
+| 1回目 | `200 OK` | 500（上限と同じ） | 受付時点ではカウンターが空のため、上限値がそのまま返る |
+| 2回目 | `200 OK` | 96（実行例） | 1回目の消費トークン（実行例: 404）が差し引かれた残量が返る。消費量は毎回異なる |
+| 3回目 | **`429 Too Many Requests`** | 0 | 累計消費トークンが上限（500）を超えたためブロック |
 
 #### 確認コマンド例
 
@@ -522,10 +534,10 @@ cd try-my-hand/
 
 ```
 < HTTP/1.1 429 Too Many Requests
-< X-AI-RateLimit-Limit-300-llama2:       350
-< X-AI-RateLimit-Remaining-300-llama2:   0
-< X-AI-RateLimit-Reset-300-llama2:       274   ← 274秒後にリセット
-< X-AI-RateLimit-Retry-After-300-llama2: 274
+< X-AI-RateLimit-Limit-180-llama2:       500
+< X-AI-RateLimit-Remaining-180-llama2:   0
+< X-AI-RateLimit-Reset-180-llama2:       142   ← 142秒後にリセット
+< X-AI-RateLimit-Retry-After-180-llama2: 142
 
 { "message": "AI token rate limit exceeded for provider(s): llama2" }
 ```
@@ -839,17 +851,17 @@ cd try-my-hand/
 
 > 📄 設定ファイル: [aigw-plugin-ai-proxy-reqtransform-kng.yaml](./setup/proxy008-request-transformer/aigw-plugin-ai-proxy-reqtransform-kng.yaml) / [aigw-plugin-ai-request-transformer-kng.yaml](./setup/proxy008-request-transformer/aigw-plugin-ai-request-transformer-kng.yaml)
 
-`/ai/reqtransform/chat` エンドポイントにリクエストを送り、**クライアントの質問が phi3:mini によって英語に整形されてから llama3.1 に転送されること**を確認します。
+`/ai/reqtransform/chat` エンドポイントにリクエストを送り、**クライアントの質問が qwen2.5:1.5b によって英語に整形されてから qwen2.5:3b に転送されること**を確認します。
 
 #### 動作の仕組み
 
 ```
-クライアント → (日本語質問) → phi3:mini が英語に整形 → llama3.1 が回答 → クライアント
+クライアント → (日本語質問) → qwen2.5:1.5b が英語に整形 → qwen2.5:3b が回答 → クライアント
 ```
 
 1. クライアントが日本語でプロンプトを送信
-2. `ai-request-transformer` が phi3:mini を使ってプロンプトを英語に変換
-3. 変換後のプロンプトを llama3.1 に転送して回答を得る
+2. `ai-request-transformer` が qwen2.5:1.5b を使ってプロンプトを英語に変換
+3. 変換後のプロンプトを qwen2.5:3b に転送して回答を得る
 
 #### 確認のポイント
 
@@ -858,7 +870,7 @@ cd try-my-hand/
 ./testAI_GATEWAY.sh   # [8] を選択
 ```
 
-- `X-Kong-LLM-Model` ヘッダーで **llama3.1** が最終的に使われたことを確認
+- `X-Kong-LLM-Model` ヘッダーで **qwen2.5:3b** が最終的に使われたことを確認
 - `showLLM_REQEST_AND_RESPONSE.sh` でリクエスト変換前後のログを確認
 
 > **注意**: ローカル Ollama モデルが厳密な JSON を返さない場合、変換が失敗することがあります（Kong 公式の Known failure mode）。その場合はリクエストを再送してください。
