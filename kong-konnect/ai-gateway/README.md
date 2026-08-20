@@ -75,7 +75,7 @@ Kong API Gateway（Data Plane）
 | 項目 | 内容 |
 |---|---|
 | Kong Data Plane | Konnect に接続する Kong Gateway（コンテナ） |
-| Ollama | ローカル LLM サーバー。llama3.1・phi3:mini を提供（コンテナ） |
+| Ollama | ローカル LLM サーバー。qwen2.5:1.5b / qwen2.5:3b / tinyllama / nomic-embed-text を提供（コンテナ） |
 | Redis Stack | ベクトル DB。セマンティックキャッシュ・セマンティックガードに使用（コンテナ） |
 
 <img src="./image/kong-konnect-ai-gateway_overview.png" width="600">
@@ -84,7 +84,7 @@ Kong API Gateway（Data Plane）
 
 | 設定 | エンドポイント | プラグイン | 動作 |
 |---|---|---|---|
-| [proxy001](./setup/proxy001-normal/) | `POST http://localhost:8000/ai/normal/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) | llama3.1 固定プロキシ |
+| [proxy001](./setup/proxy001-normal/) | `POST http://localhost:8000/ai/normal/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) | qwen2.5:1.5b 固定プロキシ |
 | [proxy002](./setup/proxy002-ratelimit/) | `POST http://localhost:8000/ai/ratelimit/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-rate-limiting-advanced](https://developer.konghq.com/plugins/ai-rate-limiting-advanced/) | トークン数で流量制限 |
 | [proxy003](./setup/proxy003-prompt-guard/) | `POST http://localhost:8000/ai/guard/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-prompt-guard](https://developer.konghq.com/plugins/ai-prompt-guard/) | PII・インジェクション攻撃をブロック |
 | [proxy004](./setup/proxy004-semantic-prompt-guard/) | `POST http://localhost:8000/ai/semguard/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-semantic-prompt-guard](https://developer.konghq.com/plugins/ai-semantic-prompt-guard/) | 意味的類似でプロンプトをブロック |
@@ -94,11 +94,26 @@ Kong API Gateway（Data Plane）
 | [proxy008](./setup/proxy008-request-transformer/) | `POST http://localhost:8000/ai/reqtransform/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-request-transformer](https://developer.konghq.com/plugins/ai-request-transformer/) | リクエストを LLM で変換してから転送 |
 | [proxy009](./setup/proxy009-response-transformer/) | `POST http://localhost:8000/ai/restransform/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-response-transformer](https://developer.konghq.com/plugins/ai-response-transformer/) | LLM 回答を別 LLM で変換してから返却 |
 | [proxy010](./setup/proxy010-llm-as-judge/) | `POST http://localhost:8000/ai/judge/chat` | [ai-proxy-advanced](https://developer.konghq.com/plugins/ai-proxy-advanced/) + [ai-llm-as-judge](https://developer.konghq.com/plugins/ai-llm-as-judge/) | LLM 回答を別 LLM が 1〜100 で採点 |
-| [proxy011](./setup/proxy011-advanced/) | `POST http://localhost:8000/ai/advanced/chat` | [ai-proxy-advanced](https://developer.konghq.com/plugins/ai-proxy-advanced/) | llama3.1 / phi3:mini ラウンドロビン |
+| [proxy011](./setup/proxy011-advanced/) | `POST http://localhost:8000/ai/advanced/chat` | [ai-proxy-advanced](https://developer.konghq.com/plugins/ai-proxy-advanced/) | qwen2.5:1.5b / tinyllama ラウンドロビン |
 | [proxy012](./setup/proxy012-mcp-proxy/) | `POST http://localhost:8000/ai/mcp/sios-techlab` | [ai-mcp-proxy](https://developer.konghq.com/plugins/ai-mcp-proxy/) | 既存の REST API を MCP サーバーとして公開 |
 
 > **本ハンズオン対象外のプラグインについて**  
 > [ai-sanitizer](https://developer.konghq.com/plugins/ai-sanitizer/) は NLP 処理用コンテナ（Kong プライベートリポジトリ）が別途必要なため、本ハンズオンの対象外としています。
+
+使用するモデルは以下の通りです。
+
+| モデル | 用途 | 使用プロキシ |
+|---|---|---|
+| `qwen2.5:1.5b` | メイン LLM（回答生成） | proxy001〜004, 006, 009 |
+| | リクエスト変換器 | proxy008 |
+| | ラウンドロビン対象 | proxy010, 011 |
+| `qwen2.5:3b` | メイン LLM（回答生成） | proxy007 |
+| | リクエスト変換後の回答器 | proxy008 |
+| | judge LLM（回答品質の自動採点） | proxy010 |
+| `tinyllama` | メイン LLM（回答生成） | proxy005 |
+| | ラウンドロビン対象 | proxy010, 011 |
+| `nomic-embed-text` | 埋め込みモデル（ベクトル化） | proxy004（セマンティックプロンプトガード）, proxy005（セマンティックレスポンスガード）, proxy006（セマンティックキャッシュ） |
+
 
 ---
 
@@ -183,7 +198,7 @@ Kong Konnectにアクセスして事前準備をします。
    ```
 
    起動後、`ollama-init` コンテナが自動的に以下のモデルを Ollama へ pull します。  
-   **初回は数分〜数十分かかります**（モデルサイズ: llama3.1 ≒ 4GB、phi3:mini ≒ 2GB）。
+   **初回は数分〜数十分かかります**（モデルサイズ合計: qwen2.5:1.5b ≒ 1.1GB・qwen2.5:3b ≒ 2.1GB・tinyllama ≒ 0.7GB・nomic-embed-text ≒ 0.1GB）。
 
    ```bash
    # pull 完了の確認
@@ -241,10 +256,10 @@ $ ./testAI_GATEWAY.sh
 
 ■ プロキシパターンを選択してください:
 
-  [1] ai-proxy-normal          → POST http://localhost:8000/ai/normal/chat
-      Ollama llama3.1 へ直接プロキシ
-  [2] ai-proxy-ratelimit       → POST http://localhost:8000/ai/ratelimit/chat
-      トークン数で流量制限 (500 tokens / 60sec / IP)
+  [1] ai-prox                    → POST http://localhost:8000/ai/normal/chat
+      Ollama qwen2.5:1.5b へ直接プロキシ
+  [2] ai-proxy-ratelimit         → POST http://localhost:8000/ai/ratelimit/chat
+      トークン数で流量制限 (500 tokens / 180sec / IP)
   [3] ai-prompt-guard          → POST http://localhost:8000/ai/guard/chat
       PII・プロンプトインジェクション攻撃をブロック
   [4] ai-semantic-prompt-guard → POST http://localhost:8000/ai/semguard/chat
@@ -339,7 +354,7 @@ $ ./showLLM_REQEST_AND_RESPONSE.sh --all  # 全件を表示
   "■ エンドポイント": "/ai/normal/chat",
   "■ リクエストID":   "257d94521c20...",
   "■ 日時":           "2026-08-06T00:17:29Z",
-  "■ モデル":         { "provider": "llama2", "model": "llama3.1" },
+  "■ モデル":         { "provider": "llama2", "model": "qwen2.5:1.5b" },
   "■ レイテンシ (ms)": { "llm_latency": 81607, "kong_latency": 3, "total_request": 81611 },
   "■ トークン使用量":  { "prompt_tokens": 23, "completion_tokens": 267, "total_tokens": 290 },
   "■ LLM 評価スコア": "(対象外)",
@@ -414,15 +429,15 @@ $ ./showSIMILARITY.sh
 
 | ヘッダー名 | 例 | 意味 |
 |---|---|---|
-| `X-Kong-LLM-Model` | `llama2/llama3.1` | 実際に使われたプロバイダー/モデル名 |
+| `X-Kong-LLM-Model` | `llama2/qwen2.5:1.5b` | 実際に使われたプロバイダー/モデル名 |
 | `X-Kong-Upstream-Latency` | `93759` | LLM（Ollama）の応答にかかった時間（ms） |
 | `X-Kong-Proxy-Latency` | `3` | Kong 自身の処理オーバーヘッド（ms） |
 
 #### X-Kong-LLM-Model の読み方
 
 ```
-X-Kong-LLM-Model: llama2/llama3.1
-                  ^^^^^  ^^^^^^^
+X-Kong-LLM-Model: llama2/qwen2.5:1.5b
+                  ^^^^^  ^^^^^^^^^^^^^
                   │      └── モデル名（Ollama 上のモデル）
                   └───────── プロバイダー名（Kong 内部の識別子）
 ```
@@ -450,10 +465,10 @@ cd try-my-hand/
 
 ```
 < HTTP/1.1 200 OK
-< X-Kong-LLM-Model: llama2/llama3.1
+< X-Kong-LLM-Model: llama2/qwen2.5:1.5b
 < X-Kong-Upstream-Latency: 93759
 < X-Kong-Proxy-Latency: 3
-< Via: 1.1 kong/3.13.0.8-enterprise-edition
+< Via: 1.1 kong/3.13.0.9-enterprise-edition
 ```
 
 ---
@@ -686,10 +701,10 @@ cd try-my-hand/
     → LLM が有害な回答を生成 → Kong が最後の砦として遮断
 ```
 
-#### LLM に phi3:mini を使う理由
+#### LLM に tinyllama を使う理由
 
-llama3.1 は自前の安全フィルターが強力なため、有害なプロンプトに対して常に断り文句を返します。  
-proxy005 では安全フィルターの緩い **phi3:mini** を使用することで、LLM が有害な内容を実際に出力する状況を再現しています。
+qwen2.5:1.5b は安全フィルターが比較的強く、有害なプロンプトに対して断り文句を返すことがあります。  
+proxy005 では安全フィルターの緩い **tinyllama** を使用することで、LLM が有害な内容を実際に出力する状況を再現しています。
 
 #### 確認手順
 
@@ -702,12 +717,12 @@ cd try-my-hand/
 
 #### 期待される動作パターン
 
-| プロンプト種別 | phi3:mini の回答 | Kong の判定 | HTTP |
+| プロンプト種別 | tinyllama の回答 | Kong の判定 | HTTP |
 |---|---|---|:---:|
 | 通常の技術質問 ([1][2][3]) | 正常な回答 | deny に非類似 → 通過 | 200 |
 | 有害な質問 ([4][5][6][7]) | 危険な内容を含む回答 | deny に類似 → **ブロック** | **400** |
 
-> **注意**: phi3:mini が有害な質問に対して断り文句を返した場合（安全フィルターが働いた場合）は 200 になることがあります。これは正常な動作です。断り文句は `deny_responses` パターンと意味的に離れているため、Kong は通過させます。
+> **注意**: tinyllama が有害な質問に対して断り文句を返した場合（安全フィルターが働いた場合）は 200 になることがあります。これは正常な動作です。断り文句は `deny_responses` パターンと意味的に離れているため、Kong は通過させます。
 
 #### 400 ブロック時のレスポンス例
 
@@ -881,17 +896,17 @@ cd try-my-hand/
 
 > 📄 設定ファイル: [aigw-plugin-ai-proxy-restransform-kng.yaml](./setup/proxy009-response-transformer/aigw-plugin-ai-proxy-restransform-kng.yaml) / [aigw-plugin-ai-response-transformer-kng.yaml](./setup/proxy009-response-transformer/aigw-plugin-ai-response-transformer-kng.yaml)
 
-`/ai/restransform/chat` エンドポイントにリクエストを送り、**llama3.1 の回答が phi3:mini によって3点の箇条書きに整形されてからクライアントに返却されること**を確認します。
+`/ai/restransform/chat` エンドポイントにリクエストを送り、**qwen2.5:1.5b の回答が qwen2.5:1.5b によって3点の箇条書きに整形されてからクライアントに返却されること**を確認します。
 
 #### 動作の仕組み
 
 ```
-クライアント → llama3.1 が回答生成 → phi3:mini が3点箇条書きに整形 → クライアント
+クライアント → qwen2.5:1.5b が回答生成 → qwen2.5:1.5b が3点箇条書きに整形 → クライアント
 ```
 
-1. クライアントのリクエストをそのまま llama3.1 に転送
-2. llama3.1 の回答を `ai-response-transformer` が phi3:mini に渡して整形
-3. phi3:mini が「・箇条書き1\n・箇条書き2\n・箇条書き3」形式に変換してクライアントへ返却
+1. クライアントのリクエストをそのまま qwen2.5:1.5b に転送
+2. qwen2.5:1.5b の回答を `ai-response-transformer` が qwen2.5:1.5b に渡して整形
+3. qwen2.5:1.5b が「・箇条書き1\n・箇条書き2\n・箇条書き3」形式に変換してクライアントへ返却
 
 #### 確認のポイント
 
@@ -971,7 +986,7 @@ cd try-my-hand/
 
 > 📄 設定ファイル: [aigw-plugin-ai-proxy-advanced-kng.yaml](./setup/proxy011-advanced/aigw-plugin-ai-proxy-advanced-kng.yaml)
 
-`/ai/advanced/chat` エンドポイントにリクエストを繰り返し送り、**llama3.1 と phi3:mini がラウンドロビンで交互に選択されること**を確認します。
+`/ai/advanced/chat` エンドポイントにリクエストを繰り返し送り、**qwen2.5:1.5b と tinyllama がラウンドロビンで交互に選択されること**を確認します。
 
 #### 動作の仕組み
 
@@ -981,18 +996,18 @@ cd try-my-hand/
 現在の設定:
   algorithm: round-robin
   targets:
-    - llama3.1 (weight: 100)
-    - phi3:mini (weight: 100)
+    - qwen2.5:1.5b (weight: 100)
+    - tinyllama (weight: 100)
 ```
 
-weight が等しいため、1回目 → llama3.1、2回目 → phi3:mini、3回目 → llama3.1 … と交互に振り分けられます。
+weight が等しいため、1回目 → qwen2.5:1.5b、2回目 → tinyllama、3回目 → qwen2.5:1.5b … と交互に振り分けられます。
 
 #### 注目レスポンスヘッダー
 
 ```
-X-Kong-LLM-Model: llama2/llama3.1   ← 1回目
-X-Kong-LLM-Model: llama2/phi3:mini  ← 2回目
-X-Kong-LLM-Model: llama2/llama3.1   ← 3回目（ラウンドロビンで戻る）
+X-Kong-LLM-Model: llama2/qwen2.5:1.5b   ← 1回目
+X-Kong-LLM-Model: llama2/tinyllama       ← 2回目
+X-Kong-LLM-Model: llama2/qwen2.5:1.5b   ← 3回目（ラウンドロビンで戻る）
 ```
 
 #### 確認手順
@@ -1004,15 +1019,15 @@ cd try-my-hand/
 ./testAI_GATEWAY.sh
 ```
 
-3回のリクエストで `X-Kong-LLM-Model` ヘッダーが `llama3.1` → `phi3:mini` → `llama3.1` と交互に変わることを確認します。
+3回のリクエストで `X-Kong-LLM-Model` ヘッダーが `qwen2.5:1.5b` → `tinyllama` → `qwen2.5:1.5b` と交互に変わることを確認します。
 
 #### proxy001 との比較
 
 | | proxy001 (`/ai/normal/chat`) | proxy011 (`/ai/advanced/chat`) |
 |---|---|---|
 | プラグイン | ai-proxy | ai-proxy-advanced |
-| モデル | llama3.1 固定 | llama3.1 / phi3:mini ラウンドロビン |
-| `X-Kong-LLM-Model` | 常に `llama2/llama3.1` | リクエストごとに変わる |
+| モデル | qwen2.5:1.5b 固定 | qwen2.5:1.5b / tinyllama ラウンドロビン |
+| `X-Kong-LLM-Model` | 常に `llama2/qwen2.5:1.5b` | リクエストごとに変わる |
 
 > **発展**: `algorithm` を `round-robin` から `lowest-latency`・`lowest-usage`・`semantic` などに変更することで、応答時間・使用量・リクエスト内容に応じた動的なモデル選択が可能になります。
 
