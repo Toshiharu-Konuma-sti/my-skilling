@@ -30,8 +30,8 @@
    - [4-7. ai-prompt-decorator: システムプロンプトの強制付与](#4-7-ai-prompt-decorator-システムプロンプトの強制付与)
    - [4-8. ai-request-transformer: リクエストの LLM 変換](#4-8-ai-request-transformer-リクエストの-llm-変換)
    - [4-9. ai-response-transformer: レスポンスの LLM 変換](#4-9-ai-response-transformer-レスポンスの-llm-変換)
-   - [4-10. ai-llm-as-judge: LLM 回答の自動採点](#4-10-ai-llm-as-judge-llm-回答の自動採点)
-   - [4-11. ai-proxy-advanced: 複数モデルへのラウンドロビン](#4-11-ai-proxy-advanced-複数モデルへのラウンドロビン)
+   - [4-10. ai-proxy-advanced: 複数モデルへのラウンドロビン](#4-10-ai-proxy-advanced-複数モデルへのラウンドロビン)
+   - [4-11. ai-llm-as-judge: LLM 回答の自動採点](#4-11-ai-llm-as-judge-llm-回答の自動採点)
    - [4-12. ai-mcp-proxy: REST API を MCP サーバーとして公開](#4-12-ai-mcp-proxy-rest-api-を-mcp-サーバーとして公開)
 5. [清掃手順](#5-清掃手順)
 
@@ -93,8 +93,8 @@ Kong API Gateway（Data Plane）
 | [proxy007](./setup/proxy007-prompt-decorator/) | `POST http://localhost:8000/ai/decorator/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-prompt-decorator](https://developer.konghq.com/plugins/ai-prompt-decorator/) | システムプロンプトを強制付与 |
 | [proxy008](./setup/proxy008-request-transformer/) | `POST http://localhost:8000/ai/reqtransform/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-request-transformer](https://developer.konghq.com/plugins/ai-request-transformer/) | リクエストを LLM で加工させてからメイン LLM へ送信 |
 | [proxy009](./setup/proxy009-response-transformer/) | `POST http://localhost:8000/ai/restransform/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-response-transformer](https://developer.konghq.com/plugins/ai-response-transformer/) | LLM 回答を別 LLM で変換してから返却 |
-| [proxy010](./setup/proxy010-llm-as-judge/) | `POST http://localhost:8000/ai/judge/chat` | [ai-proxy-advanced](https://developer.konghq.com/plugins/ai-proxy-advanced/) + [ai-llm-as-judge](https://developer.konghq.com/plugins/ai-llm-as-judge/) | LLM 回答を別 LLM が 1〜100 で採点 |
-| [proxy011](./setup/proxy011-advanced/) | `POST http://localhost:8000/ai/advanced/chat` | [ai-proxy-advanced](https://developer.konghq.com/plugins/ai-proxy-advanced/) | qwen2.5:1.5b / tinyllama ラウンドロビン |
+| [proxy010](./setup/proxy010-advanced/) | `POST http://localhost:8000/ai/advanced/chat` | [ai-proxy-advanced](https://developer.konghq.com/plugins/ai-proxy-advanced/) | qwen2.5:1.5b / tinyllama ラウンドロビン |
+| [proxy011](./setup/proxy011-llm-as-judge/) | `POST http://localhost:8000/ai/judge/chat` | [ai-proxy-advanced](https://developer.konghq.com/plugins/ai-proxy-advanced/) + [ai-llm-as-judge](https://developer.konghq.com/plugins/ai-llm-as-judge/) | LLM 回答を別 LLM が 1〜100 で採点 |
 | [proxy012](./setup/proxy012-mcp-proxy/) | `POST http://localhost:8000/ai/mcp/sios-techlab` | [ai-mcp-proxy](https://developer.konghq.com/plugins/ai-mcp-proxy/) | 既存の REST API を MCP サーバーとして公開 |
 
 > **本ハンズオン対象外のプラグインについて**  
@@ -109,7 +109,7 @@ Kong API Gateway（Data Plane）
 | | ラウンドロビン対象 | proxy010, 011 |
 | `qwen2.5:3b` | メイン LLM（回答生成） | proxy007 |
 | | リクエスト変換後のメイン LLM（回答生成） | proxy008 |
-| | judge LLM（回答品質の自動採点） | proxy010 |
+| | judge LLM（回答品質の自動採点） | proxy011 |
 | `tinyllama` | メイン LLM（回答生成） | proxy005 |
 | | ラウンドロビン対象 | proxy010, 011 |
 | `nomic-embed-text` | 埋め込みモデル（ベクトル化） | proxy004（セマンティックプロンプトガード）, <br>proxy005（セマンティックレスポンスガード）, <br>proxy006（セマンティックキャッシュ） |
@@ -363,7 +363,7 @@ $ ./showLLM_REQEST_AND_RESPONSE.sh --all  # 全件を表示
 }
 ```
 
-> `■ LLM 評価スコア` は `[9] ai-llm-as-judge` エンドポイントを使用した場合のみスコアが表示されます。
+> `■ LLM 評価スコア` は `[11] ai-llm-as-judge` エンドポイントを使用した場合のみスコアが表示されます。
 
 ---
 
@@ -921,9 +921,60 @@ cd try-my-hand/
 
 ---
 
-### 4-10. ai-llm-as-judge: LLM 回答の自動採点
+### 4-10. ai-proxy-advanced: 複数モデルへのラウンドロビン
 
-> 📄 設定ファイル: [aigw-plugin-ai-proxy-advanced-judge-kng.yaml](./setup/proxy010-llm-as-judge/aigw-plugin-ai-proxy-advanced-judge-kng.yaml) / [aigw-plugin-ai-llm-as-judge-kng.yaml](./setup/proxy010-llm-as-judge/aigw-plugin-ai-llm-as-judge-kng.yaml)
+> 📄 設定ファイル: [aigw-plugin-ai-proxy-advanced-kng.yaml](./setup/proxy010-advanced/aigw-plugin-ai-proxy-advanced-kng.yaml)
+
+`/ai/advanced/chat` エンドポイントにリクエストを繰り返し送り、**qwen2.5:1.5b と tinyllama がラウンドロビンで交互に選択されること**を確認します。
+
+#### 動作の仕組み
+
+`ai-proxy-advanced` は複数の LLM ターゲットを定義し、バランサーアルゴリズムに従ってリクエストを振り分けます。
+
+```
+現在の設定:
+  algorithm: round-robin
+  targets:
+    - qwen2.5:1.5b (weight: 100)
+    - tinyllama (weight: 100)
+```
+
+weight が等しいため、1回目 → qwen2.5:1.5b、2回目 → tinyllama、3回目 → qwen2.5:1.5b … と交互に振り分けられます。
+
+#### 注目レスポンスヘッダー
+
+```
+X-Kong-LLM-Model: llama2/qwen2.5:1.5b   ← 1回目
+X-Kong-LLM-Model: llama2/tinyllama       ← 2回目
+X-Kong-LLM-Model: llama2/qwen2.5:1.5b   ← 3回目（ラウンドロビンで戻る）
+```
+
+#### 確認手順
+
+```bash
+cd try-my-hand/
+./testAI_GATEWAY.sh   # [10] を選択して3回連続送信
+./testAI_GATEWAY.sh
+./testAI_GATEWAY.sh
+```
+
+3回のリクエストで `X-Kong-LLM-Model` ヘッダーが `qwen2.5:1.5b` → `tinyllama` → `qwen2.5:1.5b` と交互に変わることを確認します。
+
+#### proxy001 との比較
+
+| | proxy001 (`/ai/normal/chat`) | proxy010 (`/ai/advanced/chat`) |
+|---|---|---|
+| プラグイン | ai-proxy | ai-proxy-advanced |
+| モデル | qwen2.5:1.5b 固定 | qwen2.5:1.5b / tinyllama ラウンドロビン |
+| `X-Kong-LLM-Model` | 常に `llama2/qwen2.5:1.5b` | リクエストごとに変わる |
+
+> **発展**: `algorithm` を `round-robin` から `lowest-latency`・`lowest-usage`・`semantic` などに変更することで、応答時間・使用量・リクエスト内容に応じた動的なモデル選択が可能になります。
+
+---
+
+### 4-11. ai-llm-as-judge: LLM 回答の自動採点
+
+> 📄 設定ファイル: [aigw-plugin-ai-proxy-advanced-judge-kng.yaml](./setup/proxy011-llm-as-judge/aigw-plugin-ai-proxy-advanced-judge-kng.yaml) / [aigw-plugin-ai-llm-as-judge-kng.yaml](./setup/proxy011-llm-as-judge/aigw-plugin-ai-llm-as-judge-kng.yaml)
 
 **何を採点しているか**: `ai-llm-as-judge` は、メインの LLM が生成した**回答の品質（正確さ・適切さ）**を、別の LLM（判定用モデル）を使ってリアルタイムに 1〜100 の数値で自動採点するプラグインです。ユーザーに回答を返す裏側で、「この AI の回答は質問に対してどれくらい正しいか？」を人間のかわりに AI が自動で検定・スコアリングします。
 
@@ -942,13 +993,13 @@ cd try-my-hand/
 クライアント ← 元の LLM 回答をそのまま返す（レスポンスは変わらない）
 ```
 
-そのため、レスポンスボディは `[11] ai-proxy-advanced` と同じに見えます。これは正常な動作です。
+そのため、レスポンスボディは `[10] ai-proxy-advanced` と同じに見えます。これは正常な動作です。
 
 #### 確認手順
 
 ```bash
 cd try-my-hand/
-./testAI_GATEWAY.sh   # [10] を選択してリクエストを送信（2〜3回送る）
+./testAI_GATEWAY.sh   # [11] を選択してリクエストを送信（2〜3回送る）
 ./showLLM_REQEST_AND_RESPONSE.sh      # 直近1件のログを整形表示
 ```
 
@@ -979,57 +1030,6 @@ cd try-my-hand/
 現在 `sampling_rate: 0.99`（事実上 100% のリクエストを採点）に設定しています。採点されなかったリクエストのログには `"■ LLM 評価スコア": "(対象外)"` と表示されます。
 
 > `sampling_rate: 1`（厳密な全件採点）は Kong の DP スキーマ検証エラーを引き起こすため、`0.99` で代替しています。
-
----
-
-### 4-11. ai-proxy-advanced: 複数モデルへのラウンドロビン
-
-> 📄 設定ファイル: [aigw-plugin-ai-proxy-advanced-kng.yaml](./setup/proxy011-advanced/aigw-plugin-ai-proxy-advanced-kng.yaml)
-
-`/ai/advanced/chat` エンドポイントにリクエストを繰り返し送り、**qwen2.5:1.5b と tinyllama がラウンドロビンで交互に選択されること**を確認します。
-
-#### 動作の仕組み
-
-`ai-proxy-advanced` は複数の LLM ターゲットを定義し、バランサーアルゴリズムに従ってリクエストを振り分けます。
-
-```
-現在の設定:
-  algorithm: round-robin
-  targets:
-    - qwen2.5:1.5b (weight: 100)
-    - tinyllama (weight: 100)
-```
-
-weight が等しいため、1回目 → qwen2.5:1.5b、2回目 → tinyllama、3回目 → qwen2.5:1.5b … と交互に振り分けられます。
-
-#### 注目レスポンスヘッダー
-
-```
-X-Kong-LLM-Model: llama2/qwen2.5:1.5b   ← 1回目
-X-Kong-LLM-Model: llama2/tinyllama       ← 2回目
-X-Kong-LLM-Model: llama2/qwen2.5:1.5b   ← 3回目（ラウンドロビンで戻る）
-```
-
-#### 確認手順
-
-```bash
-cd try-my-hand/
-./testAI_GATEWAY.sh   # [11] を選択して3回連続送信
-./testAI_GATEWAY.sh
-./testAI_GATEWAY.sh
-```
-
-3回のリクエストで `X-Kong-LLM-Model` ヘッダーが `qwen2.5:1.5b` → `tinyllama` → `qwen2.5:1.5b` と交互に変わることを確認します。
-
-#### proxy001 との比較
-
-| | proxy001 (`/ai/normal/chat`) | proxy011 (`/ai/advanced/chat`) |
-|---|---|---|
-| プラグイン | ai-proxy | ai-proxy-advanced |
-| モデル | qwen2.5:1.5b 固定 | qwen2.5:1.5b / tinyllama ラウンドロビン |
-| `X-Kong-LLM-Model` | 常に `llama2/qwen2.5:1.5b` | リクエストごとに変わる |
-
-> **発展**: `algorithm` を `round-robin` から `lowest-latency`・`lowest-usage`・`semantic` などに変更することで、応答時間・使用量・リクエスト内容に応じた動的なモデル選択が可能になります。
 
 ---
 

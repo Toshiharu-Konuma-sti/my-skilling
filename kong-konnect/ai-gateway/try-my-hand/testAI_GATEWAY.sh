@@ -44,10 +44,10 @@ select_proxy() {
       qwen2.5:1.5b でリクエストを英語に整形 → qwen2.5:3b へ転送
   [9] ai-response-transformer    → POST ${KONG_PROXY}/ai/restransform/chat
       qwen2.5:1.5b の回答を qwen2.5:1.5b で3点の箇条書きに整形
-  [10] ai-llm-as-judge           → POST ${KONG_PROXY}/ai/judge/chat
-      qwen2.5:1.5b / tinyllama の回答を qwen2.5:3b が 1～100 でスコアリング
-  [11] ai-proxy-advanced         → POST ${KONG_PROXY}/ai/advanced/chat
+  [10] ai-proxy-advanced         → POST ${KONG_PROXY}/ai/advanced/chat
       qwen2.5:1.5b / tinyllama ラウンドロビン
+  [11] ai-llm-as-judge           → POST ${KONG_PROXY}/ai/judge/chat
+      qwen2.5:1.5b / tinyllama の回答を qwen2.5:3b が 1～100 でスコアリング
 
 EOS
   read -rp "番号を入力してください [1-11]: " proxy_num
@@ -62,8 +62,8 @@ EOS
     7)   ENDPOINT="${KONG_PROXY}/ai/decorator/chat";       LABEL="ai-prompt-decorator"          ;;
     8)   ENDPOINT="${KONG_PROXY}/ai/reqtransform/chat";    LABEL="ai-request-transformer"       ;;
     9)   ENDPOINT="${KONG_PROXY}/ai/restransform/chat";    LABEL="ai-response-transformer"      ;;
-    10)  ENDPOINT="${KONG_PROXY}/ai/judge/chat";           LABEL="ai-llm-as-judge"              ;;
-    11)  ENDPOINT="${KONG_PROXY}/ai/advanced/chat";        LABEL="ai-proxy-advanced"            ;;
+    10)  ENDPOINT="${KONG_PROXY}/ai/advanced/chat";        LABEL="ai-proxy-advanced"            ;;
+    11)  ENDPOINT="${KONG_PROXY}/ai/judge/chat";           LABEL="ai-llm-as-judge"              ;;
     *)
       echo "❌ 無効な番号です: '${proxy_num}' (1〜11 を入力してください)"
       exit 1

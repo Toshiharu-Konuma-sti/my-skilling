@@ -59,9 +59,14 @@ echo "${LOGS}" | while IFS= read -r line; do
   # ペイロードが文字列 (fromjson) かどうかを確認してから変換
   REQUEST_RAW=$(echo "${line}" | jq -r '.ai.proxy.payload.request // empty')
   RESPONSE_RAW=$(echo "${line}" | jq -r '.ai.proxy.payload.response // empty')
+  # Kong がブロックした場合の判定用: upstream=LLM側, response=クライアント側
+  UPSTREAM_STATUS=$(echo "${line}" | jq -r '.upstream_status // empty')
+  RESPONSE_STATUS=$(echo "${line}" | jq -r '.response.status // empty')
 
   echo "${line}" | jq --argjson req "$(safe_json "${REQUEST_RAW}")" \
                       --argjson res "$(safe_json "${RESPONSE_RAW}")" \
+                      --argjson ups "${UPSTREAM_STATUS:-null}" \
+                      --argjson rsp "${RESPONSE_STATUS:-null}" \
   '{
     "■ エンドポイント":    .request.uri,
     "■ リクエストID":      .request.id,
@@ -81,8 +86,18 @@ echo "${LOGS}" | while IFS= read -r line; do
       "total_tokens":      .ai.proxy.usage.total_tokens
     },
     "■ LLM 評価スコア":    (.ai.proxy.usage.llm_accuracy // "(対象外)"),
+    "■ HTTP ステータス": {
+      "upstream (LLM→Kong)":  $ups,
+      "response (Kong→client)": $rsp
+    },
     "■ 送信プロンプト":    $req,
-    "■ LLM レスポンス":    (if $res == null then "(ログ未記録 — プレーンテキスト変換後のレスポンスは testAI_GATEWAY.sh の出力を参照)" else $res end)
+    "■ LLM レスポンス":    (
+      if $res != null then $res
+      elif ($ups == 200 and $rsp != null and $rsp >= 400)
+        then ("LLM は HTTP " + ($ups | tostring) + " で回答済み / Kong が " + ($rsp | tostring) + " でブロック（回答本文はログ未記録）")
+      else "(ログ未記録 — プレーンテキスト変換後のレスポンスは testAI_GATEWAY.sh の出力を参照)"
+      end
+    )
   }'
 
   i=$((i + 1))
