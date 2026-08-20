@@ -112,7 +112,7 @@ Kong API Gateway（Data Plane）
 | | judge LLM（回答品質の自動採点） | proxy010 |
 | `tinyllama` | メイン LLM（回答生成） | proxy005 |
 | | ラウンドロビン対象 | proxy010, 011 |
-| `nomic-embed-text` | 埋め込みモデル（ベクトル化） | proxy004（セマンティックプロンプトガード）, proxy005（セマンティックレスポンスガード）, proxy006（セマンティックキャッシュ） |
+| `nomic-embed-text` | 埋め込みモデル（ベクトル化） | proxy004（セマンティックプロンプトガード）, <br>proxy005（セマンティックレスポンスガード）, <br>proxy006（セマンティックキャッシュ） |
 
 
 ---
