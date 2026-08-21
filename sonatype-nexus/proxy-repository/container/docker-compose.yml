@@ -4,7 +4,7 @@ services:
   nexus:
     container_name: nexus
     hostname: nexus
-    image: sonatype/nexus3:latest
+    image: sonatype/nexus3:3.95.1
     environment:
       - INSTALL4J_ADD_VM_PARAMS=-Xms1200m -Xmx1200m -XX:MaxDirectMemorySize=1200m
     volumes:
@@ -43,7 +43,7 @@ services:
   gitlab-runner:
     hostname: gitlab-runner
     container_name: gitlab-runner
-    image: gitlab/gitlab-runner:latest
+    image: gitlab/gitlab-runner:v19.3.0
     networks:
       - internal
     volumes:
