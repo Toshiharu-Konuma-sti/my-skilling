@@ -383,23 +383,23 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 
 - [`java-gradle/build.gradle`](try-my-hand/java-gradle/build.gradle) の `repositories { }` ブロックでプロパティを参照して Nexus のリモートリポジトリ設定します。
 
-  ```groovy
-  // build.gradle
-  repositories {
-      maven {
-          url "${repoManagerUrl}/repository/maven-public/"
-          allowInsecureProtocol = true   // Gradle 7+: HTTP URL を許可するために必須
-          credentials {
-              username = repoManagerUsername
-              password = repoManagerPassword
-          }
-      }
-  }
-  ```
+```groovy
+// build.gradle
+repositories {
+    maven {
+        url "${repoManagerUrl}/repository/maven-public/"
+        allowInsecureProtocol = true   // Gradle 7+: HTTP URL を許可するために必須
+        credentials {
+            username = repoManagerUsername
+            password = repoManagerPassword
+        }
+    }
+}
+```
 
-  > **HTTP 許可設定（`allowInsecureProtocol = true`）**: Gradle 7+ はデフォルトで HTTP URL への認証情報送信をブロックします。  
-  > `repositories {}` と `publishing.repositories {}` の **両方**に指定が必要です。  
-  > 指定がない場合、ビルド時に `Using insecure protocols with repositories...` エラーが発生します。
+> **HTTP 許可設定（`allowInsecureProtocol = true`）**:  
+> Gradle 7+ はデフォルトで HTTP URL への認証情報送信をブロックします。`repositories {}` と `publishing.repositories {}` の **両方**に指定が必要です。  
+> 指定がない場合、ビルド時に `Using insecure protocols with repositories...` エラーが発生します。
 
 #### パブリッシュ時（成果物のアップロード）
 
