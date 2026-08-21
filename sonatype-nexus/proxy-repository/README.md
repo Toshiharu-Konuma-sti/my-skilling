@@ -195,13 +195,7 @@ $ cd java-gradle/
 $ sh BUILD.sh
 ```
 
-- リモートリポジトリの接続設定は、[gradle.properties](try-my-hand/java-gradle/gradle.properties) を確認してください。
-
-  | 設定項目 | 説明 |
-  | :--- | :--- |
-  | `repoManagerUrl` | Nexus のベース URL |
-  | `repoManagerUsername` | 認証ユーザー名 |
-  | `repoManagerPassword` | 認証パスワード |
+- リモートリポジトリの接続設定は、[6-1. Java (Gradle)](#6-1-java-gradle) を確認してください。
 
 - ビルド実行後にキャッシュされたリモートリポジトリは、以下 URL で確認できます。
   - http://localhost:8081/#browse/browse:maven-central
@@ -384,28 +378,28 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | [`try-my-hand/java-gradle/gradle.properties`](try-my-hand/java-gradle/gradle.properties) | `repoManagerUrl` / `repoManagerUsername` / `repoManagerPassword` で Nexus 接続先を指定 |
-| CI/CD | [`try-my-hand/java-gradle/.gitlab-ci.yml`](try-my-hand/java-gradle/.gitlab-ci.yml) | `-PrepoManagerUrl` / `-PrepoManagerUsername` / `-PrepoManagerPassword` フラグで上書き |
+| ローカル | [`java-gradle/gradle.properties`](try-my-hand/java-gradle/gradle.properties) | [`java-gradle/build.gradle`](try-my-hand/java-gradle/build.gradle) のプロパティーを設定<br>- `repoManagerUrl`: Nexus のベース URL<br>- `repoManagerUsername`: 認証ユーザー名<br>- `repoManagerPassword`: 認証パスワード |
+| CI/CD | [`java-gradle/.gitlab-ci.yml`](try-my-hand/java-gradle/.gitlab-ci.yml) | `./gradlew clean build` コマンドの以下バラメータでプロパティを上書き<br>- `-PrepoManagerUrl`: Nexus のベース URL<br>- `-PrepoManagerUsername`: 認証ユーザー名<br>- `-PrepoManagerPassword`: 認証パスワード |
 
-[`try-my-hand/java-gradle/build.gradle`](try-my-hand/java-gradle/build.gradle) の `repositories { }` ブロックがプロパティを参照して Nexus `maven-public` プロキシグループを向きます。
+- [`java-gradle/build.gradle`](try-my-hand/java-gradle/build.gradle) の `repositories { }` ブロックでプロパティを参照して Nexus のリモートリポジトリ設定します。
 
-```groovy
-// build.gradle
-repositories {
-    maven {
-        url "${repoManagerUrl}/repository/maven-public/"
-        allowInsecureProtocol = true   // Gradle 7+: HTTP URL を許可するために必須
-        credentials {
-            username = repoManagerUsername
-            password = repoManagerPassword
-        }
-    }
-}
-```
+  ```groovy
+  // build.gradle
+  repositories {
+      maven {
+          url "${repoManagerUrl}/repository/maven-public/"
+          allowInsecureProtocol = true   // Gradle 7+: HTTP URL を許可するために必須
+          credentials {
+              username = repoManagerUsername
+              password = repoManagerPassword
+          }
+      }
+  }
+  ```
 
-> **HTTP 許可設定（`allowInsecureProtocol = true`）**: Gradle 7+ はデフォルトで HTTP URL への認証情報送信をブロックします。  
-> `repositories {}` と `publishing.repositories {}` の **両方**に指定が必要です。  
-> 指定がない場合、ビルド時に `Using insecure protocols with repositories...` エラーが発生します。
+  > **HTTP 許可設定（`allowInsecureProtocol = true`）**: Gradle 7+ はデフォルトで HTTP URL への認証情報送信をブロックします。  
+  > `repositories {}` と `publishing.repositories {}` の **両方**に指定が必要です。  
+  > 指定がない場合、ビルド時に `Using insecure protocols with repositories...` エラーが発生します。
 
 #### パブリッシュ時（成果物のアップロード）
 
@@ -435,8 +429,8 @@ publishing {
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | [`try-my-hand/java-maven/settings.xml`](try-my-hand/java-maven/settings.xml) | `<mirror>` で全リポジトリを Nexus `maven-public` 経由にルーティング |
-| CI/CD | [`try-my-hand/java-maven/settings-ci.xml`](try-my-hand/java-maven/settings-ci.xml) | 同上。ミラー URL に `${env.NEXUS_URL}` を使用し、GitLab CI 変数から注入 |
+| ローカル | [`java-maven/settings.xml`](try-my-hand/java-maven/settings.xml) | - `/settings/mirrors/mirror/url`: Nexus のベース URL<br>- `/settings/servers/server/username`: 認証ユーザー名<br>- `/settings/servers/server/password`: 認証パスワード |
+| CI/CD | [`java-maven/settings-ci.xml`](try-my-hand/java-maven/settings-ci.xml) | `settings.xml` と同じノードへ以下 GitLab CI/CD 変数から割り当てる<br>- `NEXUS_URL` / `NEXUS_USER` / `NEXUS_PASS` |
 
 ```xml
 <!-- settings-ci.xml -->
@@ -444,6 +438,7 @@ publishing {
   <id>repo-manager</id>
   <mirrorOf>*</mirrorOf>
   <url>${env.NEXUS_URL}/repository/maven-public/</url>
+  <blocked>false</blocked>
 </mirror>
 ```
 
