@@ -37,15 +37,16 @@
      - [4-1-7. Docker](#4-1-7-docker)
    - [4-2. ホステッドリポジトリへ成果物パブリッシュ](#4-2-ホステッドリポジトリへ成果物パブリッシュ)
 5. [清掃手順](#5-清掃手順)
-6. [ビルドツール別 リポジトリマネージャー接続設定リファレンス](#6-ビルドツール別-リポジトリマネージャー接続設定リファレンス)
-   - [HTTP 接続・認証情報送信ポリシーの比較](#http-接続認証情報送信ポリシーの比較)
-   - [6-1. Java (Gradle)](#6-1-java-gradle)
-   - [6-2. Java (Maven)](#6-2-java-maven)
-   - [6-3. JavaScript (npm)](#6-3-javascript-npm)
-   - [6-4. Python (pip)](#6-4-python-pip)
-   - [6-5. Python (uv)](#6-5-python-uv)
-   - [6-6. Go (modules)](#6-6-go-modules)
-   - [6-7. Docker](#6-7-docker)
+6. [6. 言語・ツール別 リポジトリマネージャー設定](#6-言語ツール別-リポジトリマネージャー設定)
+   - [6-1. HTTP 接続・認証情報送信ポリシーの比較](#6-1-http-接続認証情報送信ポリシーの比較)
+   - [6-2. 言語・ツール別の説明](#6-2-言語ツール別の説明)
+     - [6-2-1. Java (Gradle)](#6-2-1-java-gradle)
+     - [6-2-2. Java (Maven)](#6-2-2-java-maven)
+     - [6-2-3. JavaScript (npm)](#6-2-3-javascript-npm)
+     - [6-2-4. Python (pip)](#6-2-4-python-pip)
+     - [6-2-5. Python (uv)](#6-2-5-python-uv)
+     - [6-2-6. Go (modules)](#6-2-6-go-modules)
+     - [6-2-7. Docker](#6-2-7-docker)
 
 ---
 
@@ -372,7 +373,7 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 
 ---
 
-## 6. ビルドツール別 リポジトリマネージャー接続設定リファレンス
+## 6. 言語・ツール別 リポジトリマネージャー設定
 
 各ビルドツールで Nexus リポジトリマネージャーを利用する際の **「設定箇所」** を整理したリファレンスです。  
 ローカル実行（`BUILD.sh`）と CI/CD（`.gitlab-ci.yml`）の両方を記載します。
@@ -382,7 +383,7 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 > しかし、Nexus の **ユーザートークン機能（User Tokens）は Pro（有償版）専用の機能** であり、本環境で使用している **OSS（無償版）では利用できません**。  
 > そのため、本ハンズオン環境ではユーザー名（`admin`）とパスワード（`password`）による Basic 認証を採用しています。
 
-### HTTP 接続・認証情報送信ポリシーの比較
+### 6-1. HTTP 接続・認証情報送信ポリシーの比較
 
 本環境の Nexus は **HTTP**（HTTPS なし）で動作しています。  
 各ビルドツールの HTTP に対する挙動は「**HTTP 接続自体の可否**」と「**HTTP 経由での認証情報送信の可否**」の 2 つの観点で異なります。
@@ -399,9 +400,11 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 
 ---
 
-### 6-1. Java (Gradle)
+### 6-2. 言語・ツール別の説明
 
-#### ビルド時（依存関係の取得）
+### 6-2-1. Java (Gradle)
+
+##### ビルド時（依存関係の取得）
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
@@ -428,7 +431,7 @@ repositories {
 > Gradle 7+ はデフォルトで HTTP URL への認証情報送信をブロックします。`repositories {}` と `publishing.repositories {}` の **両方**に指定が必要です。  
 > 指定がない場合、ビルド時に `Using insecure protocols with repositories...` エラーが発生します。
 
-#### パブリッシュ時（成果物のアップロード）
+##### パブリッシュ時（成果物のアップロード）
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
@@ -450,9 +453,9 @@ publishing {
 
 ---
 
-### 6-2. Java (Maven)
+#### 6-2-2. Java (Maven)
 
-#### ビルド時（依存関係の取得）
+##### ビルド時（依存関係の取得）
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
@@ -483,7 +486,7 @@ publishing {
 > Maven 3.8.1+ では、標準で組み込まれている `maven-default-http-blocker`（`<mirrorOf>external:http:*</mirrorOf>` + `<blocked>true</blocked>`）により、外部への HTTP リポジトリ接続が強制的に遮断されます。  
 > デモ環境では、`repo-manager`（`<mirrorOf>*</mirrorOf>` + `<blocked>false</blocked>`）にて全リポジトリへの接続を許可する定義をして、`maven-default-http-blocker` の隠しルールを打ち消しているため、Nexus へ HTTP 接続ができています。  
 
-#### パブリッシュ時（成果物のアップロード）
+##### パブリッシュ時（成果物のアップロード）
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
@@ -501,9 +504,9 @@ publishing {
 
 ---
 
-### 6-3. JavaScript (npm)
+#### 6-2-3. JavaScript (npm)
 
-#### ビルド時（依存関係の取得）
+##### ビルド時（依存関係の取得）
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
@@ -524,7 +527,7 @@ always-auth=true
 > HTTP の Nexus に対して `Authorization` ヘッダを送るには `always-auth = true` が必須です。  
 > この設定がない場合、Nexus が 401 を返し `npm install` が失敗します。
 
-#### パブリッシュ時（成果物のアップロード）
+##### パブリッシュ時（成果物のアップロード）
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
@@ -540,9 +543,9 @@ script:
 
 ---
 
-### 6-4. Python (pip)
+#### 6-2-4. Python (pip)
 
-#### ビルド時（依存関係の取得）
+##### ビルド時（依存関係の取得）
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
@@ -563,7 +566,7 @@ trusted-host = nexus.local
 > `--trusted-host` は、アクセスするホストを例外的に信頼済みとしてセキュリティチェックを免除する設定です。  
 > これにより、HTTPS 接続時の SSL/TLS 証明書の検証をスキップするほか、非暗号化通信（HTTP）での接続を許可します。
 
-#### パブリッシュ時（成果物のアップロード）
+##### パブリッシュ時（成果物のアップロード）
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
@@ -583,9 +586,9 @@ script:
 
 ---
 
-### 6-5. Python (uv)
+#### 6-2-5. Python (uv)
 
-#### ビルド時（依存関係の取得）
+##### ビルド時（依存関係の取得）
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
@@ -601,7 +604,7 @@ url = "http://admin:password@nexus.local:8081/repository/pypi-proxy/simple/"
 default = true
 ```
 
-#### パブリッシュ時（成果物のアップロード）
+##### パブリッシュ時（成果物のアップロード）
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
@@ -620,9 +623,9 @@ script:
 
 ---
 
-### 6-6. Go (modules)
+#### 6-2-6. Go (modules)
 
-#### ビルド時（依存関係の取得）
+##### ビルド時（依存関係の取得）
 
 > **制約**: Go 1.21+ はセキュリティ上、HTTP エンドポイントへの認証情報送信を拒否します。  
 > ローカル・CI/CD ともに [`nexus_go_proxy.py`](try-my-hand/go-modules/nexus_go_proxy.py) による **HTTPS ブリッジ** を経由して Nexus にアクセスします。
@@ -648,7 +651,7 @@ Go コマンド (HTTPS)
 - export SSL_CERT_FILE="/tmp/ca-bundle.crt"
 ```
 
-#### パブリッシュ時（Git タグの作成）
+##### パブリッシュ時（Git タグの作成）
 
 > **補足**: Nexus は **Go ホステッドリポジトリを提供していません**。  
 > Go モジュールの配布は Maven/npm/PyPI のようなバイナリアップロードではなく、  
@@ -671,9 +674,9 @@ script:
 
 ---
 
-### 6-7. Docker
+#### 6-2-7. Docker
 
-#### イメージ取得時（`docker pull`）
+##### イメージ取得時（`docker pull`）
 
 Docker クライアントは、HTTP レジストリへのアクセスをデフォルトで拒否します。  
 Nexus の `docker-hub-proxy` は HTTP（port: `8085`）で動作しているため、Docker デーモンへの明示的な許可設定が必要です。
@@ -709,7 +712,7 @@ docker pull nexus.local:8085/alpine:latest
 > 通常の `docker pull alpine:latest` は Docker Hub に直接アクセスしますが、  
 > `docker pull nexus.local:8085/alpine:latest` とすることで Nexus の `docker-hub-proxy` 経由で取得されます。
 
-#### パブリッシュ時（`docker push`）
+##### パブリッシュ時（`docker push`）
 
 > **補足**: 本環境では Docker ホステッドリポジトリは構築対象外です。  
 > `docker push` を Nexus 経由で行う場合は、Nexus に `docker-hosted` タイプのリポジトリを別途作成し、専用ポートを割り当てる必要があります。
