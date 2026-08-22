@@ -20,11 +20,14 @@
 
 1. [はじめに](#1-はじめに)
 2. [環境説明](#2-環境説明)
-3. [体験環境の構築手順](#3-体験環境の構築手順)
+3. [環境構築](#3-環境構築)
    - [3-2. コンテナ構築](#3-2-コンテナ構築)
-   - [3-3. Nexus 初期設定](#3-3-nexus-初期設定)
+   - [3-3. 初期設定](#3-3-初期設定)
+     - [3-3-1. Nexus 初期設定](#3-3-1-nexus-初期設定)
+     - [3-3-2. GitLab 初期設定](#3-3-2-gitlab-初期設定)
+   - [3-4. 言語・ツール別 Nexus リポジトリ名一覧](#3-4-言語ツール別-nexus-リポジトリ名一覧)
 4. [体験](#4-体験)
-   - [4-1. リモートリポジトリを介したローカルビルド](#4-1-リモートリポジトリを介したローカルビルド)
+   - [4-1. プロキシリポジトリを介したローカルビルド](#4-1-プロキシリポジトリを介したローカルビルド)
      - [4-1-1. Java (Gradle)](#4-1-1-java-gradle)
      - [4-1-2. Java (Maven)](#4-1-2-java-maven)
      - [4-1-3. JavaScript (npm)](#4-1-3-javascript-npm)
@@ -32,10 +35,10 @@
      - [4-1-5. Python (uv)](#4-1-5-python-uv)
      - [4-1-6. Go (modules)](#4-1-6-go-modules)
      - [4-1-7. Docker](#4-1-7-docker)
+   - [4-2. ホステッドリポジトリへ成果物パブリッシュ](#4-2-ホステッドリポジトリへ成果物パブリッシュ)
 5. [清掃手順](#5-清掃手順)
 6. [ビルドツール別 リポジトリマネージャー接続設定リファレンス](#6-ビルドツール別-リポジトリマネージャー接続設定リファレンス)
    - [HTTP 接続・認証情報送信ポリシーの比較](#http-接続認証情報送信ポリシーの比較)
-   - [言語・ツール別 Nexus リポジトリ名一覧](#言語ツール別-nexus-リポジトリ名一覧)
    - [6-1. Java (Gradle)](#6-1-java-gradle)
    - [6-2. Java (Maven)](#6-2-java-maven)
    - [6-3. JavaScript (npm)](#6-3-javascript-npm)
@@ -50,11 +53,11 @@
 
 [Sonatype Nexus Repository](https://www.sonatype.com/products/sonatype-nexus-repository) を使い、**リポジトリマネージャー（アーティファクトリー）** の役割と使い方を体験するためのハンズオン環境です。
 
-各言語・ビルドツールから Nexus をリモートリポジトリとして参照し、依存関係のパッケージを Nexus 経由で取得する体験ができます。Nexus のプロキシリポジトリにパッケージがキャッシュされる様子を確認することで、リポジトリマネージャーがどのように機能するかを実感できます。
+各言語・ビルドツールから Nexus をプロキシリポジトリとして参照し、依存関係のパッケージを Nexus 経由で取得する体験ができます。Nexus のプロキシリポジトリにパッケージがキャッシュされる様子を確認することで、リポジトリマネージャーがどのように機能するかを実感できます。
 
 | 体験できること |
 | :--- |
-| Nexus をリモートリポジトリとして各言語のビルドツールから参照する |
+| Nexus をプロキシリポジトリとして各言語のビルドツールから参照する |
 | 各言語における認証情報（ユーザー名・パスワード）の設定方法を理解する |
 | Nexus のプロキシリポジトリにパッケージがキャッシュされる仕組みを理解する |
 | Docker Hub のイメージを Nexus 経由で取得する |
@@ -89,7 +92,7 @@ Nexus には以下のリポジトリが構築されます。
 
 ---
 
-## 3. 体験環境の構築手順
+## 3. 環境構築
 
 ### 3-1. リポジトリ取得
 
@@ -128,13 +131,15 @@ $ cd ~/development/my-skilling/sonatype-nexus/proxy-repository/container/
    $ ./CREATE_CONTAINER.sh
    ```
 
-### 3-3. Nexus 初期設定
+### 3-3. 初期設定
 
 `setup/` ディレクトリに移り、以下のスクリプトを順番に実行します。
 
 ```bash
 $ cd ~/development/my-skilling/sonatype-nexus/proxy-repository/setup/
 ```
+
+### 3-3-1. Nexus 初期設定
 
 1. admin の初期パスワードを変更します。
 
@@ -172,6 +177,24 @@ $ cd ~/development/my-skilling/sonatype-nexus/proxy-repository/setup/
      | pypi-hosted | pypi | hosted | ─ | ─ |
      | go-proxy | go | proxy | https://proxy.golang.org | ─ |
 
+### 3-3-2. GitLab 初期設定
+
+**>>> under constraction <<<**
+
+
+
+### 3-4. 言語・ツール別 Nexus リポジトリ名一覧
+
+| 言語 / ツール | プロキシリポジトリ（ビルド時） | ホステッドリポジトリ（パブリッシュ時） |
+| :--- | :--- | :--- |
+| Java (Gradle) | `maven-public` | `maven-releases` |
+| Java (Maven) | `maven-public` | `maven-releases` |
+| JavaScript (npm) | `npm-proxy` | `npm-hosted` |
+| Python (pip) | `pypi-proxy` | `pypi-hosted` |
+| Python (uv) | `pypi-proxy` | `pypi-hosted` |
+| Go (modules) | `go-proxy` | ※ Git タグ（Nexus に hosted なし） |
+| Docker | `docker-hub-proxy` | ※ 本環境では Docker hosted は対象外 |
+
 ---
 
 ## 4. 体験
@@ -184,38 +207,38 @@ $ cd ~/development/my-skilling/sonatype-nexus/proxy-repository/try-my-hand/
 
 各言語の接続設定ファイルを確認し、Nexus の URL・認証情報が正しいことを確認してから実行してください。
 
-### 4-1. リモートリポジトリを介したローカルビルド
+### 4-1. プロキシリポジトリを介したローカルビルド
 
 #### 4-1-1. Java (Gradle)
 
-`java-gradle/` は Spring Boot を使わないシンプルな Java アプリで、Nexus のリモートリポジトリ経由で依存関係の取得とビルドを体験できます。
+`java-gradle/` は Spring Boot を使わないシンプルな Java アプリで、Nexus のプロキシリポジトリ経由で依存関係の取得とビルドを体験できます。
 
 ```bash
 $ cd java-gradle/
 $ sh BUILD.sh
 ```
 
-- リモートリポジトリへの接続設定は、[6-1. Java (Gradle)](#6-1-java-gradle) を確認してください。
-- ビルド実行後にキャッシュされたリモートリポジトリは、以下 URL で確認できます。
+- プロキシリポジトリへの接続設定は、[6-1. Java (Gradle)](#6-1-java-gradle) を確認してください。
+- ビルド実行後にキャッシュされたプロキシリポジトリは、以下 URL で確認できます。
   - http://localhost:8081/#browse/browse:maven-central
 
 #### 4-1-2. Java (Maven)
 
-`java-maven/` は Spring Boot を使わないシンプルな Java アプリで、Nexus のリモートリポジトリ経由で依存関係の取得とビルドを体験できます。
+`java-maven/` は Spring Boot を使わないシンプルな Java アプリで、Nexus のプロキシリポジトリ経由で依存関係の取得とビルドを体験できます。
 
 ```bash
 $ cd java-maven/
 $ sh BUILD.sh
 ```
 
-- リモートリポジトリへの接続設定は、[6-2. Java (Maven)](#6-2-java-maven) を確認してください。
-- ビルド実行後にキャッシュされたリモートリポジトリは、以下 URL で確認できます。
+- プロキシリポジトリへの接続設定は、[6-2. Java (Maven)](#6-2-java-maven) を確認してください。
+- ビルド実行後にキャッシュされたプロキシリポジトリは、以下 URL で確認できます。
   - http://localhost:8081/#browse/browse:maven-central
 
 
 #### 4-1-3. JavaScript (npm)
 
-`js-npm/` は JavaScript アプリで、Nexus のリモートリポジトリ経由で依存関係の取得とビルドを体験できます。
+`js-npm/` は JavaScript アプリで、Nexus のプロキシリポジトリ経由で依存関係の取得とビルドを体験できます。
 
 ```bash
 $ cd js-npm/
@@ -223,44 +246,44 @@ $ npm install
 $ node app.js
 ```
 
-- リモートリポジトリへの接続設定は、[6-3. JavaScript (npm)](#6-3-javascript-npm) を確認してください。
-- ビルド実行後にキャッシュされたリモートリポジトリは、以下 URL で確認できます。
+- プロキシリポジトリへの接続設定は、[6-3. JavaScript (npm)](#6-3-javascript-npm) を確認してください。
+- ビルド実行後にキャッシュされたプロキシリポジトリは、以下 URL で確認できます。
   - http://localhost:8081/#browse/browse:npm-proxy
 
 #### 4-1-4. Python (pip)
 
-`python-pip/` は Python アプリで、標準ツールの `pip` を使い、Nexus のリモートリポジトリ経由で依存関係の取得と実行を体験できます。
+`python-pip/` は Python アプリで、標準ツールの `pip` を使い、Nexus のプロキシリポジトリ経由で依存関係の取得と実行を体験できます。
 
 ```bash
 $ cd python-pip/
 $ sh BUILD.sh
 ```
 
-- リモートリポジトリへの接続設定は、[6-4. Python (pip)](#6-4-python-pip) を確認してください。
-- ビルド実行後にキャッシュされたリモートリポジトリは、以下 URL で確認できます。
+- プロキシリポジトリへの接続設定は、[6-4. Python (pip)](#6-4-python-pip) を確認してください。
+- ビルド実行後にキャッシュされたプロキシリポジトリは、以下 URL で確認できます。
   - http://localhost:8081/#browse/browse:pypi-proxy
 
 #### 4-1-5. Python (uv)
 
-`python-uv/` は Python アプリで、Rust製の高速パッケージ管理ツール `uv` を使い、Nexus のリモートリポジトリ経由で依存関係の取得と実行を体験できます。
+`python-uv/` は Python アプリで、Rust製の高速パッケージ管理ツール `uv` を使い、Nexus のプロキシリポジトリ経由で依存関係の取得と実行を体験できます。
 
 ```bash
 $ cd python-uv/
 $ sh BUILD.sh
 ```
 
-- リモートリポジトリの接続設定は、[uv.toml](try-my-hand/python-uv/uv.toml) を確認してください。
+- プロキシリポジトリの接続設定は、[uv.toml](try-my-hand/python-uv/uv.toml) を確認してください。
   | 設定項目 | 説明 |
   | :--- | :--- |
-  | `[[index]] > url` | Nexus の npm リモートリポジトリ URL |
+  | `[[index]] > url` | Nexus の npm プロキシリポジトリ URL |
   - 簡略化のため `url` 内に `http(s)://{username}:{password}@host/`」形式で認証情報を埋めているが、実運用では `~/.netrc` の設定を推奨します。
 
-- ビルド実行後にキャッシュされたリモートリポジトリは、以下 URL で確認できます。
+- ビルド実行後にキャッシュされたプロキシリポジトリは、以下 URL で確認できます。
   - http://localhost:8081/#browse/browse:pypi-proxy
 
 #### 4-1-6. Go (modules)
 
-`go-modules/` は Go アプリで、Nexus のリモートリポジトリ経由で依存関係の取得とビルドを体験できます。
+`go-modules/` は Go アプリで、Nexus のプロキシリポジトリ経由で依存関係の取得とビルドを体験できます。
 
 ```bash
 $ cd go-modules/
@@ -268,7 +291,7 @@ $ sh BUILD.sh
 $ sh BUILD.sh ano
 ```
 
-- リモートリポジトリの設定情報は、[BUILD.sh](try-my-hand/go-modules/BUILD.sh)
+- プロキシリポジトリの設定情報は、[BUILD.sh](try-my-hand/go-modules/BUILD.sh)
 で `GOPROXY` 環境変数への設定を確認してください。
   - 簡略化のため `GOPROXY` 内に `http(s)://{username}:{password}@host/`」形式で認証情報を埋めているが、実運用では `~/.netrc` の設定を推奨します。
 
@@ -276,13 +299,54 @@ $ sh BUILD.sh ano
 
   > **Note**: Go 1.21+ はセキュリティ上 HTTP への認証情報送信を禁止しています。認証情報を使って Nexus にアクセスするには HTTPS で送信が必要なため、`BUILD.sh` は **HTTPS ブリッジ** を経由して Nexus に接続します。一方、Nexus リポジトリを匿名アクセス可能な設定にすれば、認証情報なしの HTTP で接続が可能なため、`GOPROXY` に Nexus の HTTP URL を指定して接続します（`BUILD.sh ano` がこの方式で動作します）。
 
-- ビルド実行後にキャッシュされたリモートリポジトリは、以下 URL で確認できます。
+- ビルド実行後にキャッシュされたプロキシリポジトリは、以下 URL で確認できます。
   - http://localhost:8081/#browse/browse:go-proxy
 
 
 ### 4-1-7. Docker
 
 Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する体験は [try-my-hand/docker/README.md](try-my-hand/docker/README.md) を参照してください。
+
+## 4-2. ホステッドリポジトリへ成果物パブリッシュ
+
+| 言語 / ツール | リポジトリ | URL |
+| :--- | :--- | :--- |
+| Java (Gradle) | GitLab | http://localhost:13000/my-hands-on-group/java-gradle |
+| | Nexus | http://localhost:8081/#browse/browse:maven-releases |
+| Java (Maven) | GitLab | http://localhost:13000/my-hands-on-group/java-maven |
+| | Nexus | http://localhost:8081/#browse/browse:maven-releases |
+| JavaScript (npm) | GitLab | http://localhost:13000/my-hands-on-group/js-npm |
+| | Nexus | http://localhost:8081/#browse/browse:npm-hosted |
+| Python (pip) | GitLab | http://localhost:13000/my-hands-on-group/python-pip |
+| | Nexus | http://localhost:8081/#browse/browse:pypi-hosted |
+| Python (uv) | GitLab | http://localhost:13000/my-hands-on-group/python-uv |
+| | Nexus | http://localhost:8081/#browse/browse:pypi-hosted |
+| Go (modules) | GitLab | http://localhost:13000/my-hands-on-group/go-modules |
+| | Nexus | |
+| Docker | GitLab |  |
+| | Nexus | |
+
+上記の URL を対象に各言語やツールで成果物のパブリッシュを確認します。
+
+1. 各言語の GitLab リポジトリの URL へブラウザでアクセスします。
+
+1. 左メインのメニュー「Merge requests」でマージリクエスト画面に遷移したら、「New merge request」ボタンをクリックします。
+
+1. Source branch と Target branch がありますが、Source branch 側の「Select source branch」で「feature/sample」を選んだら「Compare branches and continue」ボタンをクリックしてマージリクエストの作成に遷移します。
+
+1. New merge request 画面へ遷移したら「Create merge request」ボタンをクリックしてマージリクエストを作成します。
+
+1. 「Merge」ボタンをクリックして main ブランチへマージします。
+
+1. 左ペインのメニューから「Build > Pipelines」でパイプライン一覧に遷移します。
+
+1. パイプライン一覧で Status 列のラベルをクリックします。
+
+1. 「build」と「publish」のステージがありますが、両方とも「Passed」になったことを確認します。
+
+1. Nexus リポジトリの URL へブラウザでアクセスします。
+
+1. 成果物（アーティファクト）が Nexus のホステッドリポジトリに保存されたことを確認します。
 
 ---
 
@@ -333,18 +397,6 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 | Go (modules) | **可能**| **ブロック** | HTTP 接続で認証情報を送信許可する方法なし<br>（本環境は HTTPS ブリッジ（`nexus_go_proxy.py`）で回避） |
 | Docker | **ブロック** | ─（HTTP 許可で送信可） | `insecure-registries` にドメイン指定し HTTP 接続を許可 |
 
-### 言語・ツール別 Nexus リポジトリ名一覧
-
-| 言語 / ツール | プロキシリポジトリ（ビルド時） | ホステッドリポジトリ（パブリッシュ時） |
-| :--- | :--- | :--- |
-| Java (Gradle) | `maven-public` | `maven-releases` |
-| Java (Maven) | `maven-public` | `maven-releases` |
-| JavaScript (npm) | `npm-proxy` | `npm-hosted` |
-| Python (pip) | `pypi-proxy` | `pypi-hosted` |
-| Python (uv) | `pypi-proxy` | `pypi-hosted` |
-| Go (modules) | `go-proxy` | ※ Git タグ（Nexus に hosted なし） |
-| Docker | `docker-hub-proxy` | ※ 本環境では Docker hosted は対象外 |
-
 ---
 
 ### 6-1. Java (Gradle)
@@ -356,7 +408,7 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 | ローカル | [`java-gradle/gradle.properties`](try-my-hand/java-gradle/gradle.properties) | [`java-gradle/build.gradle`](try-my-hand/java-gradle/build.gradle) のプロパティーを設定<br>- `repoManagerUrl`: Nexus のベース URL<br>- `repoManagerUsername`: 認証ユーザー名<br>- `repoManagerPassword`: 認証パスワード |
 | CI/CD | [`java-gradle/.gitlab-ci.yml`](try-my-hand/java-gradle/.gitlab-ci.yml) | `./gradlew clean build` コマンドの以下バラメータでプロパティを上書き<br>- `-PrepoManagerUrl`: Nexus のベース URL<br>- `-PrepoManagerUsername`: 認証ユーザー名<br>- `-PrepoManagerPassword`: 認証パスワード |
 
-- [`java-gradle/build.gradle`](try-my-hand/java-gradle/build.gradle) の `repositories { }` ブロックでプロパティを参照して Nexus のリモートリポジトリ設定します。
+- [`java-gradle/build.gradle`](try-my-hand/java-gradle/build.gradle) の `repositories { }` ブロックでプロパティを参照して Nexus のプロキシリポジトリ設定します。
 
 ```groovy
 // build.gradle
@@ -404,7 +456,7 @@ publishing {
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | [`java-maven/settings.xml`](try-my-hand/java-maven/settings.xml) | - `/settings/mirrors/mirror/url`: Nexus のリモートリポジトリ URL<br>- `/settings/servers/server/username`: 認証ユーザー名<br>- `/settings/servers/server/password`: 認証パスワード |
+| ローカル | [`java-maven/settings.xml`](try-my-hand/java-maven/settings.xml) | - `/settings/mirrors/mirror/url`: Nexus のプロキシリポジトリ URL<br>- `/settings/servers/server/username`: 認証ユーザー名<br>- `/settings/servers/server/password`: 認証パスワード |
 | CI/CD | [`java-maven/settings-ci.xml`](try-my-hand/java-maven/settings-ci.xml) | `settings.xml` と同じノードへ以下 GitLab CI/CD 変数から割り当てる<br>- `NEXUS_URL` / `NEXUS_USER` / `NEXUS_PASS` |
 
 - `/settings/mirrors/mirros/id` と `/settings/servers/server/id` の値は一致する必要があります。
@@ -455,7 +507,7 @@ publishing {
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | [`js-npm/.npmrc`](try-my-hand/js-npm/.npmrc) | -`registry`:  Nexus のリモートリポジトリ URL<br>- `_auth`: `$ echo -n "user:pass" \| base64` で生成した Base64 認証情報 |
+| ローカル | [`js-npm/.npmrc`](try-my-hand/js-npm/.npmrc) | -`registry`:  Nexus のプロキシリポジトリ URL<br>- `_auth`: `$ echo -n "user:pass" \| base64` で生成した Base64 認証情報 |
 | CI/CD | [`js-npm/.gitlab-ci.yml`](try-my-hand/js-npm/.gitlab-ci.yml) | `before_script` で `.npmrc` を動的生成 |
 
 ```ini
@@ -494,11 +546,11 @@ script:
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | [`python-pip/pip.conf`](try-my-hand/python-pip/pip.conf) | - `index-url`: Nexus のリモートリポジトリ URL |
-| CI/CD | [`python-pip/.gitlab-ci.yml`](try-my-hand/python-pip/.gitlab-ci.yml) | `build.script` で、以下オプションを指定して `pip install` を実行<br>- `--index-url`: Nexus のリモートリポジトリ URL |
+| ローカル | [`python-pip/pip.conf`](try-my-hand/python-pip/pip.conf) | - `index-url`: Nexus のプロキシリポジトリ URL |
+| CI/CD | [`python-pip/.gitlab-ci.yml`](try-my-hand/python-pip/.gitlab-ci.yml) | `build.script` で、以下オプションを指定して `pip install` を実行<br>- `--index-url`: Nexus のプロキシリポジトリ URL |
 
 - 簡略化のため認証情報を `index-url` 内に `http(s)://{username}:{password}@host/` 形式で埋めているが、実運用では `~/.netrc` の設定を推奨します。
-- ローカルのビルド時には、`PIP_CONFIG_FILE` 環境変数に接続設定ファイル（`pip.conf`）のパスを指定して `pip install` を実行することで、リモートリポジトリ経由で依存パッケージを取得しています。
+- ローカルのビルド時には、`PIP_CONFIG_FILE` 環境変数に接続設定ファイル（`pip.conf`）のパスを指定して `pip install` を実行することで、プロキシリポジトリ経由で依存パッケージを取得しています。
 
 ```ini
 # pip.conf
@@ -537,8 +589,8 @@ script:
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | [`python-uv/uv.toml`](try-my-hand/python-uv/uv.toml) | - '[[index]] > url': Nexus のリモートリポジトリ URL<br>- 'default': 'true' で公式 PyPI（pypi.org）の自動参照を無効化し、指定した Nexus を最優先取得先に設定 |
-| CI/CD | [`python-uv/.gitlab-ci.yml`](try-my-hand/python-uv/.gitlab-ci.yml) | `default.before_script` で環境変数を設定し、`uv.toml` の `[[index]]` を上書き<br>- `UV_DEFAULT_INDEX`: Nexus のリモートリポジトリ URL |
+| ローカル | [`python-uv/uv.toml`](try-my-hand/python-uv/uv.toml) | - '[[index]] > url': Nexus のプロキシリポジトリ URL<br>- 'default': 'true' で公式 PyPI（pypi.org）の自動参照を無効化し、指定した Nexus を最優先取得先に設定 |
+| CI/CD | [`python-uv/.gitlab-ci.yml`](try-my-hand/python-uv/.gitlab-ci.yml) | `default.before_script` で環境変数を設定し、`uv.toml` の `[[index]]` を上書き<br>- `UV_DEFAULT_INDEX`: Nexus のプロキシリポジトリ URL |
 
 - 簡略化のため認証情報を `[[index]] > url` 内に `http(s)://{username}:{password}@host/` 形式で埋めているが、実運用では `~/.netrc` の設定を推奨します。
 
