@@ -417,7 +417,7 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 | :--- | :--- | :--- |
 | ローカル | [`java-gradle/gradle.properties`](try-my-hand/java-gradle/gradle.properties) |- `repoManagerUrl`: Nexus のベース URL<br>- `repoManagerUsername`: 認証ユーザー名<br>- `repoManagerPassword`: 認証パスワード |
 | | [`java-gradle/build.gradle`](try-my-hand/java-gradle/build.gradle) | - `repositories.maven.url`: `repoManagerUrl` + リポジトリパス |
-| CI/CD | [`java-gradle/.gitlab-ci.yml`](try-my-hand/java-gradle/.gitlab-ci.yml) | `./gradlew clean build` コマンドの以下バラメータでプロパティを上書き<br>- `-PrepoManagerUrl`: Nexus のベース URL<br>- `-PrepoManagerUsername`: 認証ユーザー名<br>- `-PrepoManagerPassword`: 認証パスワード |
+| CI/CD | [`java-gradle/.gitlab-ci.yml`](try-my-hand/java-gradle/.gitlab-ci.yml) | `./gradlew clean build` コマンドの以下バラメータでプロパティを上書き<br>- `-P repoManagerUrl`: Nexus のベース URL<br>- `-P repoManagerUsername`: 認証ユーザー名<br>- `-P repoManagerPassword`: 認証パスワード |
 
 - [`java-gradle/build.gradle`](try-my-hand/java-gradle/build.gradle) の `repositories { }` ブロックでプロパティを参照して Nexus のプロキシリポジトリ設定します。
 
@@ -468,7 +468,7 @@ publishing {
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
 | ローカル | [`java-maven/settings.xml`](try-my-hand/java-maven/settings.xml) | - `/settings/mirrors/mirror/url`: Nexus のプロキシリポジトリ URL<br>- `/settings/servers/server/username`: 認証ユーザー名<br>- `/settings/servers/server/password`: 認証パスワード |
-| CI/CD | [`java-maven/settings-ci.xml`](try-my-hand/java-maven/settings-ci.xml) | `settings.xml` と同じノードへ以下 GitLab CI/CD 変数から割り当てる<br>- `NEXUS_URL` / `NEXUS_USER` / `NEXUS_PASS` |
+| CI/CD | [`java-maven/settings-ci.xml`](try-my-hand/java-maven/settings-ci.xml) | GitLab CI/CD 変数から割り当たる<br>- `/settings/mirrors/mirror/url`: `NEXUS_URL` 変数<br>- `settings/servers/server/username`: `NEXUS_USER` 変数<br>- `/settings/servers/server/password`: `NEXUS_PASS` 変数<br>- `/settings/profiles/profile/properties/nexus.url`: `NEXUS_URL` 変数 |
 
 - `/settings/mirrors/mirros/id` と `/settings/servers/server/id` の値は一致する必要があります。
 
@@ -498,7 +498,7 @@ publishing {
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル / CI/CD | [`try-my-hand/java-maven/pom.xml`](try-my-hand/java-maven/pom.xml) | `<distributionManagement>` でアップロード先を定義。CI では `-Dnexus.url` で URL を上書き |
+| CI/CD | [`java-maven/pom.xml`](try-my-hand/java-maven/pom.xml) | `setting-ci.xml` から割り当たる<br>- `/project/distributionManagement/repository/url`: `nexus.url` + リポジトリパス |
 
 ```xml
 <!-- pom.xml -->

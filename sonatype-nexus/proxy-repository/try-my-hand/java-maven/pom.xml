@@ -13,8 +13,7 @@
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <!-- ローカルビルド時のデフォルト Nexus URL（CI では -Dnexus.url で上書き） -->
-    <nexus.url>http://nexus.local:8081</nexus.url>
+    <!-- nexus.url は settings.xml (local) または settings-ci.xml (CI) の profile で定義 -->
   </properties>
 
   <distributionManagement>

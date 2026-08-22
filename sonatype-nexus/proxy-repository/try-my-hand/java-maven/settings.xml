@@ -19,6 +19,29 @@
       <username>admin</username>
       <password>password</password>
     </server>
+    <server>
+      <id>nexus-releases</id>
+      <username>admin</username>
+      <password>password</password>
+    </server>
+    <server>
+      <id>nexus-snapshots</id>
+      <username>admin</username>
+      <password>password</password>
+    </server>
   </servers>
+
+  <profiles>
+    <profile>
+      <id>nexus-local</id>
+      <properties>
+        <nexus.url>http://nexus.local:8081</nexus.url>
+      </properties>
+    </profile>
+  </profiles>
+
+  <activeProfiles>
+    <activeProfile>nexus-local</activeProfile>
+  </activeProfiles>
 
 </settings>
