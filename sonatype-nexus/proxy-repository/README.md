@@ -54,7 +54,7 @@
 
 [Sonatype Nexus Repository](https://www.sonatype.com/products/sonatype-nexus-repository) を使い、リポジトリマネージャーの役割と具体的な活用方法を体験するハンズオン環境です。
 
-各種ビルドツールからのプロキシ参照から、GitLab CI/CD を用いたパブリッシュまで、実践的な開発フローを通じて Nexus がどのように機能するかを体感していただけます。
+各種ビルドツールからのプロキシ参照から、GitLab CI/CD を用いたパブリッシュまで、Nexus がどのように機能するかを体感していただけます。
 
 **体験できること**
 
