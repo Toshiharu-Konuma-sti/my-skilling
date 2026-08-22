@@ -209,15 +209,7 @@ $ cd java-maven/
 $ sh BUILD.sh
 ```
 
-- リモートリポジトリの接続設定は、[settings.xml](try-my-hand/java-maven/settings.xml) を確認してください。
-
-  | 設定項目 | 説明 |
-  | :--- | :--- |
-  | `/settings/mirrors/mirror/url` | Nexus のベース URL |
-  | `/settings/servers/server/username` | 認証ユーザー名 |
-  | `/settings/servers/server/password` | 認証パスワード |
-
-  - `/settings/mirrors/mirros/id` と `/settings/servers/server/id` の値は一致する必要があります。
+- リモートリポジトリの接続設定は、[6-2. Java (Maven)](#6-2-java-maven) を確認してください。
 
 - ビルド実行後にキャッシュされたリモートリポジトリは、以下 URL で確認できます。
   - http://localhost:8081/#browse/browse:maven-central
@@ -351,7 +343,7 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 | 言語 / ツール | HTTP 接続 | 認証情報の HTTP 送信 | 必要な対応 |
 | :--- | :--- | :--- | :--- |
 | Java (Gradle) | **ブロック** | ─（HTTP 許可で送信可） | `allowInsecureProtocol = true` で HTTP 接続を許可 |
-| Java (Maven) | **可能** | **可能** | 特別な設定不要 |
+| Java (Maven) | **ブロック** | **可能** | HTTP 接続を許可するルールを定義<br>（`maven-default-http-blocker` ルールを上書きする） |
 | JavaScript (npm) | **可能** | **ブロック** | `always-auth = true` で HTTP 接続でも認証情報を送信許可 |
 | Python (pip) | **ブロック** | ─（HTTP 許可で送信可） | `trusted-host` にドメイン指定し HTTP 通信を許可 |
 | Python (uv) | **可能** | **可能** | 特別な設定不要 |
@@ -432,7 +424,17 @@ publishing {
 | ローカル | [`java-maven/settings.xml`](try-my-hand/java-maven/settings.xml) | - `/settings/mirrors/mirror/url`: Nexus のベース URL<br>- `/settings/servers/server/username`: 認証ユーザー名<br>- `/settings/servers/server/password`: 認証パスワード |
 | CI/CD | [`java-maven/settings-ci.xml`](try-my-hand/java-maven/settings-ci.xml) | `settings.xml` と同じノードへ以下 GitLab CI/CD 変数から割り当てる<br>- `NEXUS_URL` / `NEXUS_USER` / `NEXUS_PASS` |
 
+- `/settings/mirrors/mirros/id` と `/settings/servers/server/id` の値は一致する必要があります。
+
 ```xml
+<!-- Maven 3.8.1 以降に標準で組み込まれている隠しルール -->
+<mirror>
+  <id>maven-default-http-blocker</id>
+  <mirrorOf>external:http:*</mirrorOf> <!-- 外部の HTTP リポジトリすべて -->
+  <url>http://0.0.0.0/</url>
+  <blocked>true</blocked>             <!-- 強制的に遮断（エラー）にする -->
+</mirror>
+
 <!-- settings-ci.xml -->
 <mirror>
   <id>repo-manager</id>
@@ -442,8 +444,9 @@ publishing {
 </mirror>
 ```
 
-> **HTTP について**: Maven は HTTP エンドポイントへの認証情報送信をデフォルトで許可しています。  
-> `<mirror>` に `<blocked>false</blocked>` を明示する形式も使えますが、デフォルト値が `false` のため省略可能です。
+> **HTTP について**:  
+> Maven 3.8.1+ では、標準で組み込まれている `maven-default-http-blocker`（`<mirrorOf>external:http:*</mirrorOf>` + `<blocked>true</blocked>`）により、外部への HTTP リポジトリ接続が強制的に遮断されます。  
+> デモ環境では、`repo-manager`（`<mirrorOf>*</mirrorOf>` + `<blocked>false</blocked>`）にて全リポジトリへの接続を許可する定義をして、`maven-default-http-blocker` の隠しルールを打ち消しているため、Nexus へ HTTP 接続ができています。  
 
 #### パブリッシュ時（成果物のアップロード）
 
