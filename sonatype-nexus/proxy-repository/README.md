@@ -580,7 +580,7 @@ trusted-host = nexus.local
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | [`python-uv/uv.toml`](try-my-hand/python-uv/uv.toml) | - `[[index]] > url`: Nexus のプロキシリポジトリ URL<br>- `default`: `true` で公式 PyPI（pypi.org）の自動参照を無効化（Nexus の URL を最優先） |
+| ローカル | [`python-uv/uv.toml`](try-my-hand/python-uv/uv.toml) | - `[[index]] > url`: Nexus のプロキシリポジトリ URL<br>- `default`: `true` で公式 PyPI（pypi.org）の参照を無効化（Nexus の URL を最優先） |
 | CI/CD | [`python-uv/.gitlab-ci.yml`](try-my-hand/python-uv/.gitlab-ci.yml) | `default.before_script` で環境変数を設定し、`uv.toml` の `[[index]]` を上書き<br>- `UV_DEFAULT_INDEX`: Nexus のプロキシリポジトリ URL |
 
 - 簡略化のため認証情報を `[[index]] > url` 内に `http(s)://{username}:{password}@host/` 形式で埋めているが、実運用では `~/.netrc` の設定を推奨します。
