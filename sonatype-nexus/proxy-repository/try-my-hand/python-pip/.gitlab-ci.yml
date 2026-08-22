@@ -39,14 +39,14 @@ default:
 
 # ---------------------------------------------------------------------------
 # Stage 1: build
-#   認証情報を index-url に埋め込み Nexus pypi-proxy 経由で依存関係を取得する
+#   認証情報を index-url に埋め込み Nexus python-proxy 経由で依存関係を取得する
 # ---------------------------------------------------------------------------
 build:
   stage: build
   image: python:3-slim
   script:
     - pip install --no-cache-dir
-        --index-url "http://${NEXUS_USER}:${NEXUS_PASS}@${NEXUS_HOST_PORT}/repository/pypi-proxy/simple/"
+        --index-url "http://${NEXUS_USER}:${NEXUS_PASS}@${NEXUS_HOST_PORT}/repository/python-proxy/simple/"
         --trusted-host "${NEXUS_HOST}"
         -r requirements.txt
     - python app.py
@@ -57,7 +57,7 @@ build:
 
 # ---------------------------------------------------------------------------
 # Stage 2: publish
-#   python -m build で wheel / sdist を生成し Nexus pypi-hosted へアップロード
+#   python -m build で wheel / sdist を生成し Nexus python-hosted へアップロード
 #   同一バージョンが既に存在する場合は失敗する（再実行時は version を更新すること）
 # ---------------------------------------------------------------------------
 publish:
@@ -65,11 +65,11 @@ publish:
   image: python:3-slim
   script:
     - pip install --no-cache-dir build twine
-        --index-url "http://${NEXUS_USER}:${NEXUS_PASS}@${NEXUS_HOST_PORT}/repository/pypi-proxy/simple/"
+        --index-url "http://${NEXUS_USER}:${NEXUS_PASS}@${NEXUS_HOST_PORT}/repository/python-proxy/simple/"
         --trusted-host "${NEXUS_HOST}"
     - python -m build
     - twine upload
-        --repository-url "${NEXUS_URL}/repository/pypi-hosted/"
+        --repository-url "${NEXUS_URL}/repository/python-hosted/"
         --username "${NEXUS_USER}"
         --password "${NEXUS_PASS}"
         dist/*

@@ -82,7 +82,7 @@ Nexus には以下のリポジトリが構築されます。
 | `maven-central` | proxy | Maven Central のプロキシ |
 | `maven-public` | group | Maven リポジトリのグループ（Gradle / Maven から利用） |
 | `npm-proxy` | proxy | npmjs.org のプロキシ |
-| `pypi-proxy` | proxy | PyPI のプロキシ |
+| `python-proxy` | proxy | PyPI のプロキシ |
 | `go-proxy` | proxy | proxy.golang.org のプロキシ |
 | `docker-hub-proxy` | proxy | Docker Hub のプロキシ（port: `8085`） |
 
@@ -174,15 +174,23 @@ $ cd ~/development/my-skilling/sonatype-nexus/proxy-repository/setup/
      | docker-hub-proxy | docker | proxy | https://registry-1.docker.io | ─ |
      | npm-proxy | npm | proxy | https://registry.npmjs.org | ─ |
      | npm-hosted | npm | hosted | ─ | ─ |
-     | pypi-proxy | pypi | proxy | https://pypi.org | ─ |
-     | pypi-hosted | pypi | hosted | ─ | ─ |
+     | python-proxy | pypi | proxy | https://pypi.org | ─ |
+     | python-hosted | pypi | hosted | ─ | ─ |
      | go-proxy | go | proxy | https://proxy.golang.org | ─ |
 
 ### 3-3-2. GitLab 初期設定
 
-**>>> under constraction <<<**
+**<<< under constraction >>>**
 
 
+### 3-3-3. Nexus Web UI 初期設定
+
+**<<< under constraction >>>**
+
+- Nexus の WebUI へアクセスして設定が必要（これしないと Forbidden でリポジトリ利用できない）
+  - http://localhost:8081
+  - 「Agree End User License Agreement」で「Agree」ボタンをクリック
+  - 「Configure Anonymous Access」で「Disable anonymous access」を選択して「Next」ボタンをクリック
 
 ### 3-4. 言語・ツール別 Nexus リポジトリ名一覧
 
@@ -191,8 +199,8 @@ $ cd ~/development/my-skilling/sonatype-nexus/proxy-repository/setup/
 | Java (Gradle) | `maven-public` | `maven-releases` |
 | Java (Maven) | `maven-public` | `maven-releases` |
 | JavaScript (npm) | `npm-proxy` | `npm-hosted` |
-| Python (pip) | `pypi-proxy` | `pypi-hosted` |
-| Python (uv) | `pypi-proxy` | `pypi-hosted` |
+| Python (pip) | `python-proxy` | `python-hosted` |
+| Python (uv) | `python-proxy` | `python-hosted` |
 | Go (modules) | `go-proxy` | ※ Git タグ（Nexus に hosted なし） |
 | Docker | `docker-hub-proxy` | ※ 本環境では Docker hosted は対象外 |
 
@@ -262,7 +270,7 @@ $ sh BUILD.sh
 
 - プロキシリポジトリへの接続設定は、[6-2-4. Python (pip)](#6-2-4-python-pip) を確認してください。
 - ビルド実行後にキャッシュされたプロキシリポジトリは、以下 URL で確認できます。
-  - http://localhost:8081/#browse/browse:pypi-proxy
+  - http://localhost:8081/#browse/browse:python-proxy
 
 #### 4-1-5. Python (uv)
 
@@ -280,7 +288,7 @@ $ sh BUILD.sh
   - 簡略化のため `url` 内に `http(s)://{username}:{password}@host/`」形式で認証情報を埋めているが、実運用では `~/.netrc` の設定を推奨します。
 
 - ビルド実行後にキャッシュされたプロキシリポジトリは、以下 URL で確認できます。
-  - http://localhost:8081/#browse/browse:pypi-proxy
+  - http://localhost:8081/#browse/browse:python-proxy
 
 #### 4-1-6. Go (modules)
 
@@ -318,9 +326,9 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 | JavaScript (npm) | GitLab | http://localhost:13000/my-hands-on-group/js-npm |
 | | Nexus | http://localhost:8081/#browse/browse:npm-hosted |
 | Python (pip) | GitLab | http://localhost:13000/my-hands-on-group/python-pip |
-| | Nexus | http://localhost:8081/#browse/browse:pypi-hosted |
+| | Nexus | http://localhost:8081/#browse/browse:python-hosted |
 | Python (uv) | GitLab | http://localhost:13000/my-hands-on-group/python-uv |
-| | Nexus | http://localhost:8081/#browse/browse:pypi-hosted |
+| | Nexus | http://localhost:8081/#browse/browse:python-hosted |
 | Go (modules) | GitLab | http://localhost:13000/my-hands-on-group/go-modules |
 | | Nexus | |
 | Docker | GitLab |  |
@@ -407,7 +415,8 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | [`java-gradle/gradle.properties`](try-my-hand/java-gradle/gradle.properties) | [`java-gradle/build.gradle`](try-my-hand/java-gradle/build.gradle) のプロパティーを設定<br>- `repoManagerUrl`: Nexus のベース URL<br>- `repoManagerUsername`: 認証ユーザー名<br>- `repoManagerPassword`: 認証パスワード |
+| ローカル | [`java-gradle/gradle.properties`](try-my-hand/java-gradle/gradle.properties) |- `repoManagerUrl`: Nexus のベース URL<br>- `repoManagerUsername`: 認証ユーザー名<br>- `repoManagerPassword`: 認証パスワード |
+| | [`java-gradle/build.gradle`](try-my-hand/java-gradle/build.gradle) | - `repositories.maven.url`: `repoManagerUrl` + リポジトリパス |
 | CI/CD | [`java-gradle/.gitlab-ci.yml`](try-my-hand/java-gradle/.gitlab-ci.yml) | `./gradlew clean build` コマンドの以下バラメータでプロパティを上書き<br>- `-PrepoManagerUrl`: Nexus のベース URL<br>- `-PrepoManagerUsername`: 認証ユーザー名<br>- `-PrepoManagerPassword`: 認証パスワード |
 
 - [`java-gradle/build.gradle`](try-my-hand/java-gradle/build.gradle) の `repositories { }` ブロックでプロパティを参照して Nexus のプロキシリポジトリ設定します。
@@ -434,7 +443,7 @@ repositories {
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| CI/CD | [`try-my-hand/java-gradle/build.gradle`](try-my-hand/java-gradle/build.gradle) | `publishing.repositories.maven.url` でアップロード先 `maven-releases` を指定 |
+| CI/CD | [`java-gradle/build.gradle`](try-my-hand/java-gradle/build.gradle) | - `publishing.repositories.maven.url`: `repoManagerUrl` + リポジトリパス |
 
 ```groovy
 // build.gradle
@@ -557,7 +566,7 @@ script:
 ```ini
 # pip.conf
 [global]
-index-url = http://admin:password@nexus.local:8081/repository/pypi-proxy/simple/
+index-url = http://admin:password@nexus.local:8081/repository/python-proxy/simple/
 trusted-host = nexus.local
 ```
 
@@ -570,14 +579,14 @@ trusted-host = nexus.local
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
 | CI/CD | [`try-my-hand/python-pip/setup.cfg`](try-my-hand/python-pip/setup.cfg) | パッケージメタデータ（name / version）を定義 |
-| CI/CD | [`try-my-hand/python-pip/.gitlab-ci.yml`](try-my-hand/python-pip/.gitlab-ci.yml) | `python -m build` でビルド後、`twine upload --repository-url` で `pypi-hosted` へアップロード |
+| CI/CD | [`try-my-hand/python-pip/.gitlab-ci.yml`](try-my-hand/python-pip/.gitlab-ci.yml) | `python -m build` でビルド後、`twine upload --repository-url` で `python-hosted` へアップロード |
 
 ```yaml
 # .gitlab-ci.yml（publish ジョブ概略）
 script:
   - python -m build
   - twine upload
-      --repository-url "${NEXUS_URL}/repository/pypi-hosted/"
+      --repository-url "${NEXUS_URL}/repository/python-hosted/"
       --username "${NEXUS_USER}"
       --password "${NEXUS_PASS}"
       dist/*
@@ -599,7 +608,7 @@ script:
 ```toml
 # uv.toml
 [[index]]
-url = "http://admin:password@nexus.local:8081/repository/pypi-proxy/simple/"
+url = "http://admin:password@nexus.local:8081/repository/python-proxy/simple/"
 default = true
 ```
 
@@ -608,14 +617,14 @@ default = true
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
 | CI/CD | [`try-my-hand/python-uv/pyproject.toml`](try-my-hand/python-uv/pyproject.toml) | `[project]` セクションにパッケージメタデータ、`[build-system]` にビルドバックエンドを定義 |
-| CI/CD | [`try-my-hand/python-uv/.gitlab-ci.yml`](try-my-hand/python-uv/.gitlab-ci.yml) | `uv build` でビルド後、`uv publish --publish-url` で `pypi-hosted` へアップロード |
+| CI/CD | [`try-my-hand/python-uv/.gitlab-ci.yml`](try-my-hand/python-uv/.gitlab-ci.yml) | `uv build` でビルド後、`uv publish --publish-url` で `python-hosted` へアップロード |
 
 ```yaml
 # .gitlab-ci.yml（publish ジョブ概略）
 script:
   - uv build
   - uv publish
-      --publish-url "${NEXUS_URL}/repository/pypi-hosted/"
+      --publish-url "${NEXUS_URL}/repository/python-hosted/"
       --username "${NEXUS_USER}"
       --password "${NEXUS_PASS}"
 ```

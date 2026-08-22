@@ -197,7 +197,8 @@ create_publish_token() {
         exit 1
     fi
 
-    EXPIRES=$(date -d '+1 year' +%Y-%m-%d)
+	EXPIRES=$(date -d '+1 year - 1 day' +%Y-%m-%d)
+	log_info "expires = ${EXPIRES}"
     RESPONSE=$(gitlab_curl_with_retry \
         -X POST \
         -H "Authorization: Bearer ${_token}" \
