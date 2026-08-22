@@ -3,11 +3,11 @@
 # ==============================================================================
 # Nexus 3 リポジトリ セットアップスクリプト
 # Description: REST API を利用して以下を一括セットアップします。
-#   [Docker]  Bearer Token Realm の有効化 + Docker Hub プロキシリポジトリの作成
 #   [Maven]   maven-central / maven-public リポジトリの存在確認
 #   [npm]     npm Token Realm の有効化 + プロキシ/ホステッドリポジトリの作成
 #   [PyPI]    PyPI プロキシ/ホステッドリポジトリの作成
 #   [Go]      Go モジュールプロキシリポジトリの作成
+#   [Docker]  Bearer Token Realm の有効化 + Docker Hub プロキシリポジトリの作成
 # ※ npm / pypi / go のプロキシ・ホステッドは汎用関数 create_proxy_repo /
 #   create_hosted_repo で処理（フォーマット名を引数で渡す）
 # ==============================================================================
@@ -21,9 +21,11 @@ CUR_DIR=$(cd $(dirname $0); pwd)
 . "${CUR_DIR}/custom.sh"
 . "${CUR_DIR}/variables.sh"
 
+# {{{ wait_for_nexus()
 # --- Nexus API 起動待ち ---
 # $1: ベース URL  $2: ユーザー名  $3: パスワード
-wait_for_nexus() {
+wait_for_nexus()
+{
     _base_url="$1"
     _user="$2"
     _pass="$3"
@@ -42,11 +44,14 @@ wait_for_nexus() {
     done
     log_success "Nexus REST API が応答しています。"
 }
+# }}}
 
+# {{{ repo_exists()
 # --- リポジトリの存在確認 ---
 # $1: ベース URL  $2: ユーザー名  $3: パスワード  $4: リポジトリ名
 # 戻り値: 0=存在する / 1=存在しない
-repo_exists() {
+repo_exists()
+{
     _base_url="$1"
     _user="$2"
     _pass="$3"
@@ -56,14 +61,93 @@ repo_exists() {
         "${_base_url}/service/rest/v1/repositories/${_repo}")
     [ "$HTTP_CODE" = "200" ]
 }
+# }}}
+
+# =============================================================================
+# Maven セクション
+# =============================================================================
+
+# {{{ check_maven_repositories()
+# --- Maven デフォルトリポジトリの確認・一覧表示 ---
+# $1: ベース URL  $2: ユーザー名  $3: パスワード
+check_maven_repositories()
+{
+    _base_url="$1"
+    _user="$2"
+    _pass="$3"
+
+    log_info "Maven デフォルトリポジトリを確認しています..."
+
+    for _repo in maven-central maven-public; do
+        if repo_exists "$_base_url" "$_user" "$_pass" "$_repo"; then
+            log_success "  '${_repo}' が存在します。"
+        else
+            log_error "  '${_repo}' が見つかりません。Nexus の初期化が完了しているか確認してください。"
+            exit 1
+        fi
+    done
+
+    log_info "Maven リポジトリ URL:"
+    log_info "  ${_base_url}/repository/maven-public/  (グループ: gradle/maven から利用)"
+
+    log_info "=== 利用可能な Maven リポジトリ一覧 ==="
+    curl -sf -u "${_user}:${_pass}" \
+        "${_base_url}/service/rest/v1/repositories" \
+        | jq -r '.[] | select(.format == "maven2") | .name' \
+        | while read -r _name; do
+            log_info "  - ${_name}  =>  ${_base_url}/repository/${_name}/"
+          done
+}
+# }}}
+
+# =============================================================================
+# npm セクション
+# =============================================================================
+
+# {{{ enable_npm_realm()
+# --- npm Token Realm の有効化 ---
+# $1: ベース URL  $2: ユーザー名  $3: パスワード
+enable_npm_realm()
+{
+    _base_url="$1"
+    _user="$2"
+    _pass="$3"
+    log_info "npm Token Realm の状態を確認しています..."
+
+    ACTIVE_REALMS=$(curl -sf -u "${_user}:${_pass}" \
+        "${_base_url}/service/rest/v1/security/realms/active")
+
+    if echo "$ACTIVE_REALMS" | grep -q "NpmToken"; then
+        log_success "npm Token Realm はすでに有効です。"
+        return 0
+    fi
+
+    NEW_REALMS=$(echo "$ACTIVE_REALMS" | jq '. + ["NpmToken"]')
+
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+        -X PUT "${_base_url}/service/rest/v1/security/realms/active" \
+        -u "${_user}:${_pass}" \
+        -H "Content-Type: application/json" \
+        -d "${NEW_REALMS}")
+
+    if [ "$HTTP_CODE" = "204" ] || [ "$HTTP_CODE" = "200" ]; then
+        log_success "npm Token Realm を有効化しました。"
+    else
+        log_error "npm Token Realm の有効化に失敗しました。(HTTP ${HTTP_CODE})"
+        exit 1
+    fi
+}
+# }}}
 
 # =============================================================================
 # Docker セクション
 # =============================================================================
 
+# {{{ enable_docker_realm()
 # --- Docker Bearer Token Realm の有効化 ---
 # $1: ベース URL  $2: ユーザー名  $3: パスワード
-enable_docker_realm() {
+enable_docker_realm()
+{
     _base_url="$1"
     _user="$2"
     _pass="$3"
@@ -92,11 +176,14 @@ enable_docker_realm() {
         exit 1
     fi
 }
+# }}}
 
+# {{{ create_docker_proxy_repo()
 # --- Docker Hub プロキシリポジトリの作成 ---
 # $1: ベース URL  $2: ユーザー名  $3: パスワード
 # $4: リポジトリ名  $5: HTTP ポート  $6: リモート URL
-create_docker_proxy_repo() {
+create_docker_proxy_repo()
+{
     _base_url="$1"
     _user="$2"
     _pass="$3"
@@ -137,51 +224,18 @@ EOF
         exit 1
     fi
 }
-
-# =============================================================================
-# npm セクション
-# =============================================================================
-
-# --- npm Token Realm の有効化 ---
-# $1: ベース URL  $2: ユーザー名  $3: パスワード
-enable_npm_realm() {
-    _base_url="$1"
-    _user="$2"
-    _pass="$3"
-    log_info "npm Token Realm の状態を確認しています..."
-
-    ACTIVE_REALMS=$(curl -sf -u "${_user}:${_pass}" \
-        "${_base_url}/service/rest/v1/security/realms/active")
-
-    if echo "$ACTIVE_REALMS" | grep -q "NpmToken"; then
-        log_success "npm Token Realm はすでに有効です。"
-        return 0
-    fi
-
-    NEW_REALMS=$(echo "$ACTIVE_REALMS" | jq '. + ["NpmToken"]')
-
-    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-        -X PUT "${_base_url}/service/rest/v1/security/realms/active" \
-        -u "${_user}:${_pass}" \
-        -H "Content-Type: application/json" \
-        -d "${NEW_REALMS}")
-
-    if [ "$HTTP_CODE" = "204" ] || [ "$HTTP_CODE" = "200" ]; then
-        log_success "npm Token Realm を有効化しました。"
-    else
-        log_error "npm Token Realm の有効化に失敗しました。(HTTP ${HTTP_CODE})"
-        exit 1
-    fi
-}
+# }}}
 
 # =============================================================================
 # 汎用リポジトリ作成関数（npm / pypi / go など Docker 以外の形式で共用）
 # =============================================================================
 
+# {{{ create_proxy_repo()
 # --- プロキシリポジトリの作成（汎用）---
 # $1: ベース URL  $2: ユーザー名  $3: パスワード
 # $4: フォーマット (npm|pypi|go|...)  $5: リポジトリ名  $6: リモート URL
-create_proxy_repo() {
+create_proxy_repo()
+{
     _base_url="$1"
     _user="$2"
     _pass="$3"
@@ -220,11 +274,14 @@ EOF
         exit 1
     fi
 }
+# }}}
 
+# {{{ create_hosted_repo()
 # --- ホステッドリポジトリの作成（汎用）---
 # $1: ベース URL  $2: ユーザー名  $3: パスワード
 # $4: フォーマット (npm|pypi|...)  $5: リポジトリ名
-create_hosted_repo() {
+create_hosted_repo()
+{
     _base_url="$1"
     _user="$2"
     _pass="$3"
@@ -259,40 +316,7 @@ EOF
         exit 1
     fi
 }
-
-# =============================================================================
-# Maven セクション
-# =============================================================================
-
-# --- Maven デフォルトリポジトリの確認・一覧表示 ---
-# $1: ベース URL  $2: ユーザー名  $3: パスワード
-check_maven_repositories() {
-    _base_url="$1"
-    _user="$2"
-    _pass="$3"
-
-    log_info "Maven デフォルトリポジトリを確認しています..."
-
-    for _repo in maven-central maven-public; do
-        if repo_exists "$_base_url" "$_user" "$_pass" "$_repo"; then
-            log_success "  '${_repo}' が存在します。"
-        else
-            log_error "  '${_repo}' が見つかりません。Nexus の初期化が完了しているか確認してください。"
-            exit 1
-        fi
-    done
-
-    log_info "Maven リポジトリ URL:"
-    log_info "  ${_base_url}/repository/maven-public/  (グループ: gradle/maven から利用)"
-
-    log_info "=== 利用可能な Maven リポジトリ一覧 ==="
-    curl -sf -u "${_user}:${_pass}" \
-        "${_base_url}/service/rest/v1/repositories" \
-        | jq -r '.[] | select(.format == "maven2") | .name' \
-        | while read -r _name; do
-            log_info "  - ${_name}  =>  ${_base_url}/repository/${_name}/"
-          done
-}
+# }}}
 
 # =============================================================================
 # メイン
@@ -303,12 +327,6 @@ main() {
     log_info "対象 Nexus: ${NEXUS_URL}"
 
     wait_for_nexus "$NEXUS_URL" "$NEXUS_USER" "$NEXUS_PASS"
-
-    log_info ""
-    log_info "--- [Docker] ---"
-    enable_docker_realm       "$NEXUS_URL" "$NEXUS_USER" "$NEXUS_PASS"
-    create_docker_proxy_repo  "$NEXUS_URL" "$NEXUS_USER" "$NEXUS_PASS" \
-                              "$DOCKER_REPO_NAME" "$DOCKER_HTTP_PORT" "$DOCKER_REMOTE_URL"
 
     log_info ""
     log_info "--- [Maven] ---"
@@ -333,6 +351,12 @@ main() {
     log_info "--- [Go] ---"
     create_proxy_repo     "$NEXUS_URL" "$NEXUS_USER" "$NEXUS_PASS" \
                           go "$GO_PROXY_REPO_NAME" "$GO_REMOTE_URL"
+
+    log_info ""
+    log_info "--- [Docker] ---"
+    enable_docker_realm       "$NEXUS_URL" "$NEXUS_USER" "$NEXUS_PASS"
+    create_docker_proxy_repo  "$NEXUS_URL" "$NEXUS_USER" "$NEXUS_PASS" \
+                              "$DOCKER_REPO_NAME" "$DOCKER_HTTP_PORT" "$DOCKER_REMOTE_URL"
 
     log_info ""
     log_success "セットアップ完了！"

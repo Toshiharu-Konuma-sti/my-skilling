@@ -41,4 +41,17 @@
     </server>
   </servers>
 
+  <profiles>
+    <profile>
+      <id>nexus-ci</id>
+      <properties>
+        <nexus.url>${env.NEXUS_URL}</nexus.url>
+      </properties>
+    </profile>
+  </profiles>
+
+  <activeProfiles>
+    <activeProfile>nexus-ci</activeProfile>
+  </activeProfiles>
+
 </settings>

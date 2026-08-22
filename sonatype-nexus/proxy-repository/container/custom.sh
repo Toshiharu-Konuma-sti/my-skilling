@@ -221,6 +221,8 @@ gitlab_curl_with_retry()
     return 1
 }
 # }}}
+
+# {{{ gitlab_get_access_token() {
 # $1: GitLab ベース URL  $2: ユーザー名  $3: パスワード
 # 戻り値: GL_ACCESS_TOKEN にアクセストークンを設定する
 gitlab_get_access_token() {
@@ -240,3 +242,82 @@ gitlab_get_access_token() {
     log_success "アクセストークンを取得しました。"
 }
 # }}}
+
+# {{{ push_to_gitlab() {
+# --- feature/sample ブランチで push ---
+# $1: GitLab ベース URL  $2: ユーザー名  $3: アクセストークン
+# $4: プロジェクト名  $5: ソースディレクトリ  $6: ブランチ名  $7: コミットメッセージ
+push_to_gitlab() {
+    _base_url="$1"
+    _user="$2"
+    _token="$3"
+    _project="$4"
+    _src="$5"
+    _branch="$6"
+    _msg="$7"
+
+    # GitLab の push URL（OAuth2 token を oauth2 ユーザーとして渡す形式）
+    _remote_url="http://oauth2:${_token}@$(echo "${_base_url}" | sed 's|http://||')/${_user}/${_project}.git"
+
+    log_info "ソースディレクトリ: ${_src}"
+    log_info "push 先           : ${_base_url}/${_user}/${_project}"
+    log_info "ブランチ          : ${_branch}"
+
+    # TMPDIR は POSIX 予約変数のため WORK_DIR を使用（mktemp の挙動への干渉を防ぐ）
+    WORK_DIR=$(mktemp -d)
+
+    # 空の GitLab リポジトリを clone する
+    log_info "GitLab リポジトリを clone しています..."
+    if ! git clone "${_remote_url}" "${WORK_DIR}/repo" > /dev/null 2>&1; then
+        log_error "clone に失敗しました: ${_base_url}/${_user}/${_project}"
+        rm -rf "${WORK_DIR}"
+        exit 1
+    fi
+    cd "${WORK_DIR}/repo"
+    git config user.email "setup@localhost"
+    git config user.name "Setup Script"
+
+    # main から派生した通常ブランチを作成
+    # （orphan ではなく main との共通歴史を持たせることで MR マージを可能にする）
+    git checkout -b "${_branch}" > /dev/null 2>&1
+
+    # ソースファイルをコピー（.gitignore のパターンを除外）
+    log_info "ファイルをコピーしています..."
+    rsync -a --filter=':- .gitignore' \
+          --exclude='.git/' \
+          "${_src}/" "${WORK_DIR}/repo/"
+
+    git add .
+    git commit -m "${_msg}" > /dev/null 2>&1 || true
+
+    # force push（再実行時にリモートに既存ブランチがあっても上書き可能）
+    log_info "push しています..."
+    _push_retry=0
+    _push_max_retry=10
+    while true; do
+        _push_rc=0
+        _push_err=$(git push --force "${_remote_url}" "${_branch}" 2>&1) || _push_rc=$?
+        if [ "$_push_rc" -eq 0 ]; then
+            break  # 成功
+        fi
+        # 500 エラーの場合はリトライ
+        if echo "$_push_err" | grep -q "500" && [ "$_push_retry" -lt "$_push_max_retry" ]; then
+            _push_retry=$((_push_retry + 1))
+            log_warn "GitLab 500 エラー。5秒後にリトライします... (${_push_retry}/${_push_max_retry})" >&2
+            sleep 5
+        else
+            _push_err_masked=$(echo "$_push_err" | sed "s|oauth2:[^@]*@|oauth2:****@|g")
+            log_error "push に失敗しました: ${_base_url}/${_user}/${_project} (branch: ${_branch})"
+            log_error "  git 出力: ${_push_err_masked}"
+            cd /
+            rm -rf "${WORK_DIR}"
+            exit 1
+        fi
+    done
+
+    cd /
+    rm -rf "${WORK_DIR}"
+    log_success "push 完了: ${_base_url}/${_user}/${_project} (branch: ${_branch})"
+}
+# }}}
+

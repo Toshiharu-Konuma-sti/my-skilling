@@ -46,6 +46,24 @@ call_show_finish_banner()
 # }}}
 
 
+# {{{ call_path_of_setup()
+# $1: the current directory
+call_path_of_setup()
+{
+	TARGET=$(realpath $1/../setup)
+	echo "$TARGET"
+}
+# }}}
+
+# {{{ call_path_of_try_my_hand()
+# $1: the current directory
+call_path_of_try_my_hand()
+{
+	TARGET=$(realpath $1/../try-my-hand)
+	echo "$TARGET"
+}
+# }}}
+
 # {{{ prepare_download_dir()
 # $1: the current directory
 prepare_download_dir()

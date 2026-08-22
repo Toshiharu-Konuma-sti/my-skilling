@@ -37,7 +37,7 @@ default:
   before_script:
     - pip install uv --quiet
     - NEXUS_HOST_PORT=$(echo "${NEXUS_URL}" | sed 's|http://||')
-    - export UV_DEFAULT_INDEX="http://${NEXUS_USER}:${NEXUS_PASS}@${NEXUS_HOST_PORT}/repository/pypi-proxy/simple/"
+    - export UV_DEFAULT_INDEX="http://${NEXUS_USER}:${NEXUS_PASS}@${NEXUS_HOST_PORT}/repository/python-proxy/simple/"
 
 # ---------------------------------------------------------------------------
 # Stage 1: build
@@ -58,7 +58,7 @@ build:
 
 # ---------------------------------------------------------------------------
 # Stage 2: publish
-#   uv build で wheel / sdist を生成し Nexus pypi-hosted へアップロード
+#   uv build で wheel / sdist を生成し Nexus python-hosted へアップロード
 #   同一バージョンが既に存在する場合は失敗する（再実行時は version を更新すること）
 # ---------------------------------------------------------------------------
 publish:
@@ -67,7 +67,7 @@ publish:
   script:
     - uv build
     - uv publish
-        --publish-url "${NEXUS_URL}/repository/pypi-hosted/"
+        --publish-url "${NEXUS_URL}/repository/python-hosted/"
         --username "${NEXUS_USER}"
         --password "${NEXUS_PASS}"
   needs:

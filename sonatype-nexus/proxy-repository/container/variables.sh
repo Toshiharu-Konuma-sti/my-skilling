@@ -16,20 +16,20 @@ REPO_MANAGER_URL="http://${NEXUS_DOMAIN}:${NEXUS_PORT}"
 REPO_MANAGER_USERNAME="${NEXUS_USER}"
 REPO_MANAGER_PASSWORD="${NEXUS_PASS}"
 
-DOCKER_REPO_NAME="docker-hub-proxy"
-DOCKER_HTTP_PORT="8085"
-DOCKER_REMOTE_URL="https://registry-1.docker.io"
-
 NPM_PROXY_REPO_NAME="npm-proxy"
 NPM_HOSTED_REPO_NAME="npm-hosted"
 NPM_REMOTE_URL="https://registry.npmjs.org"
 
-PYPI_PROXY_REPO_NAME="pypi-proxy"
-PYPI_HOSTED_REPO_NAME="pypi-hosted"
+PYPI_PROXY_REPO_NAME="python-proxy"
+PYPI_HOSTED_REPO_NAME="python-hosted"
 PYPI_REMOTE_URL="https://pypi.org"
 
 GO_PROXY_REPO_NAME="go-proxy"
 GO_REMOTE_URL="https://proxy.golang.org"
+
+DOCKER_REPO_NAME="docker-hub-proxy"
+DOCKER_HTTP_PORT="8085"
+DOCKER_REMOTE_URL="https://registry-1.docker.io"
 
 #=================================================
 # for GitLab
