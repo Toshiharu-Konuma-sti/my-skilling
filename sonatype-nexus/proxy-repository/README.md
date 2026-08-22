@@ -468,7 +468,7 @@ publishing {
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
 | ローカル | [`java-maven/settings.xml`](try-my-hand/java-maven/settings.xml) | - `/settings/mirrors/mirror/url`: Nexus のプロキシリポジトリ URL<br>- `/settings/servers/server/username`: 認証ユーザー名<br>- `/settings/servers/server/password`: 認証パスワード |
-| CI/CD | [`java-maven/settings-ci.xml`](try-my-hand/java-maven/settings-ci.xml) | GitLab CI/CD 変数から割り当たる<br>- `/settings/mirrors/mirror/url`: `NEXUS_URL` 変数<br>- `settings/servers/server/username`: `NEXUS_USER` 変数<br>- `/settings/servers/server/password`: `NEXUS_PASS` 変数<br>- `/settings/profiles/profile/properties/nexus.url`: `NEXUS_URL` 変数 |
+| CI/CD | [`java-maven/settings-ci.xml`](try-my-hand/java-maven/settings-ci.xml) | GitLab CI/CD 変数から割り当てる<br>- `/settings/mirrors/mirror/url`: `NEXUS_URL` 変数<br>- `settings/servers/server/username`: `NEXUS_USER` 変数<br>- `/settings/servers/server/password`: `NEXUS_PASS` 変数<br>- `/settings/profiles/profile/properties/nexus.url`: `NEXUS_URL` 変数 |
 
 - `/settings/mirrors/mirros/id` と `/settings/servers/server/id` の値は一致する必要があります。
 
@@ -570,19 +570,7 @@ trusted-host = nexus.local
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| CI/CD | [`try-my-hand/python-pip/setup.cfg`](try-my-hand/python-pip/setup.cfg) | パッケージメタデータ（name / version）を定義 |
-| CI/CD | [`try-my-hand/python-pip/.gitlab-ci.yml`](try-my-hand/python-pip/.gitlab-ci.yml) | `python -m build` でビルド後、`twine upload --repository-url` で `python-hosted` へアップロード |
-
-```yaml
-# .gitlab-ci.yml（publish ジョブ概略）
-script:
-  - python -m build
-  - twine upload
-      --repository-url "${NEXUS_URL}/repository/python-hosted/"
-      --username "${NEXUS_USER}"
-      --password "${NEXUS_PASS}"
-      dist/*
-```
+| CI/CD | [`python-pip/.gitlab-ci.yml`](try-my-hand/python-pip/.gitlab-ci.yml) | `publish.script` で、以下オプションを指定して `twine upload` を実行<br>- `--repository-url`: Nexus のホステッドリポジトリ URL<br>- `--username`: 認証ユーザー名（`NEXUS_USER` 変数から割当て）<br>- `--password`: 認証パスワード（`NEXUS_PASS` 変数から割当て） |
 
 ---
 
@@ -608,18 +596,7 @@ default = true
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| CI/CD | [`try-my-hand/python-uv/pyproject.toml`](try-my-hand/python-uv/pyproject.toml) | `[project]` セクションにパッケージメタデータ、`[build-system]` にビルドバックエンドを定義 |
-| CI/CD | [`try-my-hand/python-uv/.gitlab-ci.yml`](try-my-hand/python-uv/.gitlab-ci.yml) | `uv build` でビルド後、`uv publish --publish-url` で `python-hosted` へアップロード |
-
-```yaml
-# .gitlab-ci.yml（publish ジョブ概略）
-script:
-  - uv build
-  - uv publish
-      --publish-url "${NEXUS_URL}/repository/python-hosted/"
-      --username "${NEXUS_USER}"
-      --password "${NEXUS_PASS}"
-```
+| CI/CD | [`python-uv/.gitlab-ci.yml`](try-my-hand/python-uv/.gitlab-ci.yml) | `publish.script` で、以下オプションを指定して `uv publish` を実行<br>- `--publish-url`: Nexus のホステッドリポジトリ URL<br>- `--username`: 認証ユーザー名（`NEXUS_USER` 変数から割当て）<br>- `--password`: 認証パスワード（`NEXUS_PASS` 変数から割当て） |
 
 ---
 
