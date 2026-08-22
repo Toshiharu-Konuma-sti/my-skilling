@@ -518,8 +518,8 @@ publishing {
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | [`js-npm/.npmrc`](try-my-hand/js-npm/.npmrc) | -`registry`:  Nexus のプロキシリポジトリ URL<br>- `_auth`: `$ echo -n "user:pass" \| base64` で生成した Base64 認証情報 |
-| CI/CD | [`js-npm/.gitlab-ci.yml`](try-my-hand/js-npm/.gitlab-ci.yml) | `before_script` で `.npmrc` を動的生成 |
+| ローカル | [`js-npm/.npmrc`](try-my-hand/js-npm/.npmrc) | - `registry`:  Nexus のプロキシリポジトリ URL<br>- `_auth`: `$ echo -n "user:pass" \| base64` で生成した Base64 認証情報 |
+| CI/CD | [`js-npm/.gitlab-ci.yml`](try-my-hand/js-npm/.gitlab-ci.yml) | `build.before_script` で `.npmrc` を動的生成<br>- `registry`; Nexus のプロキシリポジトリ URL<br>- `_auth`: （ビルド時ローカルの `.npmrc` を参照） |
 
 ```ini
 # .npmrc（ローカル）
@@ -539,15 +539,7 @@ always-auth=true
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| CI/CD | [`try-my-hand/js-npm/.gitlab-ci.yml`](try-my-hand/js-npm/.gitlab-ci.yml) | `publish` ジョブの `before_script` で `registry` を `npm-hosted` に切り替えた `.npmrc` を生成後、`npm publish` を実行 |
-
-```yaml
-# .gitlab-ci.yml（publish ジョブの before_script 概略）
-- echo "registry=${NEXUS_URL}/repository/npm-hosted/" > .npmrc
-- echo "//host:port/repository/npm-hosted/:_auth=..." >> .npmrc
-script:
-  - npm publish
-```
+| CI/CD | [`js-npm/.gitlab-ci.yml`](try-my-hand/js-npm/.gitlab-ci.yml) | `publish.before_script` で `.npmrc` を動的生成<br>- `registry`; Nexus のホステッドリポジトリ URL<br>- `_auth`: （ビルド時ローカルの `.npmrc` を参照） |
 
 ---
 
