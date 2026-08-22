@@ -196,7 +196,6 @@ $ sh BUILD.sh
 ```
 
 - リモートリポジトリの接続設定は、[6-1. Java (Gradle)](#6-1-java-gradle) を確認してください。
-
 - ビルド実行後にキャッシュされたリモートリポジトリは、以下 URL で確認できます。
   - http://localhost:8081/#browse/browse:maven-central
 
@@ -210,7 +209,6 @@ $ sh BUILD.sh
 ```
 
 - リモートリポジトリの接続設定は、[6-2. Java (Maven)](#6-2-java-maven) を確認してください。
-
 - ビルド実行後にキャッシュされたリモートリポジトリは、以下 URL で確認できます。
   - http://localhost:8081/#browse/browse:maven-central
 
