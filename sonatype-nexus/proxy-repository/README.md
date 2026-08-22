@@ -195,7 +195,7 @@ $ cd java-gradle/
 $ sh BUILD.sh
 ```
 
-- リモートリポジトリの接続設定は、[6-1. Java (Gradle)](#6-1-java-gradle) を確認してください。
+- リモートリポジトリへの接続設定は、[6-1. Java (Gradle)](#6-1-java-gradle) を確認してください。
 - ビルド実行後にキャッシュされたリモートリポジトリは、以下 URL で確認できます。
   - http://localhost:8081/#browse/browse:maven-central
 
@@ -208,7 +208,7 @@ $ cd java-maven/
 $ sh BUILD.sh
 ```
 
-- リモートリポジトリの接続設定は、[6-2. Java (Maven)](#6-2-java-maven) を確認してください。
+- リモートリポジトリへの接続設定は、[6-2. Java (Maven)](#6-2-java-maven) を確認してください。
 - ビルド実行後にキャッシュされたリモートリポジトリは、以下 URL で確認できます。
   - http://localhost:8081/#browse/browse:maven-central
 
@@ -223,14 +223,7 @@ $ npm install
 $ node app.js
 ```
 
-- リモートリポジトリの接続設定は、[.npmrc](try-my-hand/js-npm/.npmrc) を確認してください。
-
-  | 設定項目 | 説明 |
-  | :--- | :--- |
-  | `registry` | Nexus の npm リモートリポジトリ URL |
-  | `_auth` | `$ echo -n "user:pass" \| base64` で生成した Base64 認証情報 |
-  - 「`_auth`」を記載する行頭の「`//`」はコメントアウトではなく、プロトコル（`http`, `https`）を問わないを意味ます。
-
+- リモートリポジトリへの接続設定は、[6-3. JavaScript (npm)](#6-3-javascript-npm) を確認してください。
 - ビルド実行後にキャッシュされたリモートリポジトリは、以下 URL で確認できます。
   - http://localhost:8081/#browse/browse:npm-proxy
 
@@ -419,7 +412,7 @@ publishing {
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | [`java-maven/settings.xml`](try-my-hand/java-maven/settings.xml) | - `/settings/mirrors/mirror/url`: Nexus のベース URL<br>- `/settings/servers/server/username`: 認証ユーザー名<br>- `/settings/servers/server/password`: 認証パスワード |
+| ローカル | [`java-maven/settings.xml`](try-my-hand/java-maven/settings.xml) | - `/settings/mirrors/mirror/url`: Nexus のリモートリポジトリ URL<br>- `/settings/servers/server/username`: 認証ユーザー名<br>- `/settings/servers/server/password`: 認証パスワード |
 | CI/CD | [`java-maven/settings-ci.xml`](try-my-hand/java-maven/settings-ci.xml) | `settings.xml` と同じノードへ以下 GitLab CI/CD 変数から割り当てる<br>- `NEXUS_URL` / `NEXUS_USER` / `NEXUS_PASS` |
 
 - `/settings/mirrors/mirros/id` と `/settings/servers/server/id` の値は一致する必要があります。
@@ -442,7 +435,7 @@ publishing {
 </mirror>
 ```
 
-> **HTTP について**:  
+> **HTTP 接続許可**:  
 > Maven 3.8.1+ では、標準で組み込まれている `maven-default-http-blocker`（`<mirrorOf>external:http:*</mirrorOf>` + `<blocked>true</blocked>`）により、外部への HTTP リポジトリ接続が強制的に遮断されます。  
 > デモ環境では、`repo-manager`（`<mirrorOf>*</mirrorOf>` + `<blocked>false</blocked>`）にて全リポジトリへの接続を許可する定義をして、`maven-default-http-blocker` の隠しルールを打ち消しているため、Nexus へ HTTP 接続ができています。  
 
@@ -470,8 +463,8 @@ publishing {
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | [`try-my-hand/js-npm/.npmrc`](try-my-hand/js-npm/.npmrc) | `registry` に Nexus `npm-proxy` URL、`_auth` に Base64 認証情報を設定 |
-| CI/CD | [`try-my-hand/js-npm/.gitlab-ci.yml`](try-my-hand/js-npm/.gitlab-ci.yml) | `before_script` で `.npmrc` を動的生成（`echo -n user:pass \| base64` でエンコード） |
+| ローカル | [`js-npm/.npmrc`](try-my-hand/js-npm/.npmrc) | -`registry`:  Nexus のリモートリポジトリ URL<br>- `_auth`: `$ echo -n "user:pass" \| base64` で生成した Base64 認証情報 |
+| CI/CD | [`js-npm/.gitlab-ci.yml`](try-my-hand/js-npm/.gitlab-ci.yml) | `before_script` で `.npmrc` を動的生成 |
 
 ```ini
 # .npmrc（ローカル）
@@ -480,7 +473,10 @@ registry=http://nexus.local:8081/repository/npm-proxy/
 always-auth=true
 ```
 
-> **`always-auth = true` の役割**: npm はデフォルトでは HTTPS エンドポイントにのみ認証情報を送信します。  
+- `_auth` を記載する行頭の「//」はコメントアウトではなく、プロトコル（http, https）を問わないを意味します。
+
+> **認可送信許可（`always-auth = true`）**:  
+> npm はデフォルトでは HTTPS エンドポイントにのみ認証情報を送信します。  
 > HTTP の Nexus に対して `Authorization` ヘッダを送るには `always-auth = true` が必須です。  
 > この設定がない場合、Nexus が 401 を返し `npm install` が失敗します。
 
@@ -506,19 +502,22 @@ script:
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | [`try-my-hand/python-pip/pip.conf`](try-my-hand/python-pip/pip.conf) | `index-url` に認証情報込みの Nexus `pypi-proxy` Simple API URL を指定。[[`BUILD.sh`](try-my-hand/python-pip/BUILD.sh) で `PIP_CONFIG_FILE` を介して読み込み |
-| CI/CD | [`try-my-hand/python-pip/.gitlab-ci.yml`](try-my-hand/python-pip/.gitlab-ci.yml) | `--index-url "http://user:pass@host/repository/pypi-proxy/simple/"` と `--trusted-host` を pip install に指定 |
+| ローカル | [`python-pip/pip.conf`](try-my-hand/python-pip/pip.conf) | - `index-url`: Nexus のリモートリポジトリ URL |
+| CI/CD | [`python-pip/.gitlab-ci.yml`](try-my-hand/python-pip/.gitlab-ci.yml) | `build.script` で `pip install` を以下オプション付与して実行<br>- `--index-url`: Nexus のリモートリポジトリ URL |
+
+- 認証情報をデモ環境では、簡略化のため `index-url` 内に `http(s)://{username}:{password}@host/` 形式で埋めているが、実運用では `~/.netrc` の設定を推奨します。
+- ローカルのビルド時には、`PIP_CONFIG_FILE` 環境変数に接続設定ファイル（`pip.conf`）のパスを指定して `pip install` を実行することで、リモートリポジトリ経由で依存パッケージを取得しています。
 
 ```ini
-# pip.conf（ローカル）
+# pip.conf
 [global]
 index-url = http://admin:password@nexus.local:8081/repository/pypi-proxy/simple/
 trusted-host = nexus.local
 ```
 
-> **CI での認証の考え方**: `--index-url` に認証情報を URL 埋め込みで渡します。  
-> pip は HTTP であっても URL 中の user:pass から `Authorization` ヘッダを構築するため、認証が通ります。  
-> `--trusted-host` は HTTP サーバーに対する SSL 証明書検証をスキップするための設定です（HTTP なので検証自体は不要ですが、pip の内部チェックを通過させるために必要）。
+> **HTTP 接続許可**:  
+> `--trusted-host` は、アクセスするホストを例外的に信頼済みとしてセキュリティチェックを免除する設定です。  
+> これにより、HTTPS 接続時の SSL/TLS 証明書の検証をスキップするほか、非暗号化通信（HTTP）での接続を許可します。
 
 #### パブリッシュ時（成果物のアップロード）
 
