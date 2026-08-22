@@ -236,15 +236,7 @@ $ cd python-pip/
 $ sh BUILD.sh
 ```
 
-- リモートリポジトリの接続設定は、[pip.conf](try-my-hand/python-pip/pip.conf) を確認してください。
-
-  | 設定項目 | 説明 |
-  | :--- | :--- |
-  | `index-url` | Nexus の npm リモートリポジトリ URL |
-  - 簡略化のため `index-url` 内に `http(s)://{username}:{password}@host/`」形式で認証情報を埋めているが、実運用では `~/.netrc` の設定を推奨します。
-
-- `PIP_CONFIG_FILE` 環境変数で、設定ファイル（接続設定を含む）のパスを参照しています。
-
+- リモートリポジトリへの接続設定は、[6-4. Python (pip)](#6-4-python-pip) を確認してください。
 - ビルド実行後にキャッシュされたリモートリポジトリは、以下 URL で確認できます。
   - http://localhost:8081/#browse/browse:pypi-proxy
 
@@ -503,9 +495,9 @@ script:
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
 | ローカル | [`python-pip/pip.conf`](try-my-hand/python-pip/pip.conf) | - `index-url`: Nexus のリモートリポジトリ URL |
-| CI/CD | [`python-pip/.gitlab-ci.yml`](try-my-hand/python-pip/.gitlab-ci.yml) | `build.script` で `pip install` を以下オプション付与して実行<br>- `--index-url`: Nexus のリモートリポジトリ URL |
+| CI/CD | [`python-pip/.gitlab-ci.yml`](try-my-hand/python-pip/.gitlab-ci.yml) | `build.script` で、以下オプションを指定して `pip install` を実行<br>- `--index-url`: Nexus のリモートリポジトリ URL |
 
-- 認証情報をデモ環境では、簡略化のため `index-url` 内に `http(s)://{username}:{password}@host/` 形式で埋めているが、実運用では `~/.netrc` の設定を推奨します。
+- 簡略化のため認証情報を `index-url` 内に `http(s)://{username}:{password}@host/` 形式で埋めているが、実運用では `~/.netrc` の設定を推奨します。
 - ローカルのビルド時には、`PIP_CONFIG_FILE` 環境変数に接続設定ファイル（`pip.conf`）のパスを指定して `pip install` を実行することで、リモートリポジトリ経由で依存パッケージを取得しています。
 
 ```ini
@@ -545,21 +537,17 @@ script:
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | [`try-my-hand/python-uv/uv.toml`](try-my-hand/python-uv/uv.toml) | `[[index]]` セクションの `url` に認証情報込みの Nexus `pypi-proxy` URL を設定、`default = true` で既定インデックスに指定 |
-| CI/CD | [`try-my-hand/python-uv/.gitlab-ci.yml`](try-my-hand/python-uv/.gitlab-ci.yml) | `UV_DEFAULT_INDEX` 環境変数で `uv.toml` の設定を上書き |
+| ローカル | [`python-uv/uv.toml`](try-my-hand/python-uv/uv.toml) | - '[[index]] > url': Nexus のリモートリポジトリ URL<br>- 'default': 'true' で公式 PyPI（pypi.org）の自動参照を無効化し、指定した Nexus を最優先取得先に設定 |
+| CI/CD | [`python-uv/.gitlab-ci.yml`](try-my-hand/python-uv/.gitlab-ci.yml) | `default.before_script` で環境変数を設定し、`uv.toml` の `[[index]]` を上書き<br>- `UV_DEFAULT_INDEX`: Nexus のリモートリポジトリ URL |
+
+- 簡略化のため認証情報を `[[index]] > url` 内に `http(s)://{username}:{password}@host/` 形式で埋めているが、実運用では `~/.netrc` の設定を推奨します。
 
 ```toml
-# uv.toml（ローカル）
+# uv.toml
 [[index]]
 url = "http://admin:password@nexus.local:8081/repository/pypi-proxy/simple/"
 default = true
 ```
-
-> **HTTP について**: uv は HTTP URL への credentials 送信をデフォルトで許可しています。  
-> `[[index]]` の `url` に `http://user:pass@host/...` 形式で記述するだけで認証が有効になります。
-
-> **注意**: CI では `UV_INDEX_URL`（旧形式）ではなく `UV_DEFAULT_INDEX` を使用します。  
-> `uv.toml` の `[[index]]` 形式に対応する上書き変数は `UV_DEFAULT_INDEX` です。
 
 #### パブリッシュ時（成果物のアップロード）
 
@@ -595,8 +583,8 @@ Go コマンド (HTTPS)
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | [`try-my-hand/go-modules/BUILD.sh`](try-my-hand/go-modules/BUILD.sh) | `openssl` で自己署名証明書を生成 → `nexus_go_proxy.py` を起動 → `GOPROXY` に `https://user:pass@localhost:PORT/...` を設定 |
-| CI/CD | [`try-my-hand/go-modules/.gitlab-ci.yml`](try-my-hand/go-modules/.gitlab-ci.yml) | `before_script` で同様のブリッジを起動。`SSL_CERT_FILE` に CA バンドルを指定して Go が自己署名証明書を信頼できるようにする |
+| ローカル | [`go-modules/BUILD.sh`](try-my-hand/go-modules/BUILD.sh) | `openssl` で自己署名証明書を生成 → `nexus_go_proxy.py` を起動 → `GOPROXY` に `https://user:pass@localhost:PORT/...` を設定 |
+| CI/CD | [`go-modules/.gitlab-ci.yml`](try-my-hand/go-modules/.gitlab-ci.yml) | `before_script` で同様のブリッジを起動。`SSL_CERT_FILE` に CA バンドルを指定して Go が自己署名証明書を信頼できるようにする |
 
 ```yaml
 # .gitlab-ci.yml（build ジョブの before_script 概略）
