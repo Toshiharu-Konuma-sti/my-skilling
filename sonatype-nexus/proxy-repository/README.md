@@ -219,7 +219,7 @@ $ cd java-gradle/
 $ sh BUILD.sh
 ```
 
-- プロキシリポジトリへの接続設定は、[6-1. Java (Gradle)](#6-1-java-gradle) を確認してください。
+- プロキシリポジトリへの接続設定は、[6-2-1. Java (Gradle)](#6-2-1-java-gradle) を確認してください。
 - ビルド実行後にキャッシュされたプロキシリポジトリは、以下 URL で確認できます。
   - http://localhost:8081/#browse/browse:maven-central
 
@@ -232,7 +232,7 @@ $ cd java-maven/
 $ sh BUILD.sh
 ```
 
-- プロキシリポジトリへの接続設定は、[6-2. Java (Maven)](#6-2-java-maven) を確認してください。
+- プロキシリポジトリへの接続設定は、[6-2-2. Java (Maven)](#6-2-2-java-maven) を確認してください。
 - ビルド実行後にキャッシュされたプロキシリポジトリは、以下 URL で確認できます。
   - http://localhost:8081/#browse/browse:maven-central
 
@@ -247,7 +247,7 @@ $ npm install
 $ node app.js
 ```
 
-- プロキシリポジトリへの接続設定は、[6-3. JavaScript (npm)](#6-3-javascript-npm) を確認してください。
+- プロキシリポジトリへの接続設定は、[6-2-3. JavaScript (npm)](#6-2-3-javascript-npm) を確認してください。
 - ビルド実行後にキャッシュされたプロキシリポジトリは、以下 URL で確認できます。
   - http://localhost:8081/#browse/browse:npm-proxy
 
@@ -260,7 +260,7 @@ $ cd python-pip/
 $ sh BUILD.sh
 ```
 
-- プロキシリポジトリへの接続設定は、[6-4. Python (pip)](#6-4-python-pip) を確認してください。
+- プロキシリポジトリへの接続設定は、[6-2-4. Python (pip)](#6-2-4-python-pip) を確認してください。
 - ビルド実行後にキャッシュされたプロキシリポジトリは、以下 URL で確認できます。
   - http://localhost:8081/#browse/browse:pypi-proxy
 
@@ -273,7 +273,7 @@ $ cd python-uv/
 $ sh BUILD.sh
 ```
 
-- プロキシリポジトリの接続設定は、[uv.toml](try-my-hand/python-uv/uv.toml) を確認してください。
+- プロキシリポジトリの接続設定は、[6-2-5. Python (uv)](#6-2-5-python-uv) を確認してください。
   | 設定項目 | 説明 |
   | :--- | :--- |
   | `[[index]] > url` | Nexus の npm プロキシリポジトリ URL |
@@ -292,10 +292,9 @@ $ sh BUILD.sh
 $ sh BUILD.sh ano
 ```
 
-- プロキシリポジトリの設定情報は、[BUILD.sh](try-my-hand/go-modules/BUILD.sh)
-で `GOPROXY` 環境変数への設定を確認してください。
-  - 簡略化のため `GOPROXY` 内に `http(s)://{username}:{password}@host/`」形式で認証情報を埋めているが、実運用では `~/.netrc` の設定を推奨します。
-
+- プロキシリポジトリの設定情報は、[6-2-6. Go (modules)](#6-2-6-go-modules)
+を確認してください。
+- 簡略化のため `GOPROXY` 内に `http(s)://{username}:{password}@host/`」形式で認証情報を埋めているが、実運用では `~/.netrc` の設定を推奨します。
 - HTTPS ブリッジ: [nexus_go_proxy.py](try-my-hand/go-modules/nexus_go_proxy.py)
 
   > **Note**: Go 1.21+ はセキュリティ上 HTTP への認証情報送信を禁止しています。認証情報を使って Nexus にアクセスするには HTTPS で送信が必要なため、`BUILD.sh` は **HTTPS ブリッジ** を経由して Nexus に接続します。一方、Nexus リポジトリを匿名アクセス可能な設定にすれば、認証情報なしの HTTP で接続が可能なため、`GOPROXY` に Nexus の HTTP URL を指定して接続します（`BUILD.sh ano` がこの方式で動作します）。
