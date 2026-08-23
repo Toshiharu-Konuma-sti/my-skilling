@@ -25,6 +25,7 @@ PYPI_HOSTED_REPO_NAME="python-hosted"
 PYPI_REMOTE_URL="https://pypi.org"
 
 GO_PROXY_REPO_NAME="go-proxy"
+GO_HOSTED_REPO_NAME="go-hosted"
 GO_REMOTE_URL="https://proxy.golang.org"
 
 DOCKER_REPO_NAME="docker-hub-proxy"

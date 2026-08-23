@@ -6,19 +6,21 @@
 #
 # Stages  :
 #   1. build   - Nexus Go プロキシ経由でモジュールを取得しアプリを実行確認
-#   2. publish - VERSION ファイルのバージョンで git タグを作成し GitLab へ push
+#   2. publish - git タグ作成 + Nexus go-hosted へモジュールを登録
 #
-# Note    : Nexus は Go ホステッドリポジトリをサポートしないため
-#           publish は Maven/npm のようなバイナリアップロードではなく
-#           git タグの作成で行う（Go モジュールの標準的な配布方式）。
-#           Go 1.21+ は HTTP エンドポイントへの認証情報送信を拒否するため、
-#           ローカル・CI ともに nexus_go_proxy.py による HTTPS ブリッジを使用する。
+# Note    : Go 1.21+ は HTTP エンドポイントへの認証情報送信を拒否するため、
+#           build では nexus_go_proxy.py による HTTPS ブリッジを使用する。
 #             Go (HTTPS) → nexus_go_proxy.py (localhost) → Nexus HTTP
+#           publish では curl で直接 Nexus REST API を呼ぶため HTTPS ブリッジ不要。
+#           Nexus go-hosted への登録は REST components API 経由で zip を POST する。
+#           Nexus が zip 内の go.mod を解析し .mod / .info を自動生成する。
+#           zip は git archive で生成（{module}@{version}/ プレフィックス付き）。
 #
 # Variables (GitLab グループ CI/CD Variables から自動継承):
-#   NEXUS_URL  - Nexus コンテナ内部 URL (例: http://nexus:8081)
-#   NEXUS_USER - Nexus ユーザー名
-#   NEXUS_PASS - Nexus パスワード (masked)
+#   NEXUS_URL    - Nexus コンテナ内部 URL (例: http://nexus:8081)
+#   NEXUS_USER   - Nexus ユーザー名
+#   NEXUS_PASS   - Nexus パスワード (masked)
+#   GITLAB_TOKEN - git push 用 Personal/Project Access Token
 # ===========================================================================
 
 # main ブランチへの push 時のみパイプラインを実行
@@ -67,21 +69,51 @@ build:
 
 # ---------------------------------------------------------------------------
 # Stage 2: publish
-#   Go モジュールの配布は Nexus ホステッドへのバイナリアップロードではなく
-#   VCS のバージョンタグで行う（Nexus に Go hosted リポジトリは存在しない）。
-#   VERSION ファイルのバージョンで git タグを作成し GitLab へ push する。
-#   タグが push されると GitLab 内蔵 Go Module Proxy 経由で他プロジェクトから参照可能になる。
-#   ※ 同一バージョンが既に存在する場合は失敗する（再実行時は VERSION を更新すること）
+#   (1) git タグ付け
+#       VERSION ファイルのバージョンで git タグを作成し GitLab へ push する。
+#       ※ 同一タグが既に存在する場合は失敗する（再実行時は VERSION を更新すること）
+#   (2) Nexus go-hosted へのモジュール登録
+#       REST components API に zip を POST するだけでよい。
+#       Nexus が zip 内の go.mod を解析して .mod / .info を自動生成する。
+#         POST /service/rest/v1/components?repository=go-hosted
+#           version={version}
+#           asset=@{version}.zip
+#       zip は git archive の --prefix で {module}@{version}/ を付与して生成する。
+#       curl で直接 Nexus HTTP エンドポイントへ送信するため HTTPS ブリッジ不要。
 # ---------------------------------------------------------------------------
 publish:
   stage: publish
   image: golang:1.22
   script:
     - VERSION=$(cat VERSION)
+    - MODULE=$(awk '/^module /{print $2}' go.mod)
+
+    # --- (1) git タグ付け（既存タグはスキップ）---
     - git config user.email "ci@localhost"
     - git config user.name "CI"
-    - git tag "${VERSION}"
     - GITLAB_HOST=$(echo "${CI_REPOSITORY_URL}" | sed 's|http://.*@||;s|/.*||;s|localhost|gitlab|')
-    - git push "http://oauth2:${GITLAB_TOKEN}@${GITLAB_HOST}/${CI_PROJECT_PATH}.git" "${VERSION}"
+    - |
+      if git rev-parse "${VERSION}" >/dev/null 2>&1; then
+        echo "Tag ${VERSION} already exists, skipping."
+      else
+        git tag "${VERSION}"
+        git push "http://oauth2:${GITLAB_TOKEN}@${GITLAB_HOST}/${CI_PROJECT_PATH}.git" "${VERSION}"
+      fi
+
+    # --- (2) Nexus go-hosted へのアップロード（既登録バージョンはスキップ）---
+    # .zip: git archive で Go module zip フォーマット生成（{module}@{version}/ プレフィックス付き）
+    - git archive --format=zip --prefix="${MODULE}@${VERSION}/" HEAD > "${VERSION}.zip"
+    # zip を POST → Nexus が go.mod を解析して .mod / .info を自動生成（204=成功・400=既存）
+    - |
+      HTTP_CODE=$(curl -s -o /tmp/nexus_out.txt -w "%{http_code}" \
+        -u "${NEXUS_USER}:${NEXUS_PASS}" \
+        -X POST "${NEXUS_URL}/service/rest/v1/components?repository=go-hosted" \
+        -F "version=${VERSION}" \
+        -F "asset=@${VERSION}.zip")
+      case "${HTTP_CODE}" in
+        204) echo "Uploaded zip: HTTP ${HTTP_CODE}" ;;
+        400|409) echo "Skipped: HTTP ${HTTP_CODE} (redeploy not allowed on this repository)" ;;
+        *)   cat /tmp/nexus_out.txt; echo "ERROR: Nexus upload failed: HTTP ${HTTP_CODE}"; exit 1 ;;
+      esac
   needs:
     - job: build

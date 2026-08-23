@@ -602,41 +602,36 @@ default = true
 
 #### 6-2-6. Go (modules)
 
+> **制約**:  
+> Go 1.21+ はセキュリティ上、HTTP エンドポイントへの認証情報送信を拒否し、設定で許可する回避方法もありません。  
+> 従って、ローカル・CI/CD ともに [`nexus_go_proxy.py`](try-my-hand/go-modules/nexus_go_proxy.py) による **HTTPS ブリッジ** を経由して Nexus にアクセスします。
+
+Go コマンド実行前準備
+
+1. `openssl` で自己署名証明書を生成
+1. `nexus_go_proxy.py` を起動
+1. `GOPROXY` に `https://{user}:{pass}@localhost:18444/...` を設定
+
+Go コマンド実行後
+```
+Go コマンド: $ go run .
+  ─(HTTPS)→ nexus_go_proxy.py（localhost:18444 / 自己署名証明書）
+    ─(HTTP)→ Nexus の「go-proxy」プロキシリポジトリ（nexus.local:8081）
+```
+
 ##### ビルド時（依存関係の取得）
-
-> **制約**: Go 1.21+ はセキュリティ上、HTTP エンドポイントへの認証情報送信を拒否します。  
-> ローカル・CI/CD ともに [`nexus_go_proxy.py`](try-my-hand/go-modules/nexus_go_proxy.py) による **HTTPS ブリッジ** を経由して Nexus にアクセスします。
-
-```
-Go コマンド (HTTPS)
-  → nexus_go_proxy.py (localhost:18444 / 自己署名証明書)
-    → Nexus go-proxy (HTTP)
-```
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | [`go-modules/BUILD.sh`](try-my-hand/go-modules/BUILD.sh) | `openssl` で自己署名証明書を生成 → `nexus_go_proxy.py` を起動 → `GOPROXY` に `https://user:pass@localhost:PORT/...` を設定 |
-| CI/CD | [`go-modules/.gitlab-ci.yml`](try-my-hand/go-modules/.gitlab-ci.yml) | `before_script` で同様のブリッジを起動。`SSL_CERT_FILE` に CA バンドルを指定して Go が自己署名証明書を信頼できるようにする |
+| ローカル | [`go-modules/BUILD.sh`](try-my-hand/go-modules/BUILD.sh) | - `GOPROXY`: HTTPS ブリッジ経由の Nexus のプロキシリポジトリ URL |
+| CI/CD | [`go-modules/.gitlab-ci.yml`](try-my-hand/go-modules/.gitlab-ci.yml) | - `GOPROXY`: HTTPS ブリッジ経由の Nexus のプロキシリポジトリ URL |
 
-```yaml
-# .gitlab-ci.yml（build ジョブの before_script 概略）
-- apt-get install -y python3
-- openssl req -x509 ...         # 自己署名証明書を生成
-- python3 nexus_go_proxy.py 18444 "${NEXUS_URL}" cert key &
-- export GOPROXY="https://user:pass@localhost:18444/repository/go-proxy/,direct"
-- export GONOSUMDB="*"
-- export SSL_CERT_FILE="/tmp/ca-bundle.crt"
-```
+- 簡略化のため認証情報を `GOPROXY` 内に `http(s)://{username}:{password}@host/` 形式で埋めているが、実運用では ~/.netrc の設定を推奨します。
 
 ##### パブリッシュ時（Git タグの作成）
 
-> **補足**: Nexus は **Go ホステッドリポジトリを提供していません**。  
-> Go モジュールの配布は Maven/npm/PyPI のようなバイナリアップロードではなく、  
-> **VCS のバージョンタグ** が配布単位です（`go get module@v0.0.1` の `v0.0.1` が git タグに対応）。
-
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| CI/CD | [`try-my-hand/go-modules/VERSION`](try-my-hand/go-modules/VERSION) | パブリッシュするバージョン番号（`v0.0.1` 形式）を管理。再実行時はこのファイルのバージョンを更新する |
 | CI/CD | [`try-my-hand/go-modules/.gitlab-ci.yml`](try-my-hand/go-modules/.gitlab-ci.yml) | `publish` ジョブが `VERSION` を読み取り git タグを作成。`GITLAB_TOKEN`（PAT）でタグを GitLab へ push |
 
 ```yaml
