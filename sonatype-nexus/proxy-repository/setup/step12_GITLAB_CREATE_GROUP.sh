@@ -232,7 +232,7 @@ create_publish_token()
 # メイン
 # =============================================================================
 main() {
-    start_banner
+	call_show_start_banner
     check_required_commands curl jq docker
     log_info "=== GitLab グループ作成 ==="
     log_info "対象 GitLab      : ${GITLAB_URL}"
@@ -276,7 +276,7 @@ main() {
     log_success "完了！"
     log_info "GitLab グループ: ${GITLAB_URL}/${GITLAB_GROUP_PATH}"
 
-    finish_banner "$S_TIME"
+	call_show_finish_banner
 }
 
 main "$@"

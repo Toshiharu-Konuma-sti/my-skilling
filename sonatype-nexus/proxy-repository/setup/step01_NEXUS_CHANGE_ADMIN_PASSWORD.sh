@@ -125,7 +125,9 @@ verify_new_password() {
 
 # --- メイン ---
 main() {
-    start_banner
+
+	call_show_start_banner
+
     check_required_commands docker curl
     log_info "=== Nexus admin パスワード変更 ==="
     log_info "対象コンテナ : ${NEXUS_CONTAINER}"
@@ -142,7 +144,7 @@ main() {
     log_success "セットアップ完了！"
     log_info "Nexus 管理画面: ${NEXUS_URL}  (admin / ${NEXUS_PASS})"
 
-    finish_banner "$S_TIME"
+	call_show_finish_banner
 }
 
 main "$@"

@@ -25,7 +25,7 @@ BRANCH="feature/sample"
 # main()
 # =============================================================================
 main() {
-    start_banner
+	call_show_start_banner
 
     check_required_commands curl jq docker git rsync
 
@@ -50,7 +50,7 @@ main() {
     log_success "完了！"
     log_info "GitLab グループ: ${GITLAB_URL}/${GITLAB_GROUP_PATH}"
 
-    finish_banner "$S_TIME"
+	call_show_finish_banner
 }
 
 main "$@"
