@@ -182,6 +182,8 @@ $ cd ~/development/my-skilling/sonatype-nexus/proxy-repository/setup/
 
 **<<< under constraction >>>**
 
+- メモ（記述候補）
+  - `GITLAB_TOKEN` は [`try-my-hand/step02_GITLAB_CREATE_GROUP.sh`](try-my-hand/step02_GITLAB_CREATE_GROUP.sh) が `write_repository` スコープの Personal Access Token を作成し、GitLab グループ CI/CD 変数として登録します。（Go 言語の publish でタグ付に利用）
 
 ### 3-3-3. Nexus Web UI 初期設定
 
@@ -330,9 +332,8 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 | Python (uv) | GitLab | http://localhost:13000/my-hands-on-group/python-uv |
 | | Nexus | http://localhost:8081/#browse/browse:python-hosted |
 | Go (modules) | GitLab | http://localhost:13000/my-hands-on-group/go-modules |
-| | Nexus | |
-| Docker | GitLab |  |
-| | Nexus | |
+| | Nexus | http://localhost:8081/#browse/browse:go-hosted |
+| Docker | ─ | Docker ホステッドリポジトリはハンズオン対象外です  |
 
 上記の URL を対象に各言語やツールで成果物のパブリッシュを確認します。
 
@@ -580,7 +581,7 @@ trusted-host = nexus.local
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | [`python-uv/uv.toml`](try-my-hand/python-uv/uv.toml) | - '[[index]] > url': Nexus のプロキシリポジトリ URL<br>- 'default': 'true' で公式 PyPI（pypi.org）の自動参照を無効化し、指定した Nexus を最優先取得先に設定 |
+| ローカル | [`python-uv/uv.toml`](try-my-hand/python-uv/uv.toml) | - `[[index]] > url`: Nexus のプロキシリポジトリ URL<br>- `default`: `true` で公式 PyPI（pypi.org）の参照を無効化（Nexus の URL を最優先） |
 | CI/CD | [`python-uv/.gitlab-ci.yml`](try-my-hand/python-uv/.gitlab-ci.yml) | `default.before_script` で環境変数を設定し、`uv.toml` の `[[index]]` を上書き<br>- `UV_DEFAULT_INDEX`: Nexus のプロキシリポジトリ URL |
 
 - 簡略化のため認証情報を `[[index]] > url` 内に `http(s)://{username}:{password}@host/` 形式で埋めているが、実運用では `~/.netrc` の設定を推奨します。
@@ -602,52 +603,36 @@ default = true
 
 #### 6-2-6. Go (modules)
 
+> **制約**:  
+> Go 1.21+ はセキュリティ上、HTTP エンドポイントへの認証情報送信を拒否し、設定で許可する回避方法もありません。  
+> 従って、ローカル・CI/CD ともに [`nexus_go_proxy.py`](try-my-hand/go-modules/nexus_go_proxy.py) による **HTTPS ブリッジ** を経由して Nexus にアクセスします。
+
+Go コマンド実行前準備
+
+1. `openssl` で自己署名証明書を生成
+1. `nexus_go_proxy.py` を起動
+1. `GOPROXY` に `https://{user}:{pass}@localhost:18444/...` を設定
+
+Go コマンド実行後
+
+1. Go コマンド: `$ go run .`
+1. ─(HTTPS)→ `nexus_go_proxy.py`（`localhost:18444` / 自己署名証明書）
+1. ─(HTTP)→ Nexus の `go-proxy` プロキシリポジトリ（`nexus.local:8081`）
+
 ##### ビルド時（依存関係の取得）
-
-> **制約**: Go 1.21+ はセキュリティ上、HTTP エンドポイントへの認証情報送信を拒否します。  
-> ローカル・CI/CD ともに [`nexus_go_proxy.py`](try-my-hand/go-modules/nexus_go_proxy.py) による **HTTPS ブリッジ** を経由して Nexus にアクセスします。
-
-```
-Go コマンド (HTTPS)
-  → nexus_go_proxy.py (localhost:18444 / 自己署名証明書)
-    → Nexus go-proxy (HTTP)
-```
 
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | [`go-modules/BUILD.sh`](try-my-hand/go-modules/BUILD.sh) | `openssl` で自己署名証明書を生成 → `nexus_go_proxy.py` を起動 → `GOPROXY` に `https://user:pass@localhost:PORT/...` を設定 |
-| CI/CD | [`go-modules/.gitlab-ci.yml`](try-my-hand/go-modules/.gitlab-ci.yml) | `before_script` で同様のブリッジを起動。`SSL_CERT_FILE` に CA バンドルを指定して Go が自己署名証明書を信頼できるようにする |
+| ローカル | [`go-modules/BUILD.sh`](try-my-hand/go-modules/BUILD.sh) | - `GOPROXY`: HTTPS ブリッジ経由の Nexus のプロキシリポジトリ URL |
+| CI/CD | [`go-modules/.gitlab-ci.yml`](try-my-hand/go-modules/.gitlab-ci.yml) | `build.before_script` で環境変数を設定して `go run .` を実行<br>- `GOPROXY`: HTTPS ブリッジ経由の Nexus のプロキシリポジトリ URL |
 
-```yaml
-# .gitlab-ci.yml（build ジョブの before_script 概略）
-- apt-get install -y python3
-- openssl req -x509 ...         # 自己署名証明書を生成
-- python3 nexus_go_proxy.py 18444 "${NEXUS_URL}" cert key &
-- export GOPROXY="https://user:pass@localhost:18444/repository/go-proxy/,direct"
-- export GONOSUMDB="*"
-- export SSL_CERT_FILE="/tmp/ca-bundle.crt"
-```
+- 簡略化のため認証情報を `GOPROXY` 内に `http(s)://{username}:{password}@host/` 形式で埋めているが、実運用では ~/.netrc の設定を推奨します。
 
 ##### パブリッシュ時（Git タグの作成）
 
-> **補足**: Nexus は **Go ホステッドリポジトリを提供していません**。  
-> Go モジュールの配布は Maven/npm/PyPI のようなバイナリアップロードではなく、  
-> **VCS のバージョンタグ** が配布単位です（`go get module@v0.0.1` の `v0.0.1` が git タグに対応）。
-
 | 区分 | 設定ファイル | 設定内容 |
 | :--- | :--- | :--- |
-| CI/CD | [`try-my-hand/go-modules/VERSION`](try-my-hand/go-modules/VERSION) | パブリッシュするバージョン番号（`v0.0.1` 形式）を管理。再実行時はこのファイルのバージョンを更新する |
-| CI/CD | [`try-my-hand/go-modules/.gitlab-ci.yml`](try-my-hand/go-modules/.gitlab-ci.yml) | `publish` ジョブが `VERSION` を読み取り git タグを作成。`GITLAB_TOKEN`（PAT）でタグを GitLab へ push |
-
-```yaml
-# .gitlab-ci.yml（publish ジョブ概略）
-script:
-  - VERSION=$(cat VERSION)
-  - git tag "${VERSION}"
-  - git push "http://oauth2:${GITLAB_TOKEN}@${GITLAB_HOST}/..." "${VERSION}"
-```
-
-`GITLAB_TOKEN` は [`try-my-hand/step02_GITLAB_CREATE_GROUP.sh`](try-my-hand/step02_GITLAB_CREATE_GROUP.sh) が `write_repository` スコープの Personal Access Token を作成し、GitLab グループ CI/CD 変数として登録します。
+| CI/CD | [`go-modules/.gitlab-ci.yml`](try-my-hand/go-modules/.gitlab-ci.yml) | `publish.script` では Go 言語のツールは利用せず以下処理を実行<br>- GitLab の `go-modules` リポジトリへバージョン名でタグ付<br>- GitLab CI/CD から Nexus のホステッドリポジトリへ成果物をパブリッシュ|
 
 ---
 
@@ -660,9 +645,8 @@ Nexus の `docker-hub-proxy` は HTTP（port: `8085`）で動作しているた�
 
 | 区分 | 設定ファイル / 手順 | 設定内容 |
 | :--- | :--- | :--- |
-| ローカル | `/etc/docker/daemon.json` | `insecure-registries` に Nexus Docker レジストリアドレスを登録し Docker デーモンを再起動 |
-| ローカル | `docker login` コマンド | Nexus レジストリへのログイン（認証情報をクライアントに保存） |
-| CI/CD | [`try-my-hand/docker/.gitlab-ci.yml`](try-my-hand/docker/.gitlab-ci.yml) | `before_script` で `daemon.json` を生成・Docker デーモン再起動後、`docker login` を実行 |
+| ローカル | `/etc/docker/daemon.json` | 設定後に Docker デーモンを再起動して設定を反映<br>- `insecure-registries`: Nexus のベース URL |
+| ローカル | `docker login` コマンド | 以下オプションを付与して Docker レジストリ（Nexus）へログインします<br>- `-u`: 認証ユーザー名<br>- `-p`: 認証パスワード |
 
 ```json
 // /etc/docker/daemon.json
@@ -673,7 +657,8 @@ Nexus の `docker-hub-proxy` は HTTP（port: `8085`）で動作しているた�
 }
 ```
 
-> **`insecure-registries` の役割**: Docker デーモンはデフォルトで HTTPS 接続のみを許可します。  
+> **`insecure-registries` の役割**:  
+> Docker デーモンはデフォルトで HTTPS 接続のみを許可します。  
 > HTTP レジストリ（ここでは `nexus.local:8085`）へのアクセスを許可するには `insecure-registries` に登録し、Docker デーモンを再起動する必要があります。  
 > 本環境ではこの設定を [`container/BEFORE_CREATE_CONTAINER.sh`](container/BEFORE_CREATE_CONTAINER.sh) が自動で行います。
 
@@ -685,9 +670,10 @@ docker login nexus.local:8085 -u admin -p password
 docker pull nexus.local:8085/alpine:latest
 ```
 
-> **レジストリの指定方法**: `docker pull` のイメージ名先頭に `<registry-host>:<port>/` を付けることで取得先レジストリを指定します。  
+> **レジストリの指定方法**:  
+> `docker pull` のイメージ名先頭に `<registry-host>:<port>/` を付けることで取得先レジストリを指定します。  
 > 通常の `docker pull alpine:latest` は Docker Hub に直接アクセスしますが、  
-> `docker pull nexus.local:8085/alpine:latest` とすることで Nexus の `docker-hub-proxy` 経由で取得されます。
+> `docker pull nexus.local:8085/alpine:latest` とすることで Nexus の `docker-hub-proxy` 経由で取得します。
 
 ##### パブリッシュ時（`docker push`）
 

@@ -23,10 +23,12 @@ CUR_DIR=$(cd $(dirname $0); pwd)
 # サブルーチン
 # =============================================================================
 
+# {{{ create_group()
 # --- グループの作成 ---
 # $1: GitLab ベース URL  $2: アクセストークン  $3: グループパス  $4: グループ表示名
 # 戻り値: GL_GROUP_ID にグループ ID を設定する
-create_group() {
+create_group()
+{
     _base_url="$1"
     _token="$2"
     _group_path="$3"
@@ -83,11 +85,14 @@ create_group() {
     log_error "  レスポンス: ${_resp}"
     exit 1
 }
+# }}}
 
+# {{{ transfer_project()
 # --- プロジェクトをグループへ移管 ---
 # $1: GitLab ベース URL  $2: アクセストークン
 # $3: 現在のオーナー名  $4: プロジェクト名  $5: 移管先グループ ID
-transfer_project() {
+transfer_project()
+{
     _base_url="$1"
     _token="$2"
     _owner="$3"
@@ -140,11 +145,14 @@ transfer_project() {
         exit 1
     fi
 }
+# }}}
 
+# {{{ set_group_cicd_variable()
 # --- グループ CI/CD Variable を設定 ---
 # $1: GitLab ベース URL  $2: アクセストークン  $3: グループ ID
 # $4: 変数キー  $5: 変数値  $6: マスク (true|false)
-set_group_cicd_variable() {
+set_group_cicd_variable()
+{
     _base_url="$1"
     _token="$2"
     _group_id="$3"
@@ -177,11 +185,14 @@ set_group_cicd_variable() {
         exit 1
     fi
 }
+# }}}
 
+# {{{ create_publish_token()
 # --- CI publish 用 Personal Access Token を作成 ---
 # $1: GitLab ベース URL  $2: アクセストークン
 # 成功時: GL_PUBLISH_TOKEN に PAT 値を設定する
-create_publish_token() {
+create_publish_token()
+{
     _base_url="$1"
     _token="$2"
 
@@ -215,6 +226,7 @@ create_publish_token() {
         exit 1
     fi
 }
+# }}}
 
 # =============================================================================
 # メイン

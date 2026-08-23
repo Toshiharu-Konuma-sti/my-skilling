@@ -279,7 +279,7 @@ EOF
 # {{{ create_hosted_repo()
 # --- ホステッドリポジトリの作成（汎用）---
 # $1: ベース URL  $2: ユーザー名  $3: パスワード
-# $4: フォーマット (npm|pypi|...)  $5: リポジトリ名
+# $4: フォーマット (npm|pypi|...)  $5: リポジトリ名  $6: writePolicy (省略時: allow_once)
 create_hosted_repo()
 {
     _base_url="$1"
@@ -287,6 +287,7 @@ create_hosted_repo()
     _pass="$3"
     _format="$4"
     _repo_name="$5"
+    _write_policy="${6:-allow_once}"
     log_info "${_format} ホステッドリポジトリ '${_repo_name}' を作成しています..."
 
     if repo_exists "$_base_url" "$_user" "$_pass" "$_repo_name"; then
@@ -298,7 +299,7 @@ create_hosted_repo()
 {
   "name": "${_repo_name}",
   "online": true,
-  "storage": { "blobStoreName": "default", "strictContentTypeValidation": true, "writePolicy": "allow_once" }
+  "storage": { "blobStoreName": "default", "strictContentTypeValidation": true, "writePolicy": "${_write_policy}" }
 }
 EOF
 )
@@ -351,6 +352,9 @@ main() {
     log_info "--- [Go] ---"
     create_proxy_repo     "$NEXUS_URL" "$NEXUS_USER" "$NEXUS_PASS" \
                           go "$GO_PROXY_REPO_NAME" "$GO_REMOTE_URL"
+    # go-hosted は再デプロイを許可（同一バージョンのモジュール更新に対応）
+    create_hosted_repo    "$NEXUS_URL" "$NEXUS_USER" "$NEXUS_PASS" \
+                          go "$GO_HOSTED_REPO_NAME" "allow"
 
     log_info ""
     log_info "--- [Docker] ---"
