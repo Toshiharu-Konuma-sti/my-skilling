@@ -323,6 +323,8 @@ EOF
 # メイン
 # =============================================================================
 main() {
+	call_show_start_banner
+
     check_required_commands curl jq
     log_info "=== Nexus リポジトリ セットアップ ==="
     log_info "対象 Nexus: ${NEXUS_URL}"
@@ -364,8 +366,8 @@ main() {
 
     log_info ""
     log_success "セットアップ完了！"
+
+	call_show_finish_banner
 }
 
-start_banner
 main "$@"
-finish_banner $S_TIME

@@ -23,8 +23,10 @@
 3. [環境構築](#3-環境構築)
    - [3-2. コンテナ構築](#3-2-コンテナ構築)
    - [3-3. 初期設定](#3-3-初期設定)
-     - [3-3-1. Nexus 初期設定](#3-3-1-nexus-初期設定)
-     - [3-3-2. GitLab 初期設定](#3-3-2-gitlab-初期設定)
+     - [3-3-1. ハンズオンに必要なコマンドの準備](#3-3-1-ハンズオンに必要なコマンドの準備)
+     - [3-3-2. Nexus 初期設定](#3-3-2-nexus-初期設定)
+     - [3-3-3. GitLab 初期設定](#3-3-3-gitlab-初期設定)
+     - [3-3-4. Nexus Web UI 初期設定](#3-3-4-nexus-web-ui-初期設定)
    - [3-4. 言語・ツール別 Nexus リポジトリ名一覧](#3-4-言語ツール別-nexus-リポジトリ名一覧)
 4. [体験](#4-体験)
    - [4-1. プロキシリポジトリを介したローカルビルド](#4-1-プロキシリポジトリを介したローカルビルド)
@@ -110,7 +112,7 @@ Nexus には以下のリポジトリが構築されます。
 `container/` ディレクトリに移り、以下のスクリプトを順番に実行します。
 
 ```bash
-$ cd ~/development/my-skilling/sonatype-nexus/proxy-repository/container/
+$ cd ~/handson/my-skilling/sonatype-nexus/proxy-repository/container/
 ```
 
 1. コンテナ作成前の事前準備スクリプトを実行します。なお、本コマンドの実行には管理者権限（`sudo`）が必要です。
@@ -140,7 +142,18 @@ $ cd ~/development/my-skilling/sonatype-nexus/proxy-repository/container/
 $ cd ~/development/my-skilling/sonatype-nexus/proxy-repository/setup/
 ```
 
-### 3-3-1. Nexus 初期設定
+### 3-3-1. ハンズオンに必要なコマンドの準備
+
+本ハンズオンの実施には、以下のコマンドやランタイムが必要です。
+
+| ツール | 参照先 | 利用箇所 |
+|---|---|---|
+| jq | [初期環境構築: ユーティリティツール on Ubuntu > jq](https://github.com/Toshiharu-Konuma-sti/setup-docs-for-hands-on/tree/main/setup-utils-on-ubuntu#jq-%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89) | [setup/](./setup/) 配下のスクリプト |
+| go | [初期環境構築: ユーティリティツール on Ubuntu > go](https://github.com/Toshiharu-Konuma-sti/setup-docs-for-hands-on/tree/main/setup-utils-on-ubuntu#go-%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89) | [try-my-hand/](./try-my-hand/) 配下の言語・ツール環境 |
+| pip | [初期環境構築: ユーティリティツール on Ubuntu > pip](https://github.com/Toshiharu-Konuma-sti/setup-docs-for-hands-on/tree/main/setup-utils-on-ubuntu#pip-%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89) | [try-my-hand/](./try-my-hand/) 配下の言語・ツール環境 |
+| uv | [初期環境構築: ユーティリティツール on Ubuntu > uv](https://github.com/Toshiharu-Konuma-sti/setup-docs-for-hands-on/tree/main/setup-utils-on-ubuntu#uv-%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89) | [try-my-hand/](./try-my-hand/) 配下の言語・ツール環境 |
+
+### 3-3-2. Nexus 初期設定
 
 1. admin の初期パスワードを変更します。
 
@@ -178,14 +191,14 @@ $ cd ~/development/my-skilling/sonatype-nexus/proxy-repository/setup/
      | python-hosted | pypi | hosted | ─ | ─ |
      | go-proxy | go | proxy | https://proxy.golang.org | ─ |
 
-### 3-3-2. GitLab 初期設定
+### 3-3-3. GitLab 初期設定
 
 **<<< under constraction >>>**
 
 - メモ（記述候補）
   - `GITLAB_TOKEN` は [`try-my-hand/step02_GITLAB_CREATE_GROUP.sh`](try-my-hand/step02_GITLAB_CREATE_GROUP.sh) が `write_repository` スコープの Personal Access Token を作成し、GitLab グループ CI/CD 変数として登録します。（Go 言語の publish でタグ付に利用）
 
-### 3-3-3. Nexus Web UI 初期設定
+### 3-3-4. Nexus Web UI 初期設定
 
 **<<< under constraction >>>**
 
@@ -361,23 +374,25 @@ Docker Hub のイメージを Nexus の `docker-hub-proxy` 経由で取得する
 
 ## 5. 清掃手順
 
-1. `container/` ディレクトリに移ります。
+`container/` ディレクトリに移り、以下のスクリプトを順番に実行します。
 
    ```bash
-   $ cd ~/handson/sonatype-nexus/container/
+   $ cd ~/handson/my-skilling/sonatype-nexus/proxy-repository/container/
    ```
 
-2. コンテナを停止してリソースを削除します。
-
+1. 続けてコンテナを停止して削除します。
    ```bash
-   $ docker compose down -v
+   $ ./CREATE_CONTAINER.sh down
    ```
 
-3. `/etc/hosts` から `nexus.local` のエントリを削除します。
-
+1. コンテナ削除後の構成解除スクリプトを実行します。
    ```bash
-   $ sudo sed -i '/nexus\.local/d' /etc/hosts
+   $ ./DECONFIGURE_HOST_ENV.sh
    ```
+   - 以下の処理を行います。
+     - `/etc/hosts` からカスタムドメインの除去
+     - `/etc/docker/daemon.json` の削除
+     - Docker デーモンの再起動（deamon.json 削除の反映）
 
 ---
 
@@ -679,3 +694,20 @@ docker pull nexus.local:8085/alpine:latest
 
 > **補足**: 本環境では Docker ホステッドリポジトリは構築対象外です。  
 > `docker push` を Nexus 経由で行う場合は、Nexus に `docker-hosted` タイプのリポジトリを別途作成し、専用ポートを割り当てる必要があります。
+
+## 7. Tips
+
+ハンズオンを進めていくうえで起こり得る対策になります。
+
+- ローカルや GitLabCI/CD のビルドにて、Nexus の参照で処理が止まり詰まるような状況が発生した。
+  - 自宅 WiFi や会社 N/W からテザリングなど通信環境が変わったことにより IP アドレスが変割った可能性があります。
+  - `/etc/hosts` のカスタムドメインと IP アドレスの紐づけをし直します。
+  - `$ ./BEFORE_CREATE_CONTAINER.sh` を再度実行し直します。
+
+- ローカルや GitLabCI/CD のビルドにて、Nexus の参照が `403 Fobidden` で拒否される。
+  - Nexus の利用に関して同意をしていない可能性があります。
+  - Nexus の Web UI にログインして、初回アクセス時に表示される「Let's Get You Set Up」のウィザードで「Agree End User License Agreement」を「Agree」します。
+  - http://localhost:8081
+
+- `try-my-hand/` 配下の各言語環境で、`.gitlab-ci.yml` やソースコードなどを編集して CI/CD を再度実行したい。
+  - `setup/step14_GITLAB_PUSH_TO_REPOSITORY.sh` を実行すると GitLab へコミット＆プッシュができるので、更新後のリソースで CI/CD の実行が可能です。

@@ -154,7 +154,7 @@ restart_runner() {
 # メイン
 # =============================================================================
 main() {
-    start_banner
+	call_show_start_banner
     check_required_commands curl jq docker
     log_info "=== GitLab Runner 登録 ==="
     log_info "対象 GitLab        : ${GITLAB_URL}"
@@ -178,7 +178,7 @@ main() {
     log_success "完了！"
     log_info "GitLab: ${GITLAB_URL}/admin/runners"
 
-    finish_banner "$S_TIME"
+	call_show_finish_banner
 }
 
 main "$@"
