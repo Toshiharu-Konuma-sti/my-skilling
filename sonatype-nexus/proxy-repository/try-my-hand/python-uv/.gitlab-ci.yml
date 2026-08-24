@@ -37,7 +37,7 @@ default:
   before_script:
     - pip install uv --quiet
     - NEXUS_HOST_PORT=$(echo "${NEXUS_URL}" | sed 's|http://||')
-    - export UV_DEFAULT_INDEX="http://${NEXUS_USER}:${NEXUS_PASS}@${NEXUS_HOST_PORT}/repository/python-proxy/simple/"
+    - export UV_DEFAULT_INDEX="http://${NEXUS_USER}:${NEXUS_PASS}@${NEXUS_HOST_PORT}/repository/python-group/simple/"
 
 # ---------------------------------------------------------------------------
 # Stage 1: build

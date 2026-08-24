@@ -39,7 +39,7 @@ variables:
 
 # ---------------------------------------------------------------------------
 # Stage 1: build
-#   RUN.sh と同じ HTTPS ブリッジ方式で Nexus go-proxy 経由でモジュールを取得する
+#   RUN.sh と同じ HTTPS ブリッジ方式で Nexus go-group 経由でモジュールを取得する
 #
 #   Go 1.21+ は HTTP エンドポイントへの認証情報送信を拒否するため、
 #   nexus_go_proxy.py で localhost に HTTPS サーバーを立て
@@ -57,7 +57,7 @@ build:
     - cat /etc/ssl/certs/ca-certificates.crt /tmp/proxy.crt > /tmp/ca-bundle.crt
     - python3 nexus_go_proxy.py 18444 "${NEXUS_URL}" /tmp/proxy.crt /tmp/proxy.key &
     - sleep 2
-    - export GOPROXY="https://${NEXUS_USER}:${NEXUS_PASS}@localhost:18444/repository/go-proxy/,direct"
+    - export GOPROXY="https://${NEXUS_USER}:${NEXUS_PASS}@localhost:18444/repository/go-group/,direct"
     - export GONOSUMDB="*"
     - export SSL_CERT_FILE="/tmp/ca-bundle.crt"
   script:

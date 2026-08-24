@@ -73,11 +73,11 @@ clean_module_cache() {
 
 # ------------------------------------------------------------
 # サブルーチン: Go プログラムの実行（認証あり / HTTPS ブリッジ経由）
-#   GOPROXY: https://user:pass@localhost:PORT/repository/go-proxy/
+#   GOPROXY: https://user:pass@localhost:PORT/repository/go-group/
 #   Go は HTTP への認証情報送信を禁止しているため HTTPS ブリッジを経由で Nexus へ接続する
 # ------------------------------------------------------------
 run_with_auth() {
-    local _goproxy_url="https://${REPO_MANAGER_USERNAME}:${REPO_MANAGER_PASSWORD}@localhost:${LOCAL_PROXY_PORT}/repository/${GO_PROXY_REPO_NAME}"
+    local _goproxy_url="https://${REPO_MANAGER_USERNAME}:${REPO_MANAGER_PASSWORD}@localhost:${LOCAL_PROXY_PORT}/repository/${GO_GROUP_REPO_NAME}"
     echo "[INFO] [認証あり / HTTPS ブリッジ] でモジュールを取得して実行します..."
     echo "       GOPROXY: ${_goproxy_url}"
 
@@ -94,11 +94,11 @@ run_with_auth() {
 
 # ------------------------------------------------------------
 # サブルーチン: Go プログラムの実行（匿名 / HTTP 直接接続）
-#   GOPROXY: http://nexus.local:8081/repository/go-proxy/
+#   GOPROXY: http://nexus.local:8081/repository/go-group/
 #   認証情報なしのため Go は HTTP で Nexus へ直接接続する
 # ------------------------------------------------------------
 run_anonymous() {
-    local _goproxy_url="${REPO_MANAGER_URL}/repository/${GO_PROXY_REPO_NAME}"
+    local _goproxy_url="${REPO_MANAGER_URL}/repository/${GO_GROUP_REPO_NAME}"
     echo "[INFO] [匿名 / HTTP 直接] でモジュールを取得して実行します..."
     echo "       GOPROXY: ${_goproxy_url}"
     echo "       ※ Nexus の匿名アクセスが有効である必要があります"
