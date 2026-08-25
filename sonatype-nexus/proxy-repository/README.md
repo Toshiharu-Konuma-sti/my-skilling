@@ -173,12 +173,16 @@ $ cd ~/development/my-skilling/sonatype-nexus/proxy-repository/setup/
 
      | Name | Format | Type | Proxy > Remote storage | 備考 |
      | :--- | :--- | :--- | :--- | :--- |
-     | docker-hub-proxy | docker | proxy | https://registry-1.docker.io | ─ |
      | npm-proxy | npm | proxy | https://registry.npmjs.org | ─ |
      | npm-hosted | npm | hosted | ─ | ─ |
+     | npm-group | npm | group | ─ | ─ |
      | python-proxy | pypi | proxy | https://pypi.org | ─ |
      | python-hosted | pypi | hosted | ─ | ─ |
+     | python-group | pypi | group | ─ | ─ |
      | go-proxy | go | proxy | https://proxy.golang.org | ─ |
+     | go-hosted | go | hosted | ─ | ─ |
+     | go-group | go | group | ─ | ─ |
+     | docker-hub-proxy | docker | proxy | https://registry-1.docker.io | ─ |
 
 ### 3-3-3. GitLab 初期設定
 
