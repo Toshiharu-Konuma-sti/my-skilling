@@ -208,7 +208,7 @@ Web UI にて初期セットアップを行います。このセットアップ�
    - http://localhost:8081
 1. 初回アクセス時には「Let's Get You Set Up」のウィザードが表示されるので進めます。
 1. 「Agree End User License Agreement」で「Agree」ボタンをクリックして同意します。
-  <img src="./image/nexus-setup-agreement.png" width="600">
+   <img src="./image/nexus-setup-agreement.png" width="600">
 1. 「Configure Anonymous Access」で「Disable anonymous access」を選択して「Next」ボタンをクリックします。
    <img src="./image/nexus-setup-anonymous.png" width="600">
 1. あとは最後までウィザードを進めて、最後に「Finish」ボタンをクリックすれば初期セットアップは完了です。
