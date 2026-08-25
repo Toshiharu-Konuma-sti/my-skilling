@@ -4,12 +4,12 @@
 # Nexus 3 リポジトリ セットアップスクリプト
 # Description: REST API を利用して以下を一括セットアップします。
 #   [Maven]   maven-central / maven-public リポジトリの存在確認
-#   [npm]     npm Token Realm の有効化 + プロキシ/ホステッドリポジトリの作成
-#   [PyPI]    PyPI プロキシ/ホステッドリポジトリの作成
-#   [Go]      Go モジュールプロキシリポジトリの作成
+#   [npm]     npm Token Realm の有効化 + プロキシ/ホステッド/グループリポジトリの作成
+#   [PyPI]    PyPI プロキシ/ホステッド/グループリポジトリの作成
+#   [Go]      Go モジュール プロキシ/ホステッド/グループリポジトリの作成
 #   [Docker]  Bearer Token Realm の有効化 + Docker Hub プロキシリポジトリの作成
-# ※ npm / pypi / go のプロキシ・ホステッドは汎用関数 create_proxy_repo /
-#   create_hosted_repo で処理（フォーマット名を引数で渡す）
+# ※ npm / pypi / go のプロキシ・ホステッド・グループは汎用関数 create_proxy_repo /
+#   create_hosted_repo / create_group_repo で処理（フォーマット名を引数で渡す）
 # ==============================================================================
 
 # 失敗時に即時終了
@@ -134,6 +134,56 @@ enable_npm_realm()
         log_success "npm Token Realm を有効化しました。"
     else
         log_error "npm Token Realm の有効化に失敗しました。(HTTP ${HTTP_CODE})"
+        exit 1
+    fi
+}
+# }}} 
+
+# {{{ create_group_repo()
+# --- グループリポジトリの作成（汎用）---
+# $1: ベース URL  $2: ユーザー名  $3: パスワード
+# $4: フォーマット (npm|pypi|go|...)  $5: リポジトリ名  $6以降: メンバーリポジトリ名
+create_group_repo()
+{
+    _base_url="$1"
+    _user="$2"
+    _pass="$3"
+    _format="$4"
+    _repo_name="$5"
+    shift 5
+    log_info "${_format} グループリポジトリ '${_repo_name}' を作成しています..."
+
+    if repo_exists "$_base_url" "$_user" "$_pass" "$_repo_name"; then
+        log_warn "リポジトリ '${_repo_name}' はすでに存在します。スキップします。"
+        return 0
+    fi
+
+    # メンバー名を JSON 配列文字列に変換
+    _members=""
+    for _m in "$@"; do
+        _members="${_members:+${_members}, }\"${_m}\""
+    done
+
+    PAYLOAD=$(cat <<EOF
+{
+  "name": "${_repo_name}",
+  "online": true,
+  "storage": { "blobStoreName": "default", "strictContentTypeValidation": true },
+  "group": { "memberNames": [${_members}] }
+}
+EOF
+)
+
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+        -X POST "${_base_url}/service/rest/v1/repositories/${_format}/group" \
+        -u "${_user}:${_pass}" \
+        -H "Content-Type: application/json" \
+        -d "$PAYLOAD")
+
+    if [ "$HTTP_CODE" = "201" ]; then
+        log_success "${_format} グループリポジトリ '${_repo_name}' を作成しました。"
+    else
+        log_error "${_format} グループリポジトリの作成に失敗しました。(HTTP ${HTTP_CODE})"
         exit 1
     fi
 }
@@ -342,6 +392,9 @@ main() {
                           npm "$NPM_PROXY_REPO_NAME" "$NPM_REMOTE_URL"
     create_hosted_repo    "$NEXUS_URL" "$NEXUS_USER" "$NEXUS_PASS" \
                           npm "$NPM_HOSTED_REPO_NAME"
+    create_group_repo     "$NEXUS_URL" "$NEXUS_USER" "$NEXUS_PASS" \
+                          npm "$NPM_GROUP_REPO_NAME" \
+                          "$NPM_HOSTED_REPO_NAME" "$NPM_PROXY_REPO_NAME"
 
     log_info ""
     log_info "--- [PyPI] ---"
@@ -349,6 +402,9 @@ main() {
                           pypi "$PYPI_PROXY_REPO_NAME" "$PYPI_REMOTE_URL"
     create_hosted_repo    "$NEXUS_URL" "$NEXUS_USER" "$NEXUS_PASS" \
                           pypi "$PYPI_HOSTED_REPO_NAME"
+    create_group_repo     "$NEXUS_URL" "$NEXUS_USER" "$NEXUS_PASS" \
+                          pypi "$PYPI_GROUP_REPO_NAME" \
+                          "$PYPI_HOSTED_REPO_NAME" "$PYPI_PROXY_REPO_NAME"
 
     log_info ""
     log_info "--- [Go] ---"
@@ -357,6 +413,9 @@ main() {
     # go-hosted は再デプロイを許可（同一バージョンのモジュール更新に対応）
     create_hosted_repo    "$NEXUS_URL" "$NEXUS_USER" "$NEXUS_PASS" \
                           go "$GO_HOSTED_REPO_NAME" "allow"
+    create_group_repo     "$NEXUS_URL" "$NEXUS_USER" "$NEXUS_PASS" \
+                          go "$GO_GROUP_REPO_NAME" \
+                          "$GO_HOSTED_REPO_NAME" "$GO_PROXY_REPO_NAME"
 
     log_info ""
     log_info "--- [Docker] ---"

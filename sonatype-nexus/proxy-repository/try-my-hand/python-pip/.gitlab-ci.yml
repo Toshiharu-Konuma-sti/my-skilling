@@ -39,14 +39,14 @@ default:
 
 # ---------------------------------------------------------------------------
 # Stage 1: build
-#   認証情報を index-url に埋め込み Nexus python-proxy 経由で依存関係を取得する
+#   認証情報を index-url に埋め込み Nexus python-group 経由で依存関係を取得する
 # ---------------------------------------------------------------------------
 build:
   stage: build
   image: python:3-slim
   script:
     - pip install --no-cache-dir
-        --index-url "http://${NEXUS_USER}:${NEXUS_PASS}@${NEXUS_HOST_PORT}/repository/python-proxy/simple/"
+        --index-url "http://${NEXUS_USER}:${NEXUS_PASS}@${NEXUS_HOST_PORT}/repository/python-group/simple/"
         --trusted-host "${NEXUS_HOST}"
         -r requirements.txt
     - python app.py
@@ -65,7 +65,7 @@ publish:
   image: python:3-slim
   script:
     - pip install --no-cache-dir build twine
-        --index-url "http://${NEXUS_USER}:${NEXUS_PASS}@${NEXUS_HOST_PORT}/repository/python-proxy/simple/"
+        --index-url "http://${NEXUS_USER}:${NEXUS_PASS}@${NEXUS_HOST_PORT}/repository/python-group/simple/"
         --trusted-host "${NEXUS_HOST}"
     - python -m build
     - twine upload

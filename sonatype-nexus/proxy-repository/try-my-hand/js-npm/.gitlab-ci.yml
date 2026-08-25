@@ -31,7 +31,7 @@ stages:
 
 # ---------------------------------------------------------------------------
 # Stage 1: build
-#   .npmrc を動的生成して Nexus npm-proxy 経由で依存関係を取得し、
+#   .npmrc を動的生成して Nexus npm-group 経由で依存関係を取得し、
 #   node app.js で動作確認する
 # ---------------------------------------------------------------------------
 build:
@@ -41,8 +41,8 @@ build:
     - |
       NEXUS_HOST_PORT=$(echo "${NEXUS_URL}" | sed 's|http://||')
       NEXUS_AUTH=$(echo -n "${NEXUS_USER}:${NEXUS_PASS}" | base64 | tr -d '\n')
-      echo "registry=${NEXUS_URL}/repository/npm-proxy/" > .npmrc
-      echo "//${NEXUS_HOST_PORT}/repository/npm-proxy/:_auth=${NEXUS_AUTH}" >> .npmrc
+      echo "registry=${NEXUS_URL}/repository/npm-group/" > .npmrc
+      echo "//${NEXUS_HOST_PORT}/repository/npm-group/:_auth=${NEXUS_AUTH}" >> .npmrc
       echo "always-auth=true" >> .npmrc
   script:
     - npm install

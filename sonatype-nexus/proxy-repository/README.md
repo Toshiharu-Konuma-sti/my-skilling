@@ -77,17 +77,6 @@
 | :--- | :--- | :--- |
 | Nexus Repository Manager | リポジトリマネージャー本体 | http://nexus.local:8081 |
 
-Nexus には以下のリポジトリが構築されます。
-
-| リポジトリ名 | 種別 | 用途 |
-| :--- | :--- | :--- |
-| `maven-central` | proxy | Maven Central のプロキシ |
-| `maven-public` | group | Maven リポジトリのグループ（Gradle / Maven から利用） |
-| `npm-proxy` | proxy | npmjs.org のプロキシ |
-| `python-proxy` | proxy | PyPI のプロキシ |
-| `go-proxy` | proxy | proxy.golang.org のプロキシ |
-| `docker-hub-proxy` | proxy | Docker Hub のプロキシ（port: `8085`） |
-
 > **`nexus.local` を使用する理由**:  
 > `localhost`（`127.0.0.1`）を使わず `/etc/hosts` でカスタムホスト名を割り当てている理由は、**各ビルドツールの HTTP セキュリティポリシーを正確に体験・検証するため**です。  
 > npm・Gradle など一部のビルドツールは `localhost` / `127.0.0.1` をループバックアドレスとして特別扱いし、HTTP 接続（非 HTTPS 接続）でも認証情報の送信を無条件に許可します。  
@@ -193,31 +182,51 @@ $ cd ~/development/my-skilling/sonatype-nexus/proxy-repository/setup/
 
 ### 3-3-3. GitLab 初期設定
 
-**<<< under constraction >>>**
-
-- メモ（記述候補）
-  - `GITLAB_TOKEN` は [`try-my-hand/step02_GITLAB_CREATE_GROUP.sh`](try-my-hand/step02_GITLAB_CREATE_GROUP.sh) が `write_repository` スコープの Personal Access Token を作成し、GitLab グループ CI/CD 変数として登録します。（Go 言語の publish でタグ付に利用）
+1. GitLab へ各言語のリポジトリを作成します。
+   ```
+   $ sh step11_GITLAB_CREATE_REPOSITORY.sh
+   ```
+1. リポジトリを束ねるグループを作成します。
+   ```
+   $ sh step12_GITLAB_CREATE_GROUP.sh
+   ```
+1. グループに CI/CD を動かす Runner を登録します。
+   ```
+   $ sh step13_GITLAB_REGISTER_RUNNER.sh
+   ```
+1. Personal Access Token (PAT)を作成し、CI/CD 変数に登録します。
+   ```
+   $ sh step14_GITLAB_PUSH_TO_REPOSITORY.sh
+   ```
+   - PAT は、Go 言語の publish でタグ付に利用します。
 
 ### 3-3-4. Nexus Web UI 初期設定
 
-**<<< under constraction >>>**
+Web UI にて初期セットアップを行います。このセットアップを行わないと、リポジトリの利用が「403 Forbidden」で拒否されます。 
 
-- Nexus の WebUI へアクセスして設定が必要（これしないと Forbidden でリポジトリ利用できない）
-  - http://localhost:8081
-  - 「Agree End User License Agreement」で「Agree」ボタンをクリック
-  - 「Configure Anonymous Access」で「Disable anonymous access」を選択して「Next」ボタンをクリック
+1. Nexus の WebUI へアクセスします。
+   - http://localhost:8081
+1. 初回アクセス時には「Let's Get You Set Up」のウィザードが表示されるので進めます。
+1. 「Agree End User License Agreement」で「Agree」ボタンをクリックして同意します。
+  <img src="./image/nexus-setup-agreement.png" width="600">
+1. 「Configure Anonymous Access」で「Disable anonymous access」を選択して「Next」ボタンをクリックします。
+   <img src="./image/nexus-setup-anonymous.png" width="600">
+1. あとは最後までウィザードを進めて、最後に「Finish」ボタンをクリックすれば初期セットアップは完了です。
 
 ### 3-4. 言語・ツール別 Nexus リポジトリ名一覧
 
 | 言語 / ツール | プロキシリポジトリ（ビルド時） | ホステッドリポジトリ（パブリッシュ時） |
 | :--- | :--- | :--- |
-| Java (Gradle) | `maven-public` | `maven-releases` |
-| Java (Maven) | `maven-public` | `maven-releases` |
-| JavaScript (npm) | `npm-proxy` | `npm-hosted` |
-| Python (pip) | `python-proxy` | `python-hosted` |
-| Python (uv) | `python-proxy` | `python-hosted` |
-| Go (modules) | `go-proxy` | ※ Git タグ（Nexus に hosted なし） |
-| Docker | `docker-hub-proxy` | ※ 本環境では Docker hosted は対象外 |
+| Java (Gradle) | 実体：`maven-central`<br>参照：`maven-public` | `maven-releases` |
+| Java (Maven) | 実体：`maven-central`<br>参照：`maven-public` | `maven-releases` |
+| JavaScript (npm) | 実体：`npm-proxy`<br>参照：`npm-group` | `npm-hosted` |
+| Python (pip) | 実体：`python-proxy`<br>参照：`python-group` | `python-hosted` |
+| Python (uv) | 実体：`python-proxy`<br>参照：`python-group` | `python-hosted` |
+| Go (modules) | 実体：`go-proxy`<br>参照：`go-group` | `go-hosted` |
+| Docker | 実体：`docker-hub-proxy` | ※ 本環境では Docker hosted は対象外 |
+
+- `maven-*` リポジトリは、Nexus でデフォルトで用意されているリポジトリです。これら以外は新規に作成します。
+- `*-group` リポジトリは、各言語で `*-proxy` と `*-hosted` リポジトリをメンバーに含んでいるため、ビルド時に両方のリポジトリを参照できます。（`*-public` に対する `*-central` と `*-release` も同様の考え方です）
 
 ---
 

@@ -18,14 +18,17 @@ REPO_MANAGER_PASSWORD="${NEXUS_PASS}"
 
 NPM_PROXY_REPO_NAME="npm-proxy"
 NPM_HOSTED_REPO_NAME="npm-hosted"
+NPM_GROUP_REPO_NAME="npm-group"
 NPM_REMOTE_URL="https://registry.npmjs.org"
 
 PYPI_PROXY_REPO_NAME="python-proxy"
 PYPI_HOSTED_REPO_NAME="python-hosted"
+PYPI_GROUP_REPO_NAME="python-group"
 PYPI_REMOTE_URL="https://pypi.org"
 
 GO_PROXY_REPO_NAME="go-proxy"
 GO_HOSTED_REPO_NAME="go-hosted"
+GO_GROUP_REPO_NAME="go-group"
 GO_REMOTE_URL="https://proxy.golang.org"
 
 DOCKER_REPO_NAME="docker-hub-proxy"
