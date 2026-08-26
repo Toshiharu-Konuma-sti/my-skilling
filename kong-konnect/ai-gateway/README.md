@@ -63,12 +63,9 @@ Kong API Gateway（Data Plane）
 
 | 必要なもの | 説明 |
 |---|---|
-| **Kong Konnect アカウント** | Control Plane として使用。 |
-| **Konnect Plus / Enterprise プラン** | AI Gateway の基本プラグイン（ai-proxy など）を利用するために必要 |
-| **AI Gateway Enterprise ライセンス** | 高度な AI プラグイン（ai-llm-as-judge / ai-semantic-response-guard など）を利用するために追加で必要 |
-
-> 本ハンズオンで使用している一部のプラグイン（`ai-llm-as-judge`・`ai-semantic-response-guard` など）は **AI Gateway Enterprise** ライセンスが必要です。  
-> ライセンスの詳細は [Kong 公式サイト](https://konghq.com/pricing) を参照してください。
+| **Kong Konnect アカウント** | SaaS 型 Control Plane（管理基盤） |
+| **Konnect Plus / Enterprise プラン** | Data Plane の Hybrid Mode におけるフル活用 |
+| **AI Gateway Enterprise ライセンス** | 高度な AI プラグイン(※)を利用するために追加で必要<br>※: `ai-proxy-advanced`, `ai-rate-limiting-advanced` など |
 
 構築する環境の概要は以下のとおりです。
 
@@ -158,6 +155,7 @@ Kong Konnectにアクセスして事前準備をします。
 | スクリプト | 概要 |
 |---|---|
 | [BEFORE_CREATE_CONTAINER.sh](../common/script/BEFORE_CREATE_CONTAINER.sh) | Kong Data Plane 認証用クライアント証明書の作成と Konnect への登録 |
+| [BEFORE_CONTAINER_DOWNLOAD_MODELS.sh](../common/script/BEFORE_CONTAINER_DOWNLOAD_MODELS.sh) | Ollama で使う各種モデルの事前ダウンロード |
 | [CREATE_CONTAINER.sh](./container/CREATE_CONTAINER.sh) | コンテナの構築（Kong DP + Ollama） |
 
 1. `container/` ディレクトリに移ります。
@@ -166,7 +164,7 @@ Kong Konnectにアクセスして事前準備をします。
    $ cd ~/handson/my-skilling/kong-konnect/ai-gateway/container/
    ```
 
-1. 事前準備スクリプトを実行します。初回は Konnect の接続情報の入力を求められます。
+1. Konnect との事前準備スクリプトを実行します。初回は Konnect の接続情報の入力を求められます。
 
    ```bash
    $ ./BEFORE_CREATE_CONTAINER.sh
@@ -191,18 +189,27 @@ Kong Konnectにアクセスして事前準備をします。
    > $ ./BEFORE_CREATE_CONTAINER.sh reset
    > ```
 
+1. Ollama で使う各種モデルをダウンロードします。
+   ```
+   $ ./BEFORE_CONTAINER_DOWNLOAD_MODELS.sh
+
+   📦 qwen2.5:1.5b
+      https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/...
+   ###################################################### 100.0%
+    :
+   ```
+   ```
+   $ ls -lF ./models/
+   total 6279732
+   -rw-r--r-- 1 hoge hoge  146146432 Aug 26 12:51 nomic-embed-text.gguf
+    :
+   ```
+   - `$ ollama pull {model}` によるダウンロードは、通信遮断時などのリトライが最初からになってしまうので事前にダウンロードします。
+
 1. コンテナ構築スクリプトを実行します。
 
    ```bash
    $ ./CREATE_CONTAINER.sh
-   ```
-
-   起動後、`ollama-init` コンテナが自動的に以下のモデルを Ollama へ pull します。  
-   **初回は数分〜数十分かかります**（モデルサイズ合計: qwen2.5:1.5b ≒ 1.1GB・qwen2.5:3b ≒ 2.1GB・tinyllama ≒ 0.7GB・nomic-embed-text ≒ 0.1GB）。
-
-   ```bash
-   # pull 完了の確認
-   $ docker logs ollama-init -f
    ```
 
 ---
