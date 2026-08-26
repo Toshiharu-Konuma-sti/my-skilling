@@ -509,6 +509,22 @@ X-Kong-Proxy-Latency:    3       ← Kong 自身のオーバーヘッド（ル�
 
 `X-Kong-Proxy-Latency` が数 ms であることから、**Kong によるオーバーヘッドはほぼゼロ**で、応答時間の大半は LLM 側であることが分かります。
 
+#### 注目レスポンスボディー
+
+```
+  "usage": {
+    "completion_tokens": 365,
+    "total_tokens": 404,
+    "prompt_tokens": 39
+  },
+```
+
+| フィールド名 | 例 | 意味 |
+|---|---|---|
+| `usage.prompt_tokens` | `39` | 送信した質問プロンプトのトークン量 |
+| `usage.completion_tokens` | `365` | LLMが生成した回答本文のトークン量 |
+| `usage.total_tokens` | `404` | 1回のリクエストで消費された総トークン量 |
+
 #### 確認コマンド
 
 ```bash
