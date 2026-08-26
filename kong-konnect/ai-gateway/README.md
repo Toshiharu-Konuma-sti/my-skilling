@@ -52,10 +52,10 @@ Kong AI Gateway は、**Kong API Gateway の Data Plane に AI 系プラグイ�
 Kong API Gateway（Data Plane）
   └── AI プラグイン群（ai-proxy / ai-rate-limiting-advanced / ai-semantic-cache など）
         ↓
-  LLM（OpenAI / Ollama / Anthropic など）や MCP サーバーをプロキシ・制御
+  LLM（OpenAI / Anthropic / Ollama など）や MCP サーバーをプロキシ・制御
 ```
 
-そのため、既存の Kong Gateway プラグイン（認証・レート制限・ログなど）と AI プラグインを組み合わせて使うことができます。
+そのため、既存の Kong Gateway プラグイン（認証・ログなど）と AI プラグインを組み合わせて使うことができます。
 
 ### 必要なライセンスについて
 
@@ -111,6 +111,54 @@ Kong API Gateway（Data Plane）
 | | ラウンドロビン対象 | proxy010, 011 |
 | `nomic-embed-text` | 埋め込みモデル（ベクトル化） | proxy004（セマンティックプロンプトガード）, <br>proxy005（セマンティックレスポンスガード）, <br>proxy006（セマンティックキャッシュ） |
 
+Kong AI Gateway は利用せずに、Ollama のローカル LLM（qwen2.5:1.5b）を直接使った場合のリクエストの例です。リクエストボディーの `model:` フィールドで利用するモデル（LLM）を指定しています。
+```
+$ time curl -v http://localhost:11434/api/chat \
+ -H "Content-Type: application/json" \
+ -d '{
+  "model": "qwen2.5:1.5b",
+  "messages": [
+    {
+      "role": "user",
+      "content": "日本の首都は？"
+    }
+  ],
+  "stream": false
+}' | jq
+
+> POST /api/chat HTTP/1.1
+> Host: localhost:11434
+> User-Agent: curl/8.18.0
+> Accept: */*
+> Content-Type: application/json
+> Content-Length: 144
+>
+< HTTP/1.1 200 OK
+< Content-Type: application/json; charset=utf-8
+< Date: Wed, 26 Aug 2026 04:33:06 GMT
+< Content-Length: 329
+
+{
+  "model": "qwen2.5:1.5b",
+  "created_at": "2026-08-26T04:33:06.532016398Z",
+  "message": {
+    "role": "assistant",
+    "content": "日本の首都は東京です。"
+  },
+  "done": true,
+  "done_reason": "stop",
+  "total_duration": 413896410,
+  "load_duration": 125342986,
+  "prompt_eval_count": 33,
+  "prompt_eval_duration": 32378999,
+  "eval_count": 8,
+  "eval_duration": 252084000
+}
+
+real    0m0.463s
+user    0m0.000s
+sys     0m0.016s
+```
 
 ---
 
@@ -460,6 +508,22 @@ X-Kong-Proxy-Latency:    3       ← Kong 自身のオーバーヘッド（ル�
 ```
 
 `X-Kong-Proxy-Latency` が数 ms であることから、**Kong によるオーバーヘッドはほぼゼロ**で、応答時間の大半は LLM 側であることが分かります。
+
+#### 注目レスポンスボディー
+
+```
+  "usage": {
+    "completion_tokens": 365,
+    "total_tokens": 404,
+    "prompt_tokens": 39
+  },
+```
+
+| フィールド名 | 例 | 意味 |
+|---|---|---|
+| `usage.prompt_tokens` | `39` | 送信した質問プロンプトのトークン量 |
+| `usage.completion_tokens` | `365` | LLMが生成した回答本文のトークン量 |
+| `usage.total_tokens` | `404` | 1回のリクエストで消費された総トークン量 |
 
 #### 確認コマンド
 
