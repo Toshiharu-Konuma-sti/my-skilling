@@ -166,11 +166,13 @@ sys     0m0.016s
 
 ### 2-1. 事前準備
 
-Kong Konnectにアクセスして事前準備をします。
+Kong Konnect で事前準備をします。
 
+1. Kong Konnect にアクセスします。
+   - https://cloud.konghq.com
 1. AI Gateway として使用する「Control Plane（CP）」を作り、リージョンと CP 名を手元に控えておきます。
-
 1. 「Personal Access Token（PAT）」を発行して手元に控えておきます。
+   <img src="./image/kong-konnect-pat.png" width="600">
 
 ローカル環境で事前準備をします。
 
