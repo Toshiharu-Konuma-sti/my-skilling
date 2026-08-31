@@ -39,7 +39,7 @@
 ### Proxy（Load Balancer）の前面配置
 
 Proxy（Load Balancer）は Artifactory の冗長化だけを目的とするものではなく、  
-冗長化の要否に関わらず、以下の理由から Proxy を前面に配置することを推奨します。
+冗長化の要否に関わらず、以下の理由から SSL を終端とした Proxy を前面に配置することを推奨します。
 
 - **SSL 終端** — エンタープライズ環境への導入では、実質的に SSL の終端を含む Proxy（Load Balancer）を必要とします。
 - **IdP との SSO 連携** — Entra ID（旧 Azure AD）をはじめとするメジャーな IdP は、認可コードを返すリダイレクト URL に `https://` しか指定できないため、SSL を終端する Proxy を前面に置かないと SSO 連携ができません。
