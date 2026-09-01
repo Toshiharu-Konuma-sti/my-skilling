@@ -129,7 +129,7 @@ check_required_commands()
 	local missing_cmds=""
 	for cmd in $*; do
 		local _cmd_path
-		_cmd_path=$(command -v "${cmd}" 2>/dev/null)
+		_cmd_path=$(command -v "${cmd}" 2>/dev/null) || true
 		local _found=0
 		if [ -n "$_cmd_path" ]; then
 			if [ "$_is_wsl" -eq 1 ]; then
