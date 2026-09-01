@@ -246,7 +246,7 @@ prepare_kong_dp_certs()
 	existing_cert_ids=$(curl -s -X GET \
 		"${api_base_url}/control-planes/${cp_id}/dp-client-certificates" \
 		-H "Authorization: Bearer ${konnect_pat}" \
-		| jq -r '.items[].id // empty')
+		| jq -r '(.items // [])[].id')
 
 	for cert_id in ${existing_cert_ids}; do
 		echo "  → 削除: ${cert_id}"
