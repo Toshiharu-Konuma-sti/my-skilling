@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+# issuer は「ブラウザ/クライアントから見た Keycloak の URL」(トークンの iss と一致させる)。
+# コンテナ内からの取得先は keycloak:8080 (jwks / discovery) に差し替えている。
+config:
+  database:
+    url: sqlite:///home/nonroot/data.db
+gateways:
+  default:
+    port: 4000
+  ui-gateway:
+    port: 4001
+  mcp-gateway:
+    port: 4002
+llm:
+  gateways: default
+  policies:
+    jwtAuth:
+      mode: strict
+      issuer: http://localhost:8080/realms/agentgateway
+      audiences: [agentgateway]
+      jwks:
+        url: http://keycloak:8080/realms/agentgateway/protocol/openid-connect/certs
+    authorization:
+      rules:
+      - '"llm-user" in jwt.realm_access.roles'
+  models:
+  # 任意のモデル名を Ollama にそのまま転送する (qwen2.5:1.5b, tinyllama 等)
+  - name: "*"
+    provider: ollama
+    params:
+      baseUrl: http://ollama:11434/v1
+mcp:
+  gateways: mcp-gateway
+  policies:
+    # MCP クライアントが Keycloak で OAuth ログインできるよう、保護リソースのメタデータとトークン検証を提供する
+    # (Bearer トークンの直接指定も可)
+    mcpAuthentication:
+      mode: strict
+      issuer: http://localhost:8080/realms/agentgateway
+      audiences: [agentgateway]
+      jwks:
+        url: http://keycloak:8080/realms/agentgateway/protocol/openid-connect/certs
+      resourceMetadata:
+        resource: http://localhost:4002/mcp
+        scopesSupported: [openid]
+        bearerMethodsSupported: [header]
+    authorization:
+      rules:
+      - '"llm-user" in jwt.realm_access.roles'
+    # ツール単位の認可。許可されないツールは tools/list にも表示されない
+    mcpAuthorization:
+      rules:
+      - 'mcp.tool.name == "list_posts"'
+      - '"llm-admin" in jwt.realm_access.roles && mcp.tool.name == "get_post"'
+  targets:
+  - name: blog
+    mcp:
+      host: http://mcp-blog:3005/mcp
+ui:
+  gateways: [ui-gateway]
+  policies:
+    oidc:
+      issuer: http://localhost:8080/realms/agentgateway
+      discovery:
+        url: http://keycloak:8080/realms/agentgateway/.well-known/openid-configuration
+      clientId: agentgateway-ui
+      clientSecret: agentgateway-ui-secret
+      redirectURI: http://localhost:4001/oauth/callback
+      scopes:
+      - profile
+      - email
+    authorization:
+      rules:
+      - '"llm-admin" in jwt.realm_access.roles'

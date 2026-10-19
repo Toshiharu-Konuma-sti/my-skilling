@@ -1,0 +1,12 @@
+FROM ./my_scratch_model.gguf
+# 学習時と同じ入力にするため、Qwen 標準のテンプレート (system が無ければ既定の system prompt を付ける) に揃える
+TEMPLATE """<|im_start|>system
+{{ if .System }}{{ .System }}{{ else }}You are Qwen, created by Alibaba Cloud. You are a helpful assistant.{{ end }}<|im_end|>
+{{ range .Messages }}{{ if ne .Role "system" }}<|im_start|>{{ .Role }}
+{{ .Content }}<|im_end|>
+{{ end }}{{ end }}<|im_start|>assistant
+"""
+PARAMETER stop "<|im_end|>"
+PARAMETER stop "<|im_start|>"
+PARAMETER temperature 0
+PARAMETER num_ctx 512

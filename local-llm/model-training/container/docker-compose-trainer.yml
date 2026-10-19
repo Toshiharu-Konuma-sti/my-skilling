@@ -1,0 +1,23 @@
+services:
+
+  # Model Training Workbench
+  # 学習 (LoRA) と GGUF 変換用の常駐コンテナ。学習は docker exec で実行する (README.md 参照)
+  llm-trainer:
+    container_name: llm-trainer
+    hostname: llm-trainer
+    build:
+      context: ./trainer
+      network: host
+    image: llm-trainer:local
+    working_dir: /workspace
+    # ホストのユーザーで実行し、workspace/ に root 所有のファイルを作らない (UID/GID は custom.sh が id コマンドで設定)
+    user: "${TRAINER_UID:-1000}:${TRAINER_GID:-1000}"
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"    # __pycache__ をホスト側に残さない
+      HOME: /tmp                      # 非 root では HOME が書き込めないため、キャッシュ先を /tmp にする
+    volumes:
+      - ./trainer/app:/app            # 学習データ・スクリプト (ホスト側で編集して再実行できる)
+      - ./workspace:/workspace        # finetune/ と scratch/ (ベースモデル / データセット / モデル / GGUF) を保持
+    networks:
+      - external                      # ベースモデルのダウンロードに外部接続が必要
+    restart: unless-stopped

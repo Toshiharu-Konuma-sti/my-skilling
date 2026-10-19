@@ -1,0 +1,10 @@
+# NVIDIA GPU がある環境でのみ docker-compose-trainer.yml に重ねて使う (custom.sh が nvidia-smi の有無で自動判定)
+services:
+  trainer:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

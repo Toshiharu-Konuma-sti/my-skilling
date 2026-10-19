@@ -1,0 +1,4 @@
+container/workspace/finetune/*
+container/workspace/finetune/output/*
+container/workspace/scratch/*
+container/workspace/scratch/output/*
