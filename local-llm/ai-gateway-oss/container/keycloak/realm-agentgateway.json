@@ -1,0 +1,115 @@
+{
+  "realm": "agentgateway",
+  "enabled": true,
+  "sslRequired": "none",
+  "roles": {
+    "realm": [
+      { "name": "llm-user", "description": "LLM API を利用できるロール" },
+      { "name": "llm-admin", "description": "agentgateway UI (Analytics/Logs) を閲覧できるロール" }
+    ]
+  },
+  "users": [
+    {
+      "username": "alice",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "alice@example.com",
+      "firstName": "Alice",
+      "lastName": "Admin",
+      "credentials": [{ "type": "password", "value": "alice-pass", "temporary": false }],
+      "realmRoles": ["llm-user", "llm-admin"]
+    },
+    {
+      "username": "bob",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "bob@example.com",
+      "firstName": "Bob",
+      "lastName": "User",
+      "credentials": [{ "type": "password", "value": "bob-pass", "temporary": false }],
+      "realmRoles": ["llm-user"]
+    },
+    {
+      "username": "carol",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "carol@example.com",
+      "firstName": "Carol",
+      "lastName": "NoRole",
+      "credentials": [{ "type": "password", "value": "carol-pass", "temporary": false }]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "llm-api",
+      "name": "LLM API client (curl / アプリ用)",
+      "enabled": true,
+      "publicClient": true,
+      "attributes": { "access.token.lifespan": "3600" },
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "protocolMappers": [
+        {
+          "name": "agentgateway-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "agentgateway",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "mcp-inspector",
+      "name": "MCP Inspector (ブラウザ OAuth 用)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:6274/oauth/callback"],
+      "webOrigins": ["http://localhost:6274"],
+      "attributes": { "pkce.code.challenge.method": "S256", "access.token.lifespan": "3600" },
+      "protocolMappers": [
+        {
+          "name": "agentgateway-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "agentgateway",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "agentgateway-ui",
+      "name": "agentgateway UI (ブラウザ SSO 用)",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "agentgateway-ui-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:4001/oauth/callback"],
+      "webOrigins": ["http://localhost:4001"],
+      "protocolMappers": [
+        {
+          "name": "realm-roles-in-id-token",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ]
+}

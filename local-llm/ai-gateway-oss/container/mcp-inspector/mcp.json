@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "agentgateway": {
+      "type": "http",
+      "url": "http://localhost:4002/mcp",
+      "oauth": { "clientId": "mcp-inspector", "requestRefreshToken": false }
+    }
+  }
+}

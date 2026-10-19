@@ -1,0 +1,126 @@
+services:
+
+  # agentgateway (AI Gateway): OpenAI 互換 API を ollama へ中継する
+  agentgateway:
+    container_name: agentgateway
+    hostname: agentgateway
+    image: cr.agentgateway.dev/agentgateway:v1.6.0
+    command: ["-f", "/config.yaml"]
+    environment:
+      # UI の OIDC セッション Cookie 暗号化キー (開発用の固定値。本番では必ず変更する)
+      - OIDC_COOKIE_SECRET=baef2ebe61c01c8170ccc935ddd391d19764b0c8b43952e159b689be711dc316
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      mcp-blog:
+        condition: service_started
+    volumes:
+      - ./agentgateway/config.yaml:/config.yaml:ro
+      - agentgateway-data:/home/nonroot   # Analytics/Logs 用 SQLite DB (イメージ既定の 65532 ユーザー所有ディレクトリ)
+    ports:
+      - "4000:4000"   # LLM API (/v1/...) ※ Bearer トークン必須
+      - "4001:4001"   # UI (/ui) ※ Keycloak SSO
+      - "4002:4002"   # MCP (/mcp) ※ Bearer トークン必須
+    networks:
+      - internal
+      - external
+    restart: unless-stopped
+
+  # ブログ記事 (WordPress REST API) を返すリモート MCP サーバー。ポートは公開せず agentgateway 経由でのみ利用する
+  # ブログ API へ接続するため external ネットワークにも接続する
+  mcp-blog:
+    container_name: mcp-blog
+    hostname: mcp-blog
+    build: ./mcp-blog
+    image: mcp-blog:local
+    environment:
+      - PORT=3005
+    networks:
+      - internal
+      - external
+    restart: unless-stopped
+
+  # MCP Inspector: ブラウザから MCP を試す Web UI。agentgateway の MCP 入口 (http://localhost:4002/mcp) に接続する
+  mcp-inspector:
+    container_name: mcp-inspector
+    hostname: mcp-inspector
+    image: ghcr.io/modelcontextprotocol/inspector:2.11.0
+    # 初回のみ、接続先に agentgateway だけを登録したサーバー一覧 (mcp.json) を配置してから起動する
+    entrypoint:
+      - "sh"
+      - "-c"
+      - |
+        [ -f /home/node/.mcp-inspector/mcp.json ] || cp /seed/mcp.json /home/node/.mcp-inspector/mcp.json
+        exec mcp-inspector --web
+    environment:
+      # UI の API トークン (開発用の固定値)。ホストの 127.0.0.1 にのみ公開する
+      - MCP_INSPECTOR_API_TOKEN=demo-inspector-token
+    volumes:
+      - ./mcp-inspector/mcp.json:/seed/mcp.json:ro
+    depends_on:
+      agentgateway:
+        condition: service_started
+    ports:
+      - "127.0.0.1:6274:6274"   # MCP Inspector UI
+    networks:
+      - internal
+      - external   # internal ネットワークのみだとホストにポートを公開できない
+    restart: unless-stopped
+
+  # MCP Inspector のコンテナ内で、localhost:4002 (agentgateway の MCP) と localhost:8080 (Keycloak) を中継する
+  # ブラウザと同じ URL で OAuth のメタデータ検証・トークン取得を行えるようにするため
+  mcp-inspector-localhost-bridge:
+    container_name: mcp-inspector-localhost-bridge
+    image: alpine/socat:1.8.0.3
+    network_mode: "service:mcp-inspector"
+    entrypoint:
+      - "sh"
+      - "-c"
+      - |
+        socat TCP-LISTEN:4002,fork,reuseaddr TCP:agentgateway:4002 &
+        exec socat TCP-LISTEN:8080,fork,reuseaddr TCP:keycloak:8080
+    restart: unless-stopped
+
+  # Keycloak (IdP): LLM 利用者のアカウント管理とトークン発行
+  keycloak:
+    container_name: keycloak
+    hostname: keycloak
+    image: quay.io/keycloak/keycloak:26.7.1
+    command: ["start-dev", "--import-realm"]
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      # iss / ブラウザ向け URL は localhost:8080、コンテナ間 (keycloak:8080) はリクエストのホスト名で応答
+      - KC_HOSTNAME=http://localhost:8080
+      - KC_HOSTNAME_BACKCHANNEL_DYNAMIC=true
+      - KC_HEALTH_ENABLED=true
+    volumes:
+      - ./keycloak/realm-agentgateway.json:/opt/keycloak/data/import/realm-agentgateway.json:ro
+    ports:
+      - "8080:8080"
+    networks:
+      - internal
+      - external
+    healthcheck:
+      # イメージに curl が無いため /dev/tcp で管理ポート(9000)の readiness を確認
+      test:
+        - CMD-SHELL
+        - |
+          exec 3<>/dev/tcp/localhost/9000 && echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && grep -q '"status": "UP"' <&3
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+    restart: unless-stopped
+
+volumes:
+  agentgateway-data:
+
+networks:
+  internal:
+    name: intra-net
+    driver: bridge
+    internal: true
+  external:
+    name: hands-net
+    driver: bridge

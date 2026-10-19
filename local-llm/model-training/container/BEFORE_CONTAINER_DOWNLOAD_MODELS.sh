@@ -1,0 +1,1 @@
+../../ai-gateway-oss/container/BEFORE_CONTAINER_DOWNLOAD_MODELS.sh

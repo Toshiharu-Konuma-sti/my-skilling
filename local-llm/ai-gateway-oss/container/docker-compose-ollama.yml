@@ -1,0 +1,59 @@
+services:
+
+  # Ollama LLM Server
+  ollama:
+    container_name: ollama
+    hostname: ollama
+    image: ollama/ollama:${OLLAMA_VERSION:-0.32.5}
+    environment:
+      - OLLAMA_DEBUG=1
+    volumes:
+      - ollama-data:/root/.ollama
+      - ./models:/models:ro   # ollama create 用: GGUF をサーバー側ファイルシステムから参照する
+    ports:
+      - "11434:11434"
+    networks:
+      - internal
+      - external
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 30s
+
+  # Ollama Model Initializer
+  # Pulls required models into the Ollama server on first startup.
+  # Exits automatically after pulling. Safe to re-run (pull is idempotent).
+  ollama-init:
+    container_name: ollama-init
+    hostname: ollama-init
+    build:
+      context: ./ollama-init   # 登録処理は ollama-init/ にあり、プロジェクト間で共用できる
+      args:
+        OLLAMA_VERSION: ${OLLAMA_VERSION:-0.32.5}
+    image: ollama-init:local
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      # 登録するモデル。書式: <モデル名> [<GGUF ファイル名>|-] [chatml|<Modelfile 断片のパス>]
+      # GGUF が無ければ ollama pull で取得する。chatml は qwen2.5 の system プロンプトを有効にする
+      OLLAMA_INIT_MODELS: |
+        # qwen2.5:0.5b  qwen2.5-0.5b.gguf  chatml
+        qwen2.5:1.5b      qwen2.5-1.5b.gguf       chatml
+        qwen2.5:3b        qwen2.5-3b.gguf         chatml
+        tinyllama         tinyllama.gguf
+        phi3:mini         phi3-mini.gguf
+        nomic-embed-text  nomic-embed-text.gguf
+    volumes:
+      - ./models:/models:ro   # BEFORE_CONTAINER_DOWNLOAD_MODELS.sh で事前ダウンロードした GGUF を参照 (サーバー側に同じパスでマウント済み)
+    networks:
+      - internal
+    # on-failure: コンテナ自体がクラッシュした場合の保険
+    restart: on-failure:10
+
+volumes:
+  ollama-data:
