@@ -23,7 +23,7 @@
 4. [プラグイン動作確認チェックポイント](#4-プラグイン動作確認チェックポイント)
    - [4-1. AI Proxy: AI Gateway 基礎確認](#4-1-ai-proxy-ai-gateway-基礎確認)
    - [4-2. AI Rate Limiting Advanced: トークン流量制限](#4-2-ai-rate-limiting-advanced-トークン流量制限)
-   - [4-3. AI Prompt Guard: PII・プロンプトインジェクションをブロック](#4-3-ai-prompt-guard-piiプロンプトインジェクションをブロック)
+   - [4-3. AI Prompt Guard: 正規表現によるプロンプトのガード](#4-3-ai-prompt-guard-正規表現によるプロンプトのガード)
    - [4-4. AI Semantic Prompt Guard: プロンプトの意味的ガード](#4-4-ai-semantic-prompt-guard-プロンプトの意味的ガード)
    - [4-5. AI Semantic Response Guard: LLM 回答の意味的ガード](#4-5-ai-semantic-response-guard-llm-回答の意味的ガード)
    - [4-6. AI Semantic Cache: セマンティックキャッシュ](#4-6-ai-semantic-cache-セマンティックキャッシュ)
@@ -83,7 +83,7 @@ Kong API Gateway（Data Plane）
 |---|---|---|---|
 | [proxy001](./setup/proxy001-normal/) | `POST http://localhost:8000/ai/normal/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) | qwen2.5:1.5b 固定プロキシ |
 | [proxy002](./setup/proxy002-ratelimit/) | `POST http://localhost:8000/ai/ratelimit/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-rate-limiting-advanced](https://developer.konghq.com/plugins/ai-rate-limiting-advanced/) | トークン数で流量制限 |
-| [proxy003](./setup/proxy003-prompt-guard/) | `POST http://localhost:8000/ai/guard/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-prompt-guard](https://developer.konghq.com/plugins/ai-prompt-guard/) | PII・インジェクション攻撃をブロック |
+| [proxy003](./setup/proxy003-prompt-guard/) | `POST http://localhost:8000/ai/guard/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-prompt-guard](https://developer.konghq.com/plugins/ai-prompt-guard/) | 正規表現で電話番号・特定キーワード・インジェクション攻撃をブロック |
 | [proxy004](./setup/proxy004-semantic-prompt-guard/) | `POST http://localhost:8000/ai/semguard/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-semantic-prompt-guard](https://developer.konghq.com/plugins/ai-semantic-prompt-guard/) | 意味的類似でプロンプトをブロック |
 | [proxy005](./setup/proxy005-semantic-response-guard/) | `POST http://localhost:8000/ai/semrespguard/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-semantic-response-guard](https://developer.konghq.com/plugins/ai-semantic-response-guard/) | 意味的類似で LLM 回答をブロック |
 | [proxy006](./setup/proxy006-semantic-cache/) | `POST http://localhost:8000/ai/semcache/chat` | [ai-proxy](https://developer.konghq.com/plugins/ai-proxy/) + [ai-semantic-cache](https://developer.konghq.com/plugins/ai-semantic-cache/) | 類似質問をセマンティックキャッシュで即返却 |
@@ -649,7 +649,7 @@ cd try-my-hand/
 
 ---
 
-### 4-3. AI Prompt Guard: PII・プロンプトインジェクションをブロック
+### 4-3. AI Prompt Guard: 正規表現によるプロンプトのガード
 
 | 項目 | 内容 |
 |---|---|
