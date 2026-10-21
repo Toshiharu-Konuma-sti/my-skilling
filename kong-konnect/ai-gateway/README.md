@@ -21,18 +21,18 @@
    - [3-3. AI リクエスト/レスポンスの確認: showLLM_REQEST_AND_RESPONSE.sh](#3-3-ai-リクエストレスポンスの確認-showllm_reqest_and_responsesh)
    - [3-4. セマンティックキャッシュの類似度確認: showSIMILARITY.sh](#3-4-セマンティックキャッシュの類似度確認-showsimilaritysh)
 4. [プラグイン動作確認チェックポイント](#4-プラグイン動作確認チェックポイント)
-   - [4-1. ai-proxy: AI Gateway 基礎確認](#4-1-ai-proxy-ai-gateway-基礎確認)
-   - [4-2. ai-rate-limiting-advanced: トークン流量制限](#4-2-ai-rate-limiting-advanced-トークン流量制限)
-   - [4-3. ai-prompt-guard: PII・プロンプトインジェクションをブロック](#4-3-ai-prompt-guard-piiプロンプトインジェクションをブロック)
-   - [4-4. ai-semantic-prompt-guard: プロンプトの意味的ガード](#4-4-ai-semantic-prompt-guard-プロンプトの意味的ガード)
-   - [4-5. ai-semantic-response-guard: LLM 回答の意味的ガード](#4-5-ai-semantic-response-guard-llm-回答の意味的ガード)
-   - [4-6. ai-semantic-cache: セマンティックキャッシュ](#4-6-ai-semantic-cache-セマンティックキャッシュ)
-   - [4-7. ai-prompt-decorator: システムプロンプトの強制付与](#4-7-ai-prompt-decorator-システムプロンプトの強制付与)
-   - [4-8. ai-request-transformer: リクエストの LLM 変換](#4-8-ai-request-transformer-リクエストの-llm-変換)
-   - [4-9. ai-response-transformer: レスポンスの LLM 変換](#4-9-ai-response-transformer-レスポンスの-llm-変換)
-   - [4-10. ai-proxy-advanced: 複数モデルへのラウンドロビン](#4-10-ai-proxy-advanced-複数モデルへのラウンドロビン)
-   - [4-11. ai-llm-as-judge: LLM 回答の自動採点](#4-11-ai-llm-as-judge-llm-回答の自動採点)
-   - [4-12. ai-mcp-proxy: REST API を MCP サーバーとして公開](#4-12-ai-mcp-proxy-rest-api-を-mcp-サーバーとして公開)
+   - [4-1. AI Proxy: AI Gateway 基礎確認](#4-1-ai-proxy-ai-gateway-基礎確認)
+   - [4-2. AI Rate Limiting Advanced: トークン流量制限](#4-2-ai-rate-limiting-advanced-トークン流量制限)
+   - [4-3. AI Prompt Guard: PII・プロンプトインジェクションをブロック](#4-3-ai-prompt-guard-piiプロンプトインジェクションをブロック)
+   - [4-4. AI Semantic Prompt Guard: プロンプトの意味的ガード](#4-4-ai-semantic-prompt-guard-プロンプトの意味的ガード)
+   - [4-5. AI Semantic Response Guard: LLM 回答の意味的ガード](#4-5-ai-semantic-response-guard-llm-回答の意味的ガード)
+   - [4-6. AI Semantic Cache: セマンティックキャッシュ](#4-6-ai-semantic-cache-セマンティックキャッシュ)
+   - [4-7. AI Prompt Decorator: システムプロンプトの強制付与](#4-7-ai-prompt-decorator-システムプロンプトの強制付与)
+   - [4-8. AI Request Transformer: リクエストの LLM 変換](#4-8-ai-request-transformer-リクエストの-llm-変換)
+   - [4-9. AI Response Transformer: レスポンスの LLM 変換](#4-9-ai-response-transformer-レスポンスの-llm-変換)
+   - [4-10. AI Proxy Advanced: 複数モデルへのラウンドロビン](#4-10-ai-proxy-advanced-複数モデルへのラウンドロビン)
+   - [4-11. AI LLM as Judge: LLM 回答の自動採点](#4-11-ai-llm-as-judge-llm-回答の自動採点)
+   - [4-12. AI MCP Proxy: REST API を MCP サーバーとして公開](#4-12-ai-mcp-proxy-rest-api-を-mcp-サーバーとして公開)
 5. [清掃手順](#5-清掃手順)
 
 ---
@@ -481,7 +481,13 @@ $ ./showSIMILARITY.sh
 
 ---
 
-### 4-1. ai-proxy: AI Gateway 基礎確認
+### 4-1. AI Proxy: AI Gateway 基礎確認
+
+| 項目 | 内容 |
+|---|---|
+| プラグイン名 | AI Proxy |
+| コード名 | `ai-proxy` |
+| 説明ページ | [Kong Plugin Hub: AI Proxy](https://developer.konghq.com/plugins/ai-proxy/) |
 
 > 📄 設定ファイル: [aigw-plugin-ai-proxy-normal-kng.yaml](./setup/proxy001-normal/aigw-plugin-ai-proxy-normal-kng.yaml)
 
@@ -551,7 +557,13 @@ cd try-my-hand/
 
 ---
 
-### 4-2. ai-rate-limiting-advanced: トークン流量制限
+### 4-2. AI Rate Limiting Advanced: トークン流量制限
+
+| 項目 | 内容 |
+|---|---|
+| プラグイン名 | AI Rate Limiting Advanced |
+| コード名 | `ai-rate-limiting-advanced` |
+| 説明ページ | [Kong Plugin Hub: AI Rate Limiting Advanced](https://developer.konghq.com/plugins/ai-rate-limiting-advanced/) |
 
 > 📄 設定ファイル: [aigw-plugin-ai-proxy-ratelimit-kng.yaml](./setup/proxy002-ratelimit/aigw-plugin-ai-proxy-ratelimit-kng.yaml) / [aigw-plugin-ai-rate-limiting-advanced-kng.yaml](./setup/proxy002-ratelimit/aigw-plugin-ai-rate-limiting-advanced-kng.yaml)
 
@@ -637,7 +649,13 @@ cd try-my-hand/
 
 ---
 
-### 4-3. ai-prompt-guard: PII・プロンプトインジェクションをブロック
+### 4-3. AI Prompt Guard: PII・プロンプトインジェクションをブロック
+
+| 項目 | 内容 |
+|---|---|
+| プラグイン名 | AI Prompt Guard |
+| コード名 | `ai-prompt-guard` |
+| 説明ページ | [Kong Plugin Hub: AI Prompt Guard](https://developer.konghq.com/plugins/ai-prompt-guard/) |
 
 > 📄 設定ファイル: [aigw-plugin-ai-proxy-guard-kng.yaml](./setup/proxy003-prompt-guard/aigw-plugin-ai-proxy-guard-kng.yaml) / [aigw-plugin-ai-prompt-guard-kng.yaml](./setup/proxy003-prompt-guard/aigw-plugin-ai-prompt-guard-kng.yaml)
 
@@ -687,7 +705,13 @@ cd try-my-hand/
 
 ---
 
-### 4-4. ai-semantic-prompt-guard: プロンプトの意味的ガード
+### 4-4. AI Semantic Prompt Guard: プロンプトの意味的ガード
+
+| 項目 | 内容 |
+|---|---|
+| プラグイン名 | AI Semantic Prompt Guard |
+| コード名 | `ai-semantic-prompt-guard` |
+| 説明ページ | [Kong Plugin Hub: AI Semantic Prompt Guard](https://developer.konghq.com/plugins/ai-semantic-prompt-guard/) |
 
 > 📄 設定ファイル: [aigw-plugin-ai-proxy-semguard-kng.yaml](./setup/proxy004-semantic-prompt-guard/aigw-plugin-ai-proxy-semguard-kng.yaml) / [aigw-plugin-ai-semantic-prompt-guard-kng.yaml](./setup/proxy004-semantic-prompt-guard/aigw-plugin-ai-semantic-prompt-guard-kng.yaml)
 
@@ -798,7 +822,13 @@ cd try-my-hand/
 
 ---
 
-### 4-5. ai-semantic-response-guard: LLM 回答の意味的ガード
+### 4-5. AI Semantic Response Guard: LLM 回答の意味的ガード
+
+| 項目 | 内容 |
+|---|---|
+| プラグイン名 | AI Semantic Response Guard |
+| コード名 | `ai-semantic-response-guard` |
+| 説明ページ | [Kong Plugin Hub: AI Semantic Response Guard](https://developer.konghq.com/plugins/ai-semantic-response-guard/) |
 
 > 📄 設定ファイル: [aigw-plugin-ai-proxy-semrespguard-kng.yaml](./setup/proxy005-semantic-response-guard/aigw-plugin-ai-proxy-semrespguard-kng.yaml) / [aigw-plugin-ai-semantic-response-guard-kng.yaml](./setup/proxy005-semantic-response-guard/aigw-plugin-ai-semantic-response-guard-kng.yaml)
 
@@ -859,7 +889,13 @@ cd try-my-hand/
 
 ---
 
-### 4-6. ai-semantic-cache: セマンティックキャッシュ
+### 4-6. AI Semantic Cache: セマンティックキャッシュ
+
+| 項目 | 内容 |
+|---|---|
+| プラグイン名 | AI Semantic Cache |
+| コード名 | `ai-semantic-cache` |
+| 説明ページ | [Kong Plugin Hub: AI Semantic Cache](https://developer.konghq.com/plugins/ai-semantic-cache/) |
 
 > 📄 設定ファイル: [aigw-plugin-ai-proxy-semcache-kng.yaml](./setup/proxy006-semantic-cache/aigw-plugin-ai-proxy-semcache-kng.yaml) / [aigw-plugin-ai-semantic-cache-kng.yaml](./setup/proxy006-semantic-cache/aigw-plugin-ai-semantic-cache-kng.yaml)
 
@@ -937,7 +973,13 @@ Hit 判定の内訳（コサイン距離・類似度・キャッシュ済みレ�
 
 ---
 
-### 4-7. ai-prompt-decorator: システムプロンプトの強制付与
+### 4-7. AI Prompt Decorator: システムプロンプトの強制付与
+
+| 項目 | 内容 |
+|---|---|
+| プラグイン名 | AI Prompt Decorator |
+| コード名 | `ai-prompt-decorator` |
+| 説明ページ | [Kong Plugin Hub: AI Prompt Decorator](https://developer.konghq.com/plugins/ai-prompt-decorator/) |
 
 > 📄 設定ファイル: [aigw-plugin-ai-proxy-decorator-kng.yaml](./setup/proxy007-prompt-decorator/aigw-plugin-ai-proxy-decorator-kng.yaml) / [aigw-plugin-ai-prompt-decorator-kng.yaml](./setup/proxy007-prompt-decorator/aigw-plugin-ai-prompt-decorator-kng.yaml)
 
@@ -982,7 +1024,13 @@ cd try-my-hand/
 
 ---
 
-### 4-8. ai-request-transformer: リクエストの LLM 変換
+### 4-8. AI Request Transformer: リクエストの LLM 変換
+
+| 項目 | 内容 |
+|---|---|
+| プラグイン名 | AI Request Transformer |
+| コード名 | `ai-request-transformer` |
+| 説明ページ | [Kong Plugin Hub: AI Request Transformer](https://developer.konghq.com/plugins/ai-request-transformer/) |
 
 > 📄 設定ファイル: [aigw-plugin-ai-proxy-reqtransform-kng.yaml](./setup/proxy008-request-transformer/aigw-plugin-ai-proxy-reqtransform-kng.yaml) / [aigw-plugin-ai-request-transformer-kng.yaml](./setup/proxy008-request-transformer/aigw-plugin-ai-request-transformer-kng.yaml)
 
@@ -1012,7 +1060,13 @@ cd try-my-hand/
 
 ---
 
-### 4-9. ai-response-transformer: レスポンスの LLM 変換
+### 4-9. AI Response Transformer: レスポンスの LLM 変換
+
+| 項目 | 内容 |
+|---|---|
+| プラグイン名 | AI Response Transformer |
+| コード名 | `ai-response-transformer` |
+| 説明ページ | [Kong Plugin Hub: AI Response Transformer](https://developer.konghq.com/plugins/ai-response-transformer/) |
 
 > 📄 設定ファイル: [aigw-plugin-ai-proxy-restransform-kng.yaml](./setup/proxy009-response-transformer/aigw-plugin-ai-proxy-restransform-kng.yaml) / [aigw-plugin-ai-response-transformer-kng.yaml](./setup/proxy009-response-transformer/aigw-plugin-ai-response-transformer-kng.yaml)
 
@@ -1041,7 +1095,13 @@ cd try-my-hand/
 
 ---
 
-### 4-10. ai-proxy-advanced: 複数モデルへのラウンドロビン
+### 4-10. AI Proxy Advanced: 複数モデルへのラウンドロビン
+
+| 項目 | 内容 |
+|---|---|
+| プラグイン名 | AI Proxy Advanced |
+| コード名 | `ai-proxy-advanced` |
+| 説明ページ | [Kong Plugin Hub: AI Proxy Advanced](https://developer.konghq.com/plugins/ai-proxy-advanced/) |
 
 > 📄 設定ファイル: [aigw-plugin-ai-proxy-advanced-kng.yaml](./setup/proxy010-advanced/aigw-plugin-ai-proxy-advanced-kng.yaml)
 
@@ -1092,7 +1152,13 @@ cd try-my-hand/
 
 ---
 
-### 4-11. ai-llm-as-judge: LLM 回答の自動採点
+### 4-11. AI LLM as Judge: LLM 回答の自動採点
+
+| 項目 | 内容 |
+|---|---|
+| プラグイン名 | AI LLM as Judge |
+| コード名 | `ai-llm-as-judge` |
+| 説明ページ | [Kong Plugin Hub: AI LLM as Judge](https://developer.konghq.com/plugins/ai-llm-as-judge/) |
 
 > 📄 設定ファイル: [aigw-plugin-ai-proxy-advanced-judge-kng.yaml](./setup/proxy011-llm-as-judge/aigw-plugin-ai-proxy-advanced-judge-kng.yaml) / [aigw-plugin-ai-llm-as-judge-kng.yaml](./setup/proxy011-llm-as-judge/aigw-plugin-ai-llm-as-judge-kng.yaml)
 
@@ -1153,7 +1219,13 @@ cd try-my-hand/
 
 ---
 
-### 4-12. ai-mcp-proxy: REST API を MCP サーバーとして公開
+### 4-12. AI MCP Proxy: REST API を MCP サーバーとして公開
+
+| 項目 | 内容 |
+|---|---|
+| プラグイン名 | AI MCP Proxy |
+| コード名 | `ai-mcp-proxy` |
+| 説明ページ | [Kong Plugin Hub: AI MCP Proxy](https://developer.konghq.com/plugins/ai-mcp-proxy/) |
 
 > 📄 設定ファイル: [aigw-plugin-ai-mcp-proxy-kng.yaml](./setup/proxy012-mcp-proxy/aigw-plugin-ai-mcp-proxy-kng.yaml)
 
