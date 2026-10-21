@@ -95,7 +95,12 @@ Kong API Gateway（Data Plane）
 | [proxy012](./setup/proxy012-mcp-proxy/) | `POST http://localhost:8000/ai/mcp/sios-techlab` | [ai-mcp-proxy](https://developer.konghq.com/plugins/ai-mcp-proxy/) | 既存の REST API を MCP サーバーとして公開 |
 
 > **本ハンズオン対象外のプラグインについて**  
-> **AI PII Sanitizer**（プラグイン名: [ai-sanitizer](https://developer.konghq.com/plugins/ai-sanitizer/)）は NLP 処理用コンテナ（Kong プライベートリポジトリ）が別途必要なため、本ハンズオンの対象外としています。
+> 以下のプラグインは、動作に Kong のプライベートリポジトリのコンテナが別途必要なため、本ハンズオンの対象外としています。
+>
+> | プラグイン名 | コード名 | 必要なコンテナ |
+> |---|---|---|
+> | **AI PII Sanitizer** | [ai-sanitizer](https://developer.konghq.com/plugins/ai-sanitizer/) | NLP 処理用の AI PII Anonymizer Service |
+> | **AI Prompt Compressor** | [ai-prompt-compressor](https://developer.konghq.com/plugins/ai-prompt-compressor/) | プロンプト圧縮用の AI Prompt Compression Service（LLMLingua 2 を使用。Cloudsmith のプライベートリポジトリで提供され、利用には Kong Support への連絡が必要） |
 
 使用するモデルは以下の通りです。
 
