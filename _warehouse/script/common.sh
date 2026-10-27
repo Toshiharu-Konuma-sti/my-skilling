@@ -201,6 +201,30 @@ loop_curl_until_success()
 }
 # }}}
 
+# {{{ download_model()
+# $1: model name
+# $2: download URL
+# $3: destination directory
+# $4: destination file name
+download_model()
+{
+	_name="$1"
+	_url="$2"
+	_dest="$3/$4"
+	echo ""
+	echo "📦 ${_name}"
+	echo "   ${_url}"
+	# -L: follow redirects (required for the HuggingFace CDN)  -C -: resume at byte level  --progress-bar: show progress
+	if curl -L --show-error --progress-bar -C - -o "${_dest}" "${_url}"; then
+		echo "✅ ${_name} ready ($(du -sh "${_dest}" | cut -f1))"
+	else
+		_rc=$?
+		echo "❌ ${_name} failed (exit=${_rc}). 部分ファイルは保持されます。再実行で再開されます。"
+		return ${_rc}
+	fi
+}
+# }}}
+
 # {{{ show_list_container()
 show_list_container()
 {
