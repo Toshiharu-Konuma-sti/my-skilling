@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # =============================================================================
 # GGUF モデルを Hugging Face から curl -L -C - でダウンロードする (途中再開可能)
 #
@@ -6,24 +6,26 @@
 # 手順  : 1. ./BEFORE_CONTAINER_DOWNLOAD_MODELS.sh  (何度実行しても途中から再開される)
 #         2. ./CREATE_CONTAINER.sh  (ローカル GGUF を ollama create で登録)
 # =============================================================================
-set -uo pipefail
+set -u
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 MODELS_DIR="${SCRIPT_DIR}/models"
 mkdir -p "${MODELS_DIR}"
 
 download() {
-  local name="$1" url="$2" dest="${MODELS_DIR}/$3"
+  _name="$1"
+  _url="$2"
+  _dest="${MODELS_DIR}/$3"
   echo ""
-  echo "📦 ${name}"
-  echo "   ${url}"
+  echo "📦 ${_name}"
+  echo "   ${_url}"
   # -L: リダイレクト追跡 (HuggingFace CDN 必須)  -C -: バイト単位再開  --progress-bar: 進捗表示
-  if curl -L --show-error --progress-bar -C - -o "${dest}" "${url}"; then
-    echo "✅ ${name} ready ($(du -sh "${dest}" | cut -f1))"
+  if curl -L --show-error --progress-bar -C - -o "${_dest}" "${_url}"; then
+    echo "✅ ${_name} ready ($(du -sh "${_dest}" | cut -f1))"
   else
-    local exit_code=$?
-    echo "❌ ${name} failed (exit=${exit_code}). 部分ファイルは保持されます。再実行で再開されます。"
-    return ${exit_code}
+    _rc=$?
+    echo "❌ ${_name} failed (exit=${_rc}). 部分ファイルは保持されます。再実行で再開されます。"
+    return ${_rc}
   fi
 }
 
